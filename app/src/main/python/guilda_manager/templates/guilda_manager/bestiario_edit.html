@@ -1,0 +1,187 @@
+{% extends 'guilda_manager/_base_bestiario.html' %}
+{% load static %}
+
+{% block title %}Editar Bestiário - Tormenta 20{% endblock %}
+
+{% block extra_head %}
+<style>
+    .torn-edge {
+        position: absolute;
+        bottom: -20px;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'%3E%3Cpath fill='%23FDFBF7' fill-opacity='1' d='M0,160L40,170.7C80,181,160,203,240,192C320,181,400,139,480,122.7C560,107,640,117,720,133.3C800,149,880,171,960,165.3C1040,160,1120,128,1200,112C1280,96,1360,96,1400,96L1440,96L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-size: cover;
+        z-index: 20;
+        filter: drop-shadow(0px -4px 6px rgba(0,0,0,0.3));
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="bg-background-dark text-gray-200 relative pb-16">
+    <div class="h-1 w-full bg-gradient-to-r from-primary via-gold to-primary sticky top-0 z-50 shadow-[0_0_15px_rgba(212,172,13,0.5)]"></div>
+    <div class="max-w-md mx-auto px-4 pt-8 pb-12">
+        <header class="mb-8 flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-full border-2 border-gold/50 bg-card-dark flex items-center justify-center mb-3 shadow-gold-glow">
+                <span class="material-symbols-outlined text-3xl text-gold">edit_note</span>
+            </div>
+            <h1 class="font-display text-2xl font-bold text-gold tracking-widest uppercase mb-1 drop-shadow-md">
+                {% if monster.name %}Editar: {{ monster.name }}{% else %}Novo Registro{% endif %}
+            </h1>
+            <p class="text-xs text-gray-500 italic font-serif">Inscrição no Bestiário da Guilda</p>
+        </header>
+    </div>
+    <div class="torn-edge"></div>
+</section>
+
+<main class="bg-parchment relative pt-12 px-4 max-w-md mx-auto space-y-6">
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="bg-primary/10 border border-primary text-primary px-4 py-3 rounded relative" role="alert">
+                <strong class="font-bold">Por favor, corrija os erros abaixo:</strong>
+                <ul class="mt-1 list-disc list-inside text-sm">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <section class="bg-white p-4 rounded-lg shadow-md border-t-4 border-gray-600 relative overflow-hidden">
+            <div class="absolute inset-0 parchment-texture pointer-events-none z-0"></div>
+            <div class="relative z-10 space-y-4">
+                <div class="flex justify-between items-start mb-2">
+                    <label class="block font-display text-sm font-bold text-gray-800 uppercase tracking-wide">
+                        Criatura
+                    </label>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-pink-100 text-pink-800 border border-pink-200 shadow-sm">
+                        <span class="material-symbols-outlined text-sm mr-1">auto_awesome</span>
+                        Modo Edição
+                    </span>
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Nome</label>
+                    {{ form.name }}
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase">Tipo</label>
+                        {{ form.monster_type }}
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase">Tamanho</label>
+                        {{ form.size }}
+                    </div>
+                </div>
+                <div class="space-y-1 pt-2">
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Descrição</label>
+                    {{ form.description }}
+                </div>
+                <div class="w-1/3 space-y-1">
+                    <label class="block text-xs font-bold text-gray-600 uppercase">ND</label>
+                    {{ form.challenge_level }}
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-4 rounded-lg shadow-arcane border-t-4 border-primary relative overflow-hidden ring-2 ring-pink-400/30">
+            <div class="absolute inset-0 parchment-texture pointer-events-none z-0"></div>
+            <div class="relative z-10 space-y-4">
+                <div class="flex justify-between items-center border-b border-primary/20 pb-2 mb-2">
+                    <h2 class="font-display text-lg font-bold text-primary uppercase">Dados Táticos</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase">Papel de Combate</label>
+                        {{ form.combat_role }}
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase">Defesa</label>
+                        {{ form.defense }}
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase">Deslocamento</label>
+                        {{ form.movement }}
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase">Habitat</label>
+                        {{ form.habitat }}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-4 rounded-lg shadow-md border-t-4 border-gold relative overflow-hidden">
+            <div class="absolute inset-0 parchment-texture pointer-events-none z-0"></div>
+            <div class="relative z-10 space-y-4">
+                <div class="flex justify-between items-center border-b border-gold/30 pb-2 mb-2">
+                    <h2 class="font-display text-lg font-bold text-primary uppercase">Dados Vitais</h2>
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Pontos de Vida (PV)</label>
+                    {{ form.health_points }}
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Fraquezas</label>
+                    {{ form.weaknesses }}
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Imunidades</label>
+                    {{ form.immunities }}
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-gray-600 uppercase">Poderes Especiais</label>
+                    {{ form.special_abilities }}
+                </div>
+            </div>
+        </section>
+
+        <!-- Render hidden fields -->
+        {% for field in form.hidden_fields %}
+            {{ field }}
+        {% endfor %}
+
+        <div class="flex gap-4 mb-6">
+            <a href="{% url 'bestiario_list' %}" class="flex-1 relative group overflow-hidden rounded shadow-lg bg-gray-200 border-2 border-gray-400 py-4 flex items-center justify-center space-x-2 transition active:scale-95 duration-150">
+                <span class="material-symbols-outlined text-gray-600">cancel</span>
+                <span class="font-display font-bold text-gray-600 text-sm uppercase tracking-widest">Cancelar</span>
+            </a>
+
+            <button class="flex-[2] relative group overflow-hidden rounded shadow-lg transform transition active:scale-95 duration-150" type="submit">
+                <div class="absolute inset-0 bg-gradient-to-b from-[#F9E79F] to-[#D4AC0D] border-2 border-[#B7950B]"></div>
+                <div class="absolute inset-0 opacity-0 group-hover:opacity-20 bg-white transition-opacity duration-300"></div>
+                <div class="relative py-4 px-6 flex items-center justify-center space-x-2">
+                    <span class="material-symbols-outlined text-gray-900">save</span>
+                    <span class="font-display font-bold text-gray-900 text-lg uppercase tracking-widest drop-shadow-sm">Salvar</span>
+                </div>
+            </button>
+        </div>
+        <div class="h-10"></div>
+    </form>
+</main>
+
+<script>
+    // Apply Tailwind classes to Django form inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input[type="text"], input[type="number"], textarea, select');
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-checkbox')) {
+                input.classList.add('block', 'w-full', 'border-gray-300', 'rounded', 'bg-parchment/50', 'focus:ring-primary', 'focus:border-primary', 'text-sm', 'text-gray-900');
+            }
+        });
+
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(t => t.classList.add('resize-none'));
+    });
+</script>
+{% endblock %}

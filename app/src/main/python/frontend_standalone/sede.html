@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sede da Guilda - Tormenta 20</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Iowan Old Style';
+            src: url('iowanoldstyle_bold.otf') format('opentype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* CSS Variables */
+        :root {
+            /* Backgrounds */
+            --bg-main: #f6f6f6;
+            --bg-card: #e8d1b5;
+            --bg-header: #062936;
+            --bg-alt: #ddd9d5;
+
+            /* Text & Borders */
+            --text-main: #000000;
+            --text-white: #ffffff;
+            --border-strong: #3f0f12;
+            --border-soft: #6f3c27;
+
+            /* Accents */
+            --color-tormenta: #b02b2e;
+            --color-gold: #f0dc82;
+            --color-magic: #727175;
+
+            /* Fonts */
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'Iowan Old Style', serif;
+        }
+
+        /* Reset & Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-main);
+            background-image: radial-gradient(circle, var(--bg-main), #e0e0e0);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-heading);
+        }
+
+        /* Utility Classes */
+        .danger-text {
+            color: var(--color-tormenta) !important;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--bg-header);
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            color: var(--text-white);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Mobile First Center */
+            flex-wrap: wrap;
+            border-bottom: 4px solid var(--border-strong);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            header {
+                justify-content: space-between;
+                text-align: left;
+            }
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            flex-direction: column; /* Mobile First Column */
+            gap: 20px;
+            flex: 1;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .header-content {
+                flex-direction: row;
+            }
+        }
+
+        .level-badge {
+            width: 70px;
+            height: 70px;
+            background-color: var(--color-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            color: black;
+            font-weight: bold;
+            border: 4px double var(--border-strong);
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(240, 220, 130, 0.5);
+        }
+
+        .guild-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .guild-info {
+                align-items: flex-start;
+            }
+        }
+
+        .guild-name {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .xp-container {
+            width: 100%;
+            max-width: 300px;
+            background-color: rgba(0, 0, 0, 0.5);
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-gold), #fff8d6);
+            width: 0%; /* Will be set by JS */
+            transition: width 0.5s ease-out;
+            box-shadow: 0 0 5px var(--color-gold);
+        }
+
+        .xp-text {
+            font-size: 0.8rem;
+            margin-top: 4px;
+            opacity: 0.9;
+            font-family: var(--font-heading);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background-color: var(--bg-alt);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            border-bottom: 1px solid var(--border-soft);
+            margin-bottom: 20px;
+            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.05);
+        }
+
+        .alignment-tag {
+            background-color: #fff;
+            border: 1px solid var(--border-soft);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--border-strong);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Main Content */
+        main {
+            padding: 0 20px 40px 20px;
+        }
+
+        /* Resources Section */
+        .resources-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        @media (min-width: 768px) {
+            .resources-section {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .resource-card {
+            background-color: #fff;
+            padding: 25px;
+            border: 1px solid var(--border-soft);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Treasury Specifics */
+        .treasury-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ffffff, #fffdf5);
+            border: 2px solid var(--color-gold);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle gold shine effect */
+        .treasury-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
+
+        .treasury-icon {
+            margin-bottom: 15px;
+            z-index: 1;
+        }
+
+        .treasury-icon img {
+            max-width: 100px; /* Big icon */
+            height: auto;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .treasury-card:hover .treasury-icon img {
+            transform: scale(1.1);
+        }
+
+        .resource-title {
+            font-family: var(--font-heading);
+            color: var(--border-strong);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+            z-index: 1;
+        }
+
+        .resource-title::after {
+            content: '';
+            display: block;
+            width: 60%;
+            height: 3px;
+            background-color: var(--color-gold);
+            margin: 5px auto 0;
+            border-radius: 2px;
+        }
+
+        .resource-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--border-strong);
+            z-index: 1;
+        }
+
+        .max-funds-label {
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+
+        .warning-icon {
+            display: inline-block;
+            margin-left: 5px;
+            color: var(--color-tormenta);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Capacidade Progress Bars */
+        .capacity-item {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .capacity-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--border-strong);
+        }
+
+        .progress-container {
+            background-color: var(--bg-alt);
+            height: 20px;
+            border: 1px solid var(--border-soft);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, var(--bg-header), #0a445a);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-out;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(255,255,255,0.2), transparent);
+        }
+
+        /* Buildings Grid */
+        .buildings-section {
+            margin-top: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Mobile center */
+            gap: 15px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-soft);
+            padding-bottom: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .section-header {
+                justify-content: flex-start;
+            }
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .buildings-section h2 {
+            font-family: var(--font-heading);
+            color: var(--border-strong);
+            font-size: 2rem;
+            border: none;
+            padding: 0;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+        }
+
+        .buildings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        @media (min-width: 768px) {
+            .buildings-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+
+        .building-card {
+            background: linear-gradient(to bottom, var(--bg-card), #dec1a0);
+            border: 3px double var(--border-strong);
+            border-radius: 8px;
+            padding: 0;
+            position: relative;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+        }
+
+        .building-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+        }
+
+        .building-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: rgba(63, 15, 18, 0.05);
+            border-bottom: 1px solid rgba(63, 15, 18, 0.1);
+        }
+
+        .building-title {
+            font-family: var(--font-heading);
+            color: var(--border-strong);
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .building-type {
+            font-size: 0.75rem;
+            background-color: var(--color-header);
+            color: var(--text-white);
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .building-body {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .building-description {
+            margin-bottom: 15px;
+            font-size: 1rem;
+            color: #222;
+        }
+
+        .building-flavor {
+            font-family: var(--font-body);
+            font-style: italic;
+            color: #4a4a4a;
+            border-left: 3px solid var(--color-tormenta);
+            padding: 8px 12px;
+            margin: 0 0 20px 0;
+            background-color: rgba(255,255,255,0.4);
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .building-cost {
+            font-weight: bold;
+            color: var(--border-strong);
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            border-bottom: 1px dotted var(--border-soft);
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+
+        .building-effects-container {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .building-effect {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .building-effect-title {
+            font-weight: bold;
+            color: var(--color-tormenta);
+        }
+
+        .building-requirement {
+            margin-top: auto;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            background-color: rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--color-magic);
+            font-style: italic;
+        }
+
+        .empty-slot {
+            border: 3px dashed rgba(111, 60, 39, 0.3);
+            background-color: rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: var(--color-magic);
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .empty-slot:hover {
+            background-color: rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container header-content">
+            <div id="level-badge" class="level-badge">1</div>
+            <div class="guild-info">
+                <h1 id="guild-name" class="guild-name">Nome da Guilda</h1>
+                <div class="xp-container">
+                    <div id="xp-bar" class="xp-bar"></div>
+                </div>
+                <div id="xp-text" class="xp-text">0 / 0 XP</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="status-bar container">
+        <div id="align-legal" class="alignment-tag">Neutro</div>
+        <div id="align-moral" class="alignment-tag">Neutro</div>
+    </div>
+
+    <main class="container">
+
+        <section class="quests-section" style="margin-bottom: 40px;">
+            <div class="section-header">
+                <h2>Quadro de Missões</h2>
+            </div>
+            <div id="quests-grid" class="buildings-grid">
+                <!-- Quest cards will be injected here -->
+            </div>
+        </section>
+
+        <div class="resources-section">
+            <!-- Tesouro -->
+            <div class="resource-card treasury-card">
+                <div class="treasury-icon">
+                    <img src="safe-box.png" alt="Tesouro">
+                </div>
+                <h3 class="resource-title">Tesouro</h3>
+                <div class="resource-value">
+                    <span id="current-funds">0</span>
+                    <div class="max-funds-label">Limite: <span id="max-funds">0</span></div>
+                    <span id="funds-warning" class="warning-icon" style="display: none;">⚠️</span>
+                </div>
+            </div>
+
+            <!-- Capacidade -->
+            <div class="resource-card">
+                <h3 class="resource-title">Capacidade</h3>
+
+                <div class="capacity-item">
+                    <div class="capacity-label">
+                        <span>Membros</span>
+                        <span id="members-text">0 / 0</span>
+                    </div>
+                    <div class="progress-container">
+                        <div id="members-bar" class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="capacity-item">
+                    <div class="capacity-label">
+                        <span>Construções</span>
+                        <span id="buildings-text">0 / 0</span>
+                    </div>
+                    <div class="progress-container">
+                        <div id="buildings-bar" class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="buildings-section">
+            <div class="section-header">
+                <img src="construction.png" alt="" class="section-icon">
+                <h2>Construções</h2>
+            </div>
+            <div id="buildings-grid" class="buildings-grid">
+                <!-- Cards will be injected here -->
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Mock Data
+        const guildData = {
+            name: "A Guilda do Macaco Caolho",
+            level: 4,
+            xp: 75,
+            next_xp: 100,
+            funds: 2500.50,
+            max_funds: 2000.00, // Trigger overflow warning
+            alignment: { legal: "Independente", moral: "Corporativa" },
+            slots: { members: {curr: 8, max: 10}, buildings: {curr: 2, max: 2} },
+            buildings: [
+                {
+                    name: "A Grande Forja",
+                    type: "Metalurgia",
+                    flavor_text: "\"O calor é insuportável para quem não é do ramo, mas é o abraço do lar para um ferreiro.\"",
+                    cost: 5000.00,
+                    effects: [
+                        { name: "Manufatura Pesada", description: "Permite a criação e Reduz o material de fabricação de armas e armaduras metálicas em 20% (cumulativo com outros poderes)." },
+                        { name: "Ferreiro amigo", description: "Disponibiliza armas e armaduras simples na loja da guilda, ao comprar um desses itens, o jogador pode escolher pagar 150T$ para escolher um modificador simples qualquer." }
+                    ],
+                    requirement: "A construção precisa de um personagem treinado em Ofício (Armeiro) ou um NPC especializado para operar."
+                },
+                {
+                    name: "Laboratório de Alquimia",
+                    type: "Alquimia",
+                    flavor_text: "\"Vidrarias borbulhantes, alambiques de cobre e ventiladores para expulsar vapores tóxicos.\"",
+                    cost: 5000.00,
+                    effects: [
+                        { name: "Destilação", description: "Ao fabricar poções, elixires ou itens alquímicos (como Fogo Alquímico), o personagem recupera 20% do custo de fabricação em materiais sobressalentes (reduzindo o custo final)." },
+                        { name: "Segurança", description: "Permite fabricar venenos e ácidos sem risco de se envenenar acidentalmente em caso de falha (o laboratório possui exaustores e equipamentos de proteção)." }
+                    ]
+                }
+            ]
+        };
+
+        // Render Function
+        function renderGuild(data) {
+            // Header
+            document.getElementById('guild-name').textContent = data.name;
+            document.getElementById('level-badge').textContent = data.level;
+
+            const xpPercent = (data.xp / data.next_xp) * 100;
+            document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+            document.getElementById('xp-text').textContent = `${data.xp} / ${data.next_xp} XP`;
+
+            // Alignment
+            document.getElementById('align-legal').textContent = data.alignment.legal;
+            document.getElementById('align-moral').textContent = data.alignment.moral;
+
+            // Funds
+            const fundsElement = document.getElementById('current-funds');
+            const maxFundsElement = document.getElementById('max-funds');
+            const fundsWarning = document.getElementById('funds-warning');
+
+            fundsElement.textContent = `T$ ${data.funds.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            maxFundsElement.textContent = `T$ ${data.max_funds.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+            if (data.funds > data.max_funds) {
+                fundsElement.parentElement.classList.add('danger-text');
+                fundsWarning.style.display = 'inline-block';
+            } else {
+                fundsElement.parentElement.classList.remove('danger-text');
+                fundsWarning.style.display = 'none';
+            }
+
+            // Capacity
+            updateCapacity('members', data.slots.members);
+            updateCapacity('buildings', data.slots.buildings);
+
+            // Buildings Grid
+            const grid = document.getElementById('buildings-grid');
+            grid.innerHTML = ''; // Clear existing
+
+            // Render Active Buildings
+            data.buildings.forEach(building => {
+                const card = document.createElement('div');
+                card.className = 'building-card';
+
+                // Build Effects HTML
+                let effectsHtml = '';
+                if (building.effects && building.effects.length > 0) {
+                    effectsHtml = `<div class="building-effects-container">`;
+                    building.effects.forEach(effect => {
+                        effectsHtml += `
+                            <div class="building-effect">
+                                <span class="building-effect-title">${effect.name}:</span> ${effect.description}
+                            </div>
+                        `;
+                    });
+                    effectsHtml += `</div>`;
+                }
+
+                // Build Requirement HTML
+                let requirementHtml = '';
+                if (building.requirement) {
+                    requirementHtml = `<div class="building-requirement">Requisito: ${building.requirement}</div>`;
+                }
+
+                // Build Cost HTML
+                let costHtml = '';
+                if (building.cost) {
+                    costHtml = `<div class="building-cost">Custo de Construção: T$ ${building.cost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="building-header">
+                        <div class="building-title">${building.name}</div>
+                        <div class="building-type">${building.type}</div>
+                    </div>
+                    <div class="building-body">
+                        <div class="building-flavor">${building.flavor_text}</div>
+                        ${costHtml}
+                        ${effectsHtml}
+                        ${requirementHtml}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Calculate Empty Slots
+            const totalSlots = data.slots.buildings.max;
+            const usedSlots = data.buildings.length;
+
+            const emptySlotsCount = totalSlots - usedSlots;
+
+            for (let i = 0; i < emptySlotsCount; i++) {
+                const emptyCard = document.createElement('div');
+                emptyCard.className = 'empty-slot';
+                emptyCard.textContent = 'Espaço Vazio';
+                grid.appendChild(emptyCard);
+            }
+        }
+
+        function updateCapacity(type, slotData) {
+            const textEl = document.getElementById(`${type}-text`);
+            const barEl = document.getElementById(`${type}-bar`);
+
+            textEl.textContent = `${slotData.curr} / ${slotData.max}`;
+            const percent = (slotData.curr / slotData.max) * 100;
+            barEl.style.width = `${percent}%`;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGuild(guildData);
+            fetchQuests();
+        });
+
+        async function fetchQuests() {
+            try {
+                const response = await fetch('/api/quests/');
+                if (!response.ok) {
+                    // If 404 or error (e.g. running standalone without backend), we might want to show mock or empty
+                    throw new Error('Network response was not ok');
+                }
+                const quests = await response.json();
+                renderQuests(quests);
+            } catch (error) {
+                console.error('Error fetching quests:', error);
+                const grid = document.getElementById('quests-grid');
+                grid.innerHTML = '<div class="empty-slot" style="grid-column: 1 / -1;">Não foi possível carregar as missões. (Backend offline?)</div>';
+            }
+        }
+
+        function renderQuests(quests) {
+            const grid = document.getElementById('quests-grid');
+            grid.innerHTML = '';
+
+            if (quests.length === 0) {
+                 grid.innerHTML = '<div class="empty-slot" style="grid-column: 1 / -1;">Nenhuma missão disponível.</div>';
+                 return;
+            }
+
+            quests.forEach(quest => {
+                const card = document.createElement('div');
+                card.className = 'building-card'; // Reuse building card styles for consistency
+
+                // Status colors
+                let statusColor = '#062936';
+                if (quest.status === 'COMPLETED') statusColor = 'green';
+                if (quest.status === 'DISASTER' || quest.status === 'FAILED') statusColor = 'var(--color-tormenta)';
+                if (quest.status === 'DELEGATED') statusColor = '#d4a017'; // Goldish
+
+                // Format rewards
+                const gold = parseFloat(quest.gold_reward).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+                card.innerHTML = `
+                    <div class="building-header">
+                        <div class="building-title">${quest.title}</div>
+                        <div class="building-type" style="background-color: ${statusColor}">${quest.status_display}</div>
+                    </div>
+                    <div class="building-body">
+                        <div class="building-flavor">Rank: <strong>${quest.rank}</strong> | Duração: ${quest.duration_days} dias</div>
+                        <div class="building-description">${quest.description}</div>
+                        <div class="building-cost" style="border-top: 1px dotted var(--border-soft); border-bottom: none; margin-top: auto; padding-top: 10px;">
+                            Recompensa: T$ ${gold} | ${quest.gxp_reward} GXP
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+    </script>
+</body>
+</html>

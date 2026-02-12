@@ -1,0 +1,223 @@
+{% extends 'guilda_manager/_base_bestiario.html' %}
+{% load static %}
+
+{% block title %}Lista de Bestiário - Tormenta 20{% endblock %}
+
+{% block extra_head %}
+<style>
+    .stats-bar {
+        background: linear-gradient(180deg, rgba(30,30,30,0.9) 0%, rgba(15,12,12,0.95) 100%);
+        border-bottom: 1px solid #3d352c;
+    }
+    .filter-section {
+        background-color: #E8D5B5;
+        background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4af37' fill-opacity='0.1' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+    }
+    .nd-badge {
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.4), inset 0 0 5px rgba(0,0,0,0.5);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .legendary-card {
+        border: 2px solid #FFD700;
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.3), 0 0 10px rgba(212, 175, 55, 0.5);
+        position: relative;
+        z-index: 10;
+    }
+    .legendary-card::before {
+        content: '';
+        position: absolute;
+        top: -2px; left: -2px; right: -2px; bottom: -2px;
+        border-radius: 8px;
+        background: linear-gradient(45deg, #FFD700, transparent, #FFD700, transparent);
+        z-index: -1;
+        opacity: 0.5;
+        filter: blur(5px);
+    }
+    .legendary-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+            radial-gradient(2px 2px at 10% 10%, rgba(255,215,0,0.8), transparent),
+            radial-gradient(2px 2px at 20% 30%, rgba(255,215,0,0.6), transparent),
+            radial-gradient(2px 2px at 80% 60%, rgba(255,215,0,0.8), transparent),
+            radial-gradient(2px 2px at 90% 20%, rgba(255,215,0,0.6), transparent),
+            radial-gradient(2px 2px at 15% 85%, rgba(255,215,0,0.8), transparent);
+        pointer-events: none;
+        mix-blend-mode: screen;
+        opacity: 0.6;
+    }
+    .legendary-header-glow {
+        box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="pt-8 pb-4 flex flex-col items-center justify-center w-full relative z-10 text-center space-y-2 bg-[#0F0C0C]">
+    <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-gold text-2xl">menu_book</span>
+    </div>
+    <h1 class="cinzel text-xl font-black text-transparent bg-clip-text bg-gradient-to-b from-gold via-[#FFE082] to-[#806020] tracking-[0.15em] uppercase drop-shadow-md">
+        Lista de Bestiário
+    </h1>
+    <div class="h-px w-24 bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
+</header>
+
+<div class="stats-bar w-full px-4 py-3 flex justify-between items-center text-center border-t border-white/5 sticky top-0 z-30">
+    <div class="flex flex-col">
+        <span class="text-gold font-bold cinzel text-lg drop-shadow-sm">{{ total_monsters }}</span>
+        <span class="text-[10px] text-gray-400 uppercase tracking-wider">Registros</span>
+    </div>
+    <div class="h-8 w-px bg-white/10"></div>
+    <div class="flex flex-col">
+        <span class="text-gold font-bold cinzel text-lg drop-shadow-sm">{% if avg_nd %}{{ avg_nd|floatformat:1 }}{% else %}-{% endif %}</span>
+        <span class="text-[10px] text-gray-400 uppercase tracking-wider">ND Médio</span>
+    </div>
+    <div class="h-8 w-px bg-white/10"></div>
+    <div class="flex flex-col">
+        <span class="text-gold font-bold cinzel text-lg drop-shadow-sm">{% if max_nd %}{{ max_nd|floatformat:-2 }}{% else %}-{% endif %}</span>
+        <span class="text-[10px] text-gray-400 uppercase tracking-wider">Maior Ameaça</span>
+    </div>
+</div>
+
+<form method="GET" action="." class="filter-section w-full px-4 py-4 flex gap-3 items-center shadow-lg border-b border-[#3d352c] z-20">
+    <div class="relative flex-1">
+        <input type="text" name="search" value="{{ search_query }}" class="w-full bg-[#F5F0E6] border border-[#806020] rounded text-slate-800 placeholder-slate-500 text-sm py-2 pl-3 pr-10 focus:ring-1 focus:ring-primary focus:border-primary shadow-inner" placeholder="Buscar criatura...">
+        <span class="material-symbols-outlined absolute right-2 top-2 text-[#806020]">search</span>
+    </div>
+    <button type="submit" class="bg-primary text-ivory cinzel font-bold text-xs px-4 py-2.5 rounded border border-[#501010] shadow-md active:scale-95 transition-transform flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">filter_list</span>
+        FILTRAR
+    </button>
+</form>
+
+<main class="flex-1 flex flex-col gap-6 px-4 py-6 max-w-md mx-auto w-full">
+    {% for monster in monsters %}
+    <article class="parchment-texture rounded-lg overflow-hidden relative {% if monster.register_level == 3 %}legendary-card{% elif monster.register_level == 2 %}shadow-epic{% else %}shadow-md{% endif %} group">
+
+        <!-- Header -->
+        <div class="{% if monster.register_level == 3 %}bg-legendary-gradient bg-ornate-pattern border-[#5c4008] legendary-header-glow{% elif monster.register_level == 2 %}bg-card-header-red border-gold/50{% else %}bg-card-header-gray border-white/20{% endif %} px-4 py-3 relative border-b-2 flex justify-between items-start">
+
+            {% if monster.register_level == 3 %}
+                <div class="absolute inset-0 bg-sparkles opacity-30 mix-blend-overlay"></div>
+            {% endif %}
+
+            <div class="relative z-10">
+                <div class="inline-block {% if monster.register_level == 3 %}bg-white text-[#804A00] border-[#804A00] ring-1 ring-gold/50{% elif monster.register_level == 2 %}bg-[#F5F0E6] text-[#4A1A1A] border-[#806020]{% else %}bg-[#D1D5DB] text-slate-700 border-slate-500{% endif %} text-[9px] font-black px-2 py-0.5 mb-1 rounded-sm border uppercase tracking-wider shadow-sm">
+                    {% if monster.register_level == 3 %}Tratado Monstruoso{% elif monster.register_level == 2 %}Registro de Campo{% else %}Rascunho{% endif %}
+                </div>
+                <h2 class="cinzel text-xl font-black {% if monster.register_level == 3 %}text-[#3d2703]{% else %}text-ivory{% endif %} tracking-wide leading-tight drop-shadow-sm">{{ monster.name }}</h2>
+                <div class="flex items-center gap-2 mt-0.5">
+                    <p class="text-[10px] {% if monster.register_level == 3 %}text-[#3d2703]{% else %}text-gold/80{% endif %} uppercase tracking-widest font-bold">{{ monster.size }}</p>
+                    {% if monster.monster_type %}
+                         <span class="text-[8px] px-1 text-ivory bg-black/50 rounded uppercase font-bold">{{ monster.monster_type }}</span>
+                    {% else %}
+                        <span class="data-redacted text-[8px] px-1 text-transparent bg-gray-600">Humanoide</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ND Badge -->
+            <div class="nd-badge w-10 h-10 rounded-full {% if monster.register_level == 3 %}bg-[#804A00] border-[#FFD700]{% elif monster.register_level == 2 %}bg-gradient-to-br from-[#8B1E1E] to-[#4A1A1A] border-gold{% else %}bg-gradient-to-br from-gray-600 to-gray-800 border-gray-400{% endif %} border-2 flex items-center justify-center shrink-0 ml-2 relative z-10 {% if monster.register_level == 3 %}shadow-gold-glow{% endif %}">
+                <span class="cinzel font-bold {% if monster.register_level == 3 %}text-[#FFD700]{% else %}text-white{% endif %} {% if monster.challenge_level >= 10 %}text-base{% else %}text-lg{% endif %}">
+                    {% if monster.challenge_level > 0 %}{{ monster.challenge_level|floatformat:-2 }}{% else %}?{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 text-slate-800 relative z-10">
+            <p class="medieval text-slate-700 italic text-sm leading-relaxed mb-4 border-l-2 {% if monster.register_level == 3 %}border-[#804A00]/40{% elif monster.register_level == 2 %}border-primary/30{% else %}border-gray-400/30{% endif %} pl-3">
+                {{ monster.description|default:"Sem descrição disponível."|linebreaksbr }}
+            </p>
+
+            <div class="mb-4">
+                <h3 class="cinzel {% if monster.register_level == 3 %}text-[#804A00] border-[#804A00]/30{% elif monster.register_level == 2 %}text-primary border-primary/20{% else %}text-slate-700 border-gray-400/20{% endif %} text-xs font-bold border-b pb-1 mb-2 uppercase tracking-wider">Dados Táticos</h3>
+                <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                    <div class="text-slate-600 font-semibold">Papel:</div>
+                    <div class="text-right font-bold text-slate-800">{% if monster.combat_role %}{{ monster.combat_role }}{% else %}<span class="data-redacted text-[10px] w-12 text-transparent">???</span>{% endif %}</div>
+
+                    <div class="text-slate-600 font-semibold">Deslocamento:</div>
+                    <div class="text-right text-slate-800">{% if monster.movement %}{{ monster.movement }}{% else %}<span class="data-redacted text-[10px] w-12 text-transparent">???</span>{% endif %}</div>
+
+                    <div class="text-slate-600 font-semibold">Defesa:</div>
+                    <div class="text-right text-slate-800">{% if monster.defense %}{{ monster.defense }}{% else %}<span class="data-redacted text-[10px] w-8 text-transparent">???</span>{% endif %}</div>
+
+                    <div class="text-slate-600 font-semibold">Habitat:</div>
+                    <div class="text-right text-slate-800">{% if monster.habitat %}{{ monster.habitat }}{% else %}<span class="data-redacted text-[10px] w-12 text-transparent">???</span>{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="{% if monster.register_level == 3 %}bg-[#804A00]/5 border-[#804A00]/10{% elif monster.register_level == 2 %}bg-primary/5 border-primary/10{% else %}bg-gray-200/50 border-gray-300/50 grayscale{% endif %} rounded p-3 border relative">
+                {% if monster.register_level == 3 %}
+                <div class="absolute inset-0 border border-gold/10 rounded pointer-events-none"></div>
+                {% endif %}
+
+                <h3 class="cinzel {% if monster.register_level == 3 %}text-[#804A00] border-[#804A00]/30{% elif monster.register_level == 2 %}text-primary border-primary/20{% else %}text-slate-700 border-slate-400/20{% endif %} text-xs font-bold border-b pb-1 mb-2 uppercase tracking-wider flex items-center gap-1">
+                    <span class="w-1 h-3 {% if monster.register_level == 3 %}bg-[#804A00]{% elif monster.register_level == 2 %}bg-primary{% else %}bg-slate-500{% endif %} block"></span> Dados Vitais
+                </h3>
+
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-700">PV:</span>
+                        <span class="font-bold text-slate-800">{% if monster.health_points %}{{ monster.health_points }}{% else %}<span class="data-redacted text-[10px] w-8 text-center text-transparent">???</span>{% endif %}</span>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-700">Fraquezas:</span>
+                        {% if monster.weaknesses %}
+                             <span class="text-right max-w-[60%] truncate" title="{{ monster.weaknesses }}">{{ monster.weaknesses }}</span>
+                        {% else %}
+                             <span class="data-redacted text-[10px] w-16 text-center text-transparent">???</span>
+                        {% endif %}
+                    </div>
+
+                    {% if monster.register_level >= 3 %}
+                    <div class="flex flex-col gap-1 pt-1">
+                        <span class="font-bold text-slate-700">Imunidades:</span>
+                        {% if monster.immunities %}
+                            <span class="text-slate-600 leading-tight pl-2 border-l border-[#804A00]/20">{{ monster.immunities }}</span>
+                        {% else %}
+                            <span class="data-redacted text-[10px] w-16 text-center text-transparent">???</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex flex-col gap-1 pt-1">
+                        <span class="font-bold text-slate-700">Poderes:</span>
+                        {% if monster.special_abilities %}
+                            <span class="text-slate-600 leading-tight pl-2 border-l border-[#804A00]/20">{{ monster.special_abilities|truncatechars:100 }}</span>
+                        {% else %}
+                            <span class="data-redacted text-[10px] w-24 h-4 block text-transparent">???</span>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-700">Imunidades:</span>
+                        <span class="data-redacted text-[10px] w-16 text-center text-transparent">???</span>
+                    </div>
+                    <div class="flex justify-between items-start pt-1">
+                        <span class="font-bold text-slate-700">Poderes:</span>
+                        <span class="data-redacted text-[10px] w-24 h-4 block text-transparent ml-auto">???</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="absolute bottom-2 right-4 opacity-50 hover:opacity-100 transition-opacity">
+                <a href="{% url 'bestiario_edit' monster.slug %}" title="Editar">
+                    <span class="material-symbols-outlined {% if monster.register_level == 3 %}text-[#804A00]{% elif monster.register_level == 2 %}text-primary{% else %}text-slate-600{% endif %} text-2xl">edit_note</span>
+                </a>
+            </div>
+        </div>
+    </article>
+    {% empty %}
+    <div class="text-center py-10">
+        <p class="text-slate-500 italic">Nenhum registro encontrado.</p>
+    </div>
+    {% endfor %}
+</main>
+{% endblock %}

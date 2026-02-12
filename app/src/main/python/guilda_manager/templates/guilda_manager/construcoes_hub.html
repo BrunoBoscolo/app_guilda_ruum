@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Construções - Hub - A Guilda do Macaco Caolho</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#8B1E1E",
+                        gold: "#D4AF37",
+                        ivory: "#F4F1EA",
+                        parchment: "#E8D5B5",
+                        "background-dark": "#0F0C0C",
+                        obsidian: "#1A1A1D",
+                        bronze: "#804A00",
+                        stone: "#2a2a2a",
+                    },
+                    fontFamily: {
+                        display: ["Cinzel", "serif"],
+                        medieval: ["MedievalSharp", "cursive"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    boxShadow: {
+                        'epic': '0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 4px 10px -5px rgba(139, 30, 30, 0.3)',
+                        'red-glow': '0 0 20px rgba(139, 30, 30, 0.5)',
+                        'gold-inner': 'inset 0 0 15px rgba(212, 175, 55, 0.15)',
+                    },
+                    backgroundImage: {
+                        'stone-texture': "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231a1a1a' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+                    }
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Inter", sans-serif;
+            background-color: #0F0C0C;
+            background-image: radial-gradient(circle at 50% 30%, #2a0a0a 0%, #0f0c0c 70%);
+        }
+        .nav-card {
+            background: linear-gradient(135deg, #1e1b18 0%, #13110f 100%);
+            border: 1px solid #3d352c;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .nav-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 0 15px rgba(139, 30, 30, 0.8);
+        }
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm20 0a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM10 37a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm20 0a7 7 0 1 0 0-14 7 7 0 0 0 0 14z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        .ornate-border {
+            border: 2px solid transparent;
+            background-image: linear-gradient(#1e1b18, #1e1b18), linear-gradient(135deg, #D4AF37 0%, #8B1E1E 50%, #D4AF37 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+  </head>
+<body class="text-slate-800 dark:text-ivory min-h-screen flex flex-col overflow-x-hidden pb-24">
+<header class="p-6 pt-12 flex items-center justify-between w-full relative z-10">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full border-2 border-gold bg-primary/20 flex items-center justify-center shadow-lg backdrop-blur-sm">
+<span class="material-symbols-outlined text-gold text-2xl">gavel</span>
+</div>
+<div class="flex flex-col">
+<h1 class="cinzel text-2xl font-black text-white tracking-widest uppercase leading-none drop-shadow-md">
+                    Construções
+                </h1>
+<span class="text-[10px] uppercase tracking-widest text-gold/60 font-serif">Hub de Operações</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gold">notifications</span>
+</button>
+</div>
+</header>
+<main class="flex-1 flex flex-col justify-center gap-6 px-6 py-4 max-w-md mx-auto w-full relative z-0">
+<div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-10">
+<span class="material-symbols-outlined text-[300px] text-primary">fort</span>
+</div>
+
+<!-- Projects Link -->
+<a href="{% url 'construcoes_projetos' %}" class="nav-card ornate-border rounded-xl p-6 shadow-red-glow relative overflow-hidden group h-48 flex flex-col justify-between">
+    <div class="absolute right-[-20px] top-[-20px] opacity-10 rotate-12 transition-transform group-hover:rotate-0 duration-700">
+    <span class="material-symbols-outlined text-[150px] text-gold">architecture</span>
+    </div>
+    <div class="relative z-10">
+    <div class="w-12 h-12 mb-3 rounded-lg bg-gradient-to-br from-primary/40 to-black border border-gold/30 flex items-center justify-center shadow-inner">
+    <span class="material-symbols-outlined text-gold text-3xl">compass_calibration</span>
+    </div>
+    <h2 class="cinzel text-xl font-black text-white leading-tight mb-2 group-hover:text-gold transition-colors">PROJETOS DE CONSTRUÇÃO</h2>
+    <p class="font-medieval text-ivory/70 text-sm leading-relaxed">
+                        Expanda a influência da Guilda iniciando novas obras.
+                    </p>
+    </div>
+    <div class="flex justify-end mt-2 relative z-10">
+    <span class="text-[10px] cinzel font-bold text-gold/50 tracking-widest uppercase border-b border-gold/20 pb-0.5 group-hover:text-gold group-hover:border-gold transition-all">Acessar Projetos →</span>
+    </div>
+</a>
+
+<!-- Infra Link -->
+<a href="{% url 'construcoes_infra' %}" class="nav-card ornate-border rounded-xl p-6 shadow-red-glow relative overflow-hidden group h-48 flex flex-col justify-between">
+    <div class="absolute right-[-20px] top-[-20px] opacity-10 rotate-12 transition-transform group-hover:rotate-0 duration-700">
+    <span class="material-symbols-outlined text-[150px] text-gold">castle</span>
+    </div>
+    <div class="relative z-10">
+    <div class="w-12 h-12 mb-3 rounded-lg bg-gradient-to-br from-primary/40 to-black border border-gold/30 flex items-center justify-center shadow-inner">
+    <span class="material-symbols-outlined text-gold text-3xl">fort</span>
+    </div>
+    <h2 class="cinzel text-xl font-black text-white leading-tight mb-2 group-hover:text-gold transition-colors">MINHAS CONSTRUÇÕES</h2>
+    <p class="font-medieval text-ivory/70 text-sm leading-relaxed">
+                        Gerencie e visualize as melhorias ativas em sua sede.
+                    </p>
+    </div>
+    <div class="flex justify-end mt-2 relative z-10">
+    <span class="text-[10px] cinzel font-bold text-gold/50 tracking-widest uppercase border-b border-gold/20 pb-0.5 group-hover:text-gold group-hover:border-gold transition-all">Gerenciar Sede →</span>
+    </div>
+</a>
+
+</main>
+<footer class="bg-black/50 p-8 text-center border-t border-white/5 mt-auto">
+<p class="text-[10px] text-slate-500 cinzel tracking-widest leading-relaxed">
+            Criado por <span class="text-gold">Bruno "ByeMars" Boscolo</span> &amp; <span class="text-gold">Gustavo "Garu" Oliveira</span>
+<br/>
+            Tormenta 20 é um produto da Jambô Editora.
+            <br/>
+<span class="opacity-50 italic">Projeto de fãs não lucrativo</span>
+</p>
+</footer>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/10 px-6 py-4 flex justify-between items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
+<a href="{% url 'sede' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+<span class="material-symbols-outlined group-hover:text-gold transition-colors text-xl">home</span>
+<span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase tracking-wide">Sede</span>
+</a>
+<a href="{% url 'missoes' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+<span class="material-symbols-outlined group-hover:text-gold transition-colors text-xl">history_edu</span>
+<span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase tracking-wide">Contratos</span>
+</a>
+<div class="relative -mt-10">
+<a href="{% url 'construcoes' %}" class="w-16 h-16 bg-gradient-to-b from-primary to-[#500a0a] rounded-full flex flex-col items-center justify-center border-4 border-[#1a1a1a] shadow-[0_0_15px_rgba(139,30,30,0.6)] group transition-all hover:scale-105 active:scale-95 ring-2 ring-gold/50">
+<span class="material-symbols-outlined text-gold text-3xl mb-0.5 drop-shadow-md">gavel</span>
+<span class="text-[8px] cinzel text-gold font-bold uppercase tracking-wider">Construções</span>
+</a>
+</div>
+<a href="{% url 'bestiario' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+<span class="material-symbols-outlined group-hover:text-ivory transition-colors text-xl">menu_book</span>
+<span class="text-[9px] cinzel group-hover:text-ivory font-bold uppercase tracking-wide">Bestiário</span>
+</a>
+<a href="{% url 'mestre' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+<span class="material-symbols-outlined group-hover:text-ivory transition-colors text-xl">shield</span>
+<span class="text-[9px] cinzel group-hover:text-ivory font-bold uppercase tracking-wide">Mestre</span>
+</a>
+</nav>
+
+</body></html>

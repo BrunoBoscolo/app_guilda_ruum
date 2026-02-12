@@ -1,0 +1,22 @@
+# Android padrão
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+
+# Android App
+/app/build/
+
+# Python / Django
+*.py[cod]
+*$py.class
+__pycache__/
+db.sqlite3
+.env
+venv/
+env/

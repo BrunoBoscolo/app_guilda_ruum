@@ -1,0 +1,858 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guilda Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; }
+        canvas { display: block; }
+
+        .overlay-text {
+            position: absolute;
+            color: white;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #enter-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: 2px solid #f0d767;
+            color: #f0d767;
+            text-decoration: none;
+            font-size: 1.2rem;
+            opacity: 0;
+            pointer-events: auto; /* Enable clicks */
+            transition: background 0.3s, color 0.3s;
+            cursor: pointer;
+        }
+
+        #enter-button:hover {
+            background: #f0d767;
+            color: #000;
+        }
+
+        .top-left {
+            top: 40px;
+            left: 40px;
+            font-size: 2rem;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            color: #f0d767;
+            -webkit-text-stroke-width: 1px;
+            -webkit-text-stroke-color: #000000;
+;
+        }
+
+        .intro-text {
+            margin-top: 20px;
+            font-size: 1.1rem; /* Slightly smaller than 2rem */
+            color: white;
+            text-shadow: none;
+            -webkit-text-stroke-width: 0;
+            max-width: 500px;
+            line-height: 1.4;
+            opacity: 1; /* Will be controlled by JS for typewriter, or text content injection */
+        }
+
+        .bottom-right {
+            bottom: 20px;
+            right: 20px;
+            font-size: 1.2rem;
+            text-align: right;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            color: #f0d767;
+            -webkit-text-stroke-width: 1px;
+            -webkit-text-stroke-color: #000000;
+        }
+
+        .pull-down-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #f0d767;
+            font-family: 'Oswald', sans-serif;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 20;
+        }
+
+        .pull-down-indicator p {
+            margin: 0;
+            font-size: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            -webkit-text-stroke: 0.5px black;
+            letter-spacing: 1px;
+        }
+
+        .pull-down-indicator svg {
+            width: 32px;
+            height: 32px;
+            margin-top: 5px;
+            fill: #f0d767;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+<div class="overlay-text top-left">
+    A TORMENTA ESTÁ SEMPRE DE OLHO,<br>
+    É PERIGOSO IR SOZINHO...
+    <div class="intro-text"></div>
+    <a id="enter-button" href="/sede/">ACESSAR APP</a>
+</div>
+
+<div class="overlay-text bottom-right">
+    Sistema de Guildas, Compatível com Tormenta 20
+</div>
+
+<div class="pull-down-indicator" id="pull-down-indicator">
+    <p>PUXE PARA BAIXO</p>
+    <svg viewBox="0 0 24 24">
+        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+    </svg>
+</div>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'three/addons/loaders/DracoLoader.js';
+
+    // Vertex Shader: Simplesmente repassa as coordenadas UV
+    const vertexShader = `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
+
+    // Fragment Shader: A mágica acontece aqui
+    const fragmentShader = `
+      uniform float uTime;
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      uniform float uThunder;
+      varying vec2 vUv;
+
+      // Função simples de ruído 2D (Pseudo-random)
+      float random (in vec2 st) {
+          return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+      }
+
+      float noise (in vec2 st) {
+          vec2 i = floor(st);
+          vec2 f = fract(st);
+          float a = random(i);
+          float b = random(i + vec2(1.0, 0.0));
+          float c = random(i + vec2(0.0, 1.0));
+          float d = random(i + vec2(1.0, 1.0));
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+      }
+
+      // Fractal Brownian Motion para criar camadas de "nuvens"
+      float fbm (in vec2 st) {
+          float value = 0.0;
+          float amplitude = .5;
+          float frequency = 0.;
+          for (int i = 0; i < 5; i++) {
+              value += amplitude * noise(st);
+              st *= 2.;
+              amplitude *= .5;
+          }
+          return value;
+      }
+
+      void main() {
+          // 1. Definição da área (Lado direito, 50% com transição suave)
+          // smoothstep(0.4, 1.0, vUv.x) inicia o gradiente em 40% da tela,
+          // criando uma transição bem suave que cobre visualmente metade da tela.
+          float screenMask = smoothstep(0.4, 1.0, vUv.x);
+
+          if (screenMask <= 0.01) discard;
+
+          // 2. Animação do Ruído
+          vec2 noiseUV = vUv * 3.0;
+          noiseUV.x += uTime * 0.2;
+          noiseUV.y += uTime * 0.05;
+
+          float storm = fbm(noiseUV);
+
+          // 3. Composição
+          float alpha = storm * screenMask * 1.5 * uOpacity;
+
+          // Thunder effect: mix red with white based on thunder intensity and storm density
+          vec3 finalColor = mix(uColor, vec3(1.0), uThunder * smoothstep(0.2, 0.9, storm));
+
+          gl_FragColor = vec4(finalColor, alpha);
+      }
+    `;
+
+    let camera, scene, renderer;
+    let olhoMesh;
+    let fogMesh;
+    let fundoMesh; // Global reference to background
+    let mouseLight;
+    let thunderRimLight;
+    let thunderDirLight;
+    let fogThunderVal = 0.0;
+    let modelGroup;
+
+    let particles = [];
+    let particleTexture;
+
+    // Mouse coordinates
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+
+    // Idle animation state
+    let isMouseOnScreen = false;
+    let idleTarget = new THREE.Vector3(0, 0, 2);
+    let lastIdleChange = 0;
+    let lastInteractionTime = Date.now();
+
+    // Animation Control Parameters
+    let idleParams = {
+        interval: 2000,
+        lerpFactor: 0.02,
+        frequency: 0.998
+    };
+
+    let hasScrolled = false;
+    let forceIdle = false;
+    let isEyeZoomed = false;
+
+    // Touch handling variables
+    let touchStartY = 0;
+
+    init();
+    animate();
+
+    // Show pull down indicator after 3s
+    setTimeout(() => {
+        if (!hasScrolled) {
+            anime({
+                targets: '#pull-down-indicator',
+                opacity: 1,
+                duration: 1000,
+                easing: 'easeInOutQuad'
+            });
+        }
+    }, 3000);
+
+    function init() {
+        const container = document.createElement( 'div' );
+        document.body.appendChild( container );
+
+        // Camera
+        camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
+        camera.position.set( 0, 0, 5 );
+
+        // Fog Mesh
+        const fogGeometry = new THREE.PlaneGeometry(1, 1);
+        const fogMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uColor: { value: new THREE.Color(0xff0000) },
+                uOpacity: { value: 0.0 },
+                uThunder: { value: 0.0 }
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: true,
+            depthTest: false,
+            depthWrite: false
+        });
+
+        fogMesh = new THREE.Mesh(fogGeometry, fogMaterial);
+        camera.add(fogMesh);
+        fogMesh.position.set(0, 0, -1);
+
+        // Calculate scale to fill view at z=-1
+        const dist = 1;
+        const vFOV = THREE.MathUtils.degToRad( camera.fov );
+        const height = 2 * Math.tan( vFOV / 2 ) * dist;
+        const width = height * camera.aspect;
+        fogMesh.scale.set(width, height, 1);
+
+        // Scene
+        scene = new THREE.Scene();
+        scene.add(camera);
+
+        particleTexture = createParticleTexture();
+
+        // Ambient Light
+        const ambientLight = new THREE.AmbientLight( 0x404040, 50 );
+        scene.add( ambientLight );
+
+        // Cursor Light (Orange)
+        mouseLight = new THREE.PointLight( 0xffaa00, 1.0, 8, 2 ); // Color, Intensity, Distance, Decay
+        mouseLight.position.set(0, 0, 2);
+        scene.add( mouseLight );
+
+        // Draco Loader
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath( 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/' );
+
+        // Loader
+        const loader = new GLTFLoader();
+        loader.setDRACOLoader( dracoLoader );
+
+        loader.load( "{% static 'guilda_manager/Untitled.gltf' %}", function ( gltf ) {
+            const model = gltf.scene;
+            modelGroup = model;
+            scene.add( model );
+
+            // Apply correction rotation (90 degrees X and Y)
+            model.rotation.x = Math.PI / 1;
+            model.rotation.y = Math.PI / 1;
+            model.rotation.z = Math.PI / 1;
+
+            // Find 'olho' group and 'fundo' mesh
+            model.traverse( function ( child ) {
+                if ( child.name === 'olho' ) {
+                    // Create a pivot group to handle rotation correction
+                    const pivot = new THREE.Group();
+                    pivot.position.copy( child.position );
+                    child.parent.add( pivot );
+                    pivot.add( child );
+                    child.position.set( 0, 0, 0 );
+                    // Fix orientation: Rotate the eye group so its local +Y (pupil) aligns with -Z (forward)
+                    child.rotation.x = Math.PI / 2;
+                    olhoMesh = pivot;
+
+                    // Ensure materials are transparent for fading
+                    child.traverse((c) => {
+                        if (c.isMesh) {
+                            c.material.transparent = true;
+                            c.material.opacity = 1;
+                        }
+                    });
+
+                    // Add red thunder lights
+                    // 1. Rim light (PointLight) behind the eye for border illumination
+                    thunderRimLight = new THREE.PointLight( 0xff0000, 0, 0, 2 );
+                    thunderRimLight.position.copy( pivot.position );
+                    thunderRimLight.position.z -= 0.5; // Closer to generate strong rim
+                    child.parent.add( thunderRimLight );
+
+                    // 2. Directional light for overall non-uniform flash
+                    thunderDirLight = new THREE.DirectionalLight( 0xff0000, 0 );
+                    thunderDirLight.position.set( -5, 5, -2 ); // From top-left back
+                    scene.add( thunderDirLight );
+                }
+
+                if ( child.isMesh && child.name === 'fundo' ) {
+                     // Convert Basic material to Standard to react to light
+                     const oldMat = child.material;
+                     const newMat = new THREE.MeshStandardMaterial({
+                         map: oldMat.map,
+                         color: oldMat.color,
+                         side: oldMat.side,
+                         transparent: true, // Force transparent for fade out
+                         opacity: oldMat.opacity !== undefined ? oldMat.opacity : 1
+                     });
+                     child.material = newMat;
+                     fundoMesh = child;
+                }
+            } );
+
+            // Preload critical images logic
+            const imageUrls = [
+                "{% static 'guilda_manager/images/waxseal.png' %}",
+                "{% static 'guilda_manager/images/topscroll.svg' %}",
+                "{% static 'guilda_manager/images/botscroll.svg' %}"
+            ];
+
+            Promise.all(imageUrls.map(url => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = url;
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                });
+            }));
+
+        }, undefined, function ( error ) {
+            console.error( error );
+        } );
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1;
+        container.appendChild( renderer.domElement );
+
+        // Events
+        window.addEventListener( 'resize', onWindowResize );
+        document.addEventListener( 'mousemove', onDocumentMouseMove );
+        document.addEventListener( 'mouseleave', () => { isMouseOnScreen = false; } );
+        document.addEventListener( 'mouseenter', () => { isMouseOnScreen = true; } );
+        window.addEventListener( 'wheel', onScroll );
+
+        // Touch Events
+        document.addEventListener( 'touchstart', onTouchStart, { passive: false } );
+        document.addEventListener( 'touchmove', onTouchMove, { passive: false } );
+        document.addEventListener( 'touchend', onTouchEnd );
+    }
+
+    function onScroll(event) {
+        // Trigger only on scroll down and only once
+        if (hasScrolled || event.deltaY <= 0) return;
+        hasScrolled = true;
+
+        // Check if meshes are ready
+        if (!olhoMesh || !fundoMesh) return;
+
+        // Hide pull down indicator
+        anime({
+            targets: '#pull-down-indicator',
+            opacity: 0,
+            duration: 500,
+            easing: 'easeInOutQuad'
+        });
+
+        // Enable force idle to stop mouse tracking immediately
+        forceIdle = true;
+
+        const tl = anime.timeline({
+            easing: 'easeInOutQuad'
+        });
+
+        // 1. Fade out Fundo
+        tl.add({
+            targets: fundoMesh.material,
+            opacity: 0,
+            duration: 1000
+        }, 0);
+
+        // 2. Fade out Eye (along with background)
+        const eyeState = { opacity: 1 };
+
+        tl.add({
+            targets: eyeState,
+            opacity: 0,
+            duration: 1000,
+            easing: 'easeInOutQuad',
+            update: function() {
+                if (olhoMesh) {
+                    olhoMesh.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material.opacity = eyeState.opacity;
+                        }
+                    });
+                }
+            }
+        }, 0);
+
+        // 3. Fog Animation
+        if (fogMesh) {
+            tl.add({
+                targets: fogMesh.material.uniforms.uOpacity,
+                value: 1,
+                duration: 3500, // Fog finishes at 3500ms
+                easing: 'easeInOutQuad'
+            }, 0);
+        }
+
+        // 4. Fade In Eye at New Position (After Fog Finishes)
+        tl.add({
+            targets: eyeState,
+            opacity: 1,
+            duration: 1000,
+            easing: 'easeInOutQuad',
+            begin: function() {
+                if (olhoMesh && camera) {
+                    // Calculate visible dimensions at Z=0 (Camera at Z=5)
+                    const dist = 5;
+                    const vFOV = THREE.MathUtils.degToRad(camera.fov);
+                    const visibleHeight = 2 * Math.tan(vFOV / 2) * dist;
+                    const visibleWidth = visibleHeight * camera.aspect;
+
+                    // Position: Middle Right (half cropped -> center at right edge)
+                    olhoMesh.position.set(visibleWidth / 2, 0, 0);
+
+                    // Scale: 2x
+                    olhoMesh.scale.set(2, 2, 2);
+                    isEyeZoomed = true;
+                }
+            },
+            update: function() {
+                if (olhoMesh) {
+                    olhoMesh.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material.opacity = eyeState.opacity;
+                        }
+                    });
+                }
+            }
+        }, 3500); // Start at 3500ms
+
+        // 3. Text Typewriter Effect
+        const textEl = document.querySelector('.intro-text');
+        const fullText = "Bem-vindo ao sistema de guildas! Este sistema homebrew é um suplemento que apresenta um sistema de guildas com regras e mecânicas para um formato de “mundo aberto”, semelhante a jogos de RPG online, feito para comportar múltiplos grupos de RPG jogando o mesmo cenário no mesmo mundo!";
+        const textObj = { length: 0 };
+
+        anime({
+            targets: textObj,
+            length: fullText.length,
+            round: 1,
+            easing: 'linear',
+            duration: 4000, // 4 seconds to type
+            delay: 500,
+            update: function() {
+                textEl.textContent = fullText.substring(0, textObj.length);
+            },
+            complete: function() {
+                anime({
+                    targets: '#enter-button',
+                    opacity: 1,
+                    duration: 1000,
+                    easing: 'easeInOutQuad'
+                });
+            }
+        });
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+        if (fogMesh) {
+            const dist = 1;
+            const vFOV = THREE.MathUtils.degToRad( camera.fov );
+            const height = 2 * Math.tan( vFOV / 2 ) * dist;
+            const width = height * camera.aspect;
+            fogMesh.scale.set(width, height, 1);
+        }
+
+        if (isEyeZoomed && olhoMesh) {
+            const dist = 5;
+            const vFOV = THREE.MathUtils.degToRad(camera.fov);
+            const visibleHeight = 2 * Math.tan(vFOV / 2) * dist;
+            const visibleWidth = visibleHeight * camera.aspect;
+            olhoMesh.position.set(visibleWidth / 2, 0, 0);
+        }
+    }
+
+    function onTouchStart(e) {
+        if (e.touches.length > 0) {
+            touchStartY = e.touches[0].clientY;
+            isMouseOnScreen = true;
+            updateEyeTarget(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }
+
+    function onTouchMove(e) {
+        if (e.touches.length > 0) {
+            // Prevent default processing to allow us to control the "scroll" manually via swipe detection
+            // However, we must be careful not to block standard gestures if not intended.
+            // But the user wants dragging the finger to move the eye.
+            // And swiping up to scroll.
+            // We'll preventDefault to avoid native scrolling as we handle it custom anyway (page is overflow hidden)
+            // e.preventDefault();
+
+            const touchY = e.touches[0].clientY;
+            const touchX = e.touches[0].clientX;
+
+            isMouseOnScreen = true;
+            updateEyeTarget(touchX, touchY);
+
+            // Swipe Up -> Scroll Down (Simulate wheel)
+            // Threshold of 50px
+            if (touchStartY - touchY > 50) {
+                 onScroll({ deltaY: 100 });
+            }
+        }
+    }
+
+    function onTouchEnd() {
+        // Can be used to reset interaction state if needed
+    }
+
+    function onDocumentMouseMove( event ) {
+        if (forceIdle) return;
+        isMouseOnScreen = true;
+        event.preventDefault();
+        updateEyeTarget(event.clientX, event.clientY);
+    }
+
+    function updateEyeTarget(clientX, clientY) {
+        if (forceIdle) return;
+
+        lastInteractionTime = Date.now();
+
+        // Normalize mouse coordinates (-1 to 1)
+        mouse.x = ( clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( clientY / window.innerHeight ) * 2 + 1;
+
+        // Update raycaster
+        raycaster.setFromCamera( mouse, camera );
+
+        // Check for intersections with the model
+        const intersects = modelGroup ? raycaster.intersectObject( modelGroup, true ) : [];
+
+        if ( intersects.length > 0 ) {
+            // If intersection found, place light at intersection point
+            // Add a small offset along the normal to keep it "outside"
+            const p = intersects[ 0 ].point;
+            const n = intersects[ 0 ].face.normal.clone().transformDirection( intersects[ 0 ].object.matrixWorld );
+            mouseLight.position.copy( p ).add( n.multiplyScalar( 0.2 ) );
+        } else {
+            // Project mouse into 3D space to find intersection with a plane (e.g., Z=2)
+            const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+            vector.unproject(camera);
+            const dir = vector.sub(camera.position).normalize();
+            const distance = ( 2 - camera.position.z ) / dir.z; // Intersection with Z=2 plane (same as light z)
+            const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+            // Update light position
+            mouseLight.position.copy(pos);
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        render();
+    }
+
+    function render() {
+        updateParticles();
+
+        if (fogMesh) {
+            fogMesh.material.uniforms.uTime.value = performance.now() / 1000;
+        }
+
+        const isUserInactive = (Date.now() - lastInteractionTime) > 3000;
+
+        if ((!isMouseOnScreen || forceIdle || isUserInactive) && mouseLight) {
+            animateIdle();
+        }
+
+        if (thunderRimLight && thunderDirLight) {
+            animateThunder();
+        }
+
+        if (olhoMesh) {
+            // Calculate direction vector in World Space from Eye to MouseLight
+            const eyeWorldPos = new THREE.Vector3();
+            olhoMesh.getWorldPosition(eyeWorldPos);
+
+            const lookVector = new THREE.Vector3().subVectors(mouseLight.position, eyeWorldPos);
+
+            // Clamp the look vector to limit rotation angles relative to the camera direction (+Z or -Z?)
+            // Camera is at +5 Z, looking at 0. Eye is at origin approx.
+            // So "Forward" is +Z.
+
+            const relativeZ = lookVector.z;
+            // Limit X and Y deviation based on Z distance (simulating a cone)
+            // tan(30deg) approx 0.57
+            const limit = Math.abs(relativeZ) * 0.6;
+
+            lookVector.x = Math.max(-limit, Math.min(limit, lookVector.x));
+            lookVector.y = Math.max(-limit, Math.min(limit, lookVector.y));
+
+            // Reconstruct target position in World Space
+            const clampedTargetWorld = new THREE.Vector3().addVectors(eyeWorldPos, lookVector);
+
+            // Convert to Local Space for the eye
+            const clampedTargetLocal = clampedTargetWorld.clone();
+            olhoMesh.parent.worldToLocal(clampedTargetLocal);
+
+            // Calculate target rotation using dummy
+            const dummy = new THREE.Object3D();
+            dummy.position.copy(olhoMesh.position);
+            dummy.rotation.copy(olhoMesh.rotation);
+            dummy.lookAt(clampedTargetLocal);
+
+            // Restrict 100% rotation in Z direction (Prevent Roll)
+            const euler = new THREE.Euler().setFromQuaternion(dummy.quaternion);
+            euler.z = 0;
+            dummy.quaternion.setFromEuler(euler);
+
+            // Smoothly interpolate current quaternion to target
+            olhoMesh.quaternion.slerp(dummy.quaternion, 0.1);
+        }
+        renderer.render( scene, camera );
+    }
+
+    function createParticleTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const context = canvas.getContext('2d');
+        const gradient = context.createRadialGradient(16, 16, 0, 16, 16, 16);
+
+        gradient.addColorStop(1, '#000000');
+        gradient.addColorStop(0.5, '#440000'); // Darker Red
+        gradient.addColorStop(0, '#ff0000'); // Red center
+
+         // Black border
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 32, 32);
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    function spawnParticle() {
+        if (!particleTexture) return;
+        const material = new THREE.SpriteMaterial({
+            map: particleTexture,
+            blending: THREE.AdditiveBlending,
+            color: 0xff0000,
+            transparent: true,
+            opacity: 0.5
+        });
+        const sprite = new THREE.Sprite(material);
+        // Random position: Wide area
+        sprite.position.set(
+            (Math.random() - 0.5) * 10,
+            (Math.random() - 0.5) * 10,
+            (Math.random() - 0.5) * 10 - 2
+        );
+        // Random velocity
+        const velocity = new THREE.Vector3(
+            (Math.random() - 0.5) * 0.006,
+            (Math.random() - 0.5) * 0.006,
+            (Math.random() - 0.5) * 0.006
+        );
+        // Lifecycle
+        const lifespan = 120 + Math.random() * 240; // 2-4 seconds
+
+        // Dust size: Scale down significantly (0.05 to 0.15)
+        const scale = 0.05 + Math.random() * 0.1;
+        sprite.scale.set(scale, scale, 1);
+
+        scene.add(sprite);
+        particles.push({ mesh: sprite, velocity: velocity, age: 0, lifespan: lifespan });
+    }
+
+    function updateParticles() {
+        // Spawn logic: Create a lot of particles (target 800)
+        // Spawn multiple per frame to fill up quickly and maintain density
+        let spawnCount = 0;
+        while (particles.length < 500 && spawnCount < 15) {
+            spawnParticle();
+            spawnCount++;
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.age++;
+            p.mesh.position.add(p.velocity);
+
+            const lifeRatio = p.age / p.lifespan;
+
+            // Light gets stronger then disappear
+            let targetOpacity = 0.1;
+            if (lifeRatio < 0.8) {
+                // Ramp up
+                targetOpacity = 0.1 + (lifeRatio / 0.8) * 0.5;
+            } else {
+                // Fade out
+                targetOpacity = 0.6 * (1 - (lifeRatio - 0.8) / 0.2);
+            }
+
+            p.mesh.material.opacity = targetOpacity;
+
+            if (lifeRatio >= 1) {
+                scene.remove(p.mesh);
+                p.mesh.material.dispose();
+                particles.splice(i, 1);
+            }
+        }
+    }
+
+    function animateIdle() {
+        const now = Date.now();
+        // Use idleParams for dynamic speed control
+        if (now - lastIdleChange > idleParams.interval + Math.random() * (idleParams.interval * 0.5)) {
+             lastIdleChange = now;
+
+             // Determine base position for look target
+             // If forceIdle (animation active/done), look relative to the eye's current position
+             const baseX = forceIdle && olhoMesh ? olhoMesh.position.x : 0;
+             const baseY = forceIdle && olhoMesh ? olhoMesh.position.y : 0;
+
+             if (isEyeZoomed) {
+                 // Restrained movement, tendency to look left (into the screen)
+                 // Shift target to the left of the eye and reduce randomness
+                 idleTarget.set(
+                     baseX - 4 + (Math.random() - 0.5) * 1.0,
+                     baseY + (Math.random() - 0.5) * 0.5,
+                     2
+                 );
+             } else {
+                 // Random subtle movement within range
+                 idleTarget.set(
+                     baseX + (Math.random() - 0.5) * 3,
+                     baseY + (Math.random() - 0.5) * 1.5,
+                     2
+                 );
+             }
+        }
+        mouseLight.position.lerp(idleTarget, idleParams.lerpFactor);
+    }
+
+    function animateThunder() {
+         // Random thunder flash
+         if (Math.random() > idleParams.frequency) {
+             const intensity = 150 + Math.random() * 100;
+             thunderRimLight.intensity = intensity;
+             thunderDirLight.intensity = intensity * 0.5; // Directional is softer
+             fogThunderVal = 1.0;
+
+             // Randomize direction for non-uniformity
+             // Position between -10 and 10 on X/Y, and kept behind Z (-5 to -1)
+             thunderDirLight.position.set(
+                 (Math.random() - 0.5) * 20,
+                 (Math.random() - 0.5) * 20,
+                 -1 - Math.random() * 4
+             );
+         }
+
+         // Decay
+         thunderRimLight.intensity *= 0.9;
+         thunderDirLight.intensity *= 0.9;
+         fogThunderVal *= 0.85;
+
+         if (thunderRimLight.intensity < 0.1) thunderRimLight.intensity = 0;
+         if (thunderDirLight.intensity < 0.1) thunderDirLight.intensity = 0;
+
+         if (fogMesh) {
+             fogMesh.material.uniforms.uThunder.value = fogThunderVal;
+         }
+    }
+</script>
+</body>
+</html>

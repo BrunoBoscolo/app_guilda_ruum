@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Projetos - Tormenta 20</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Lato:wght@400;700&amp;family=Material+Icons+Round&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#A93226",
+                        secondary: "#D4AC0D",
+                        "dark-bg": "#12100e",
+                        "dark-card": "#1c1917",
+                        "dark-nav": "#0c0a09",
+                        parchment: {
+                            light: "#F9F5EB",
+                            DEFAULT: "#FDFBF7",
+                            dark: "#EFEBE0",
+                        },
+                        stone: {
+                           500: "#78716c",
+                           700: "#44403c",
+                           800: "#292524",
+                           900: "#1c1917"
+                        }
+                    },
+                    fontFamily: {
+                        display: ["Cinzel", "serif"],
+                        body: ["Lato", "sans-serif"],
+                    },
+                    backgroundImage: {
+                        'parchment-pattern': "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E\")",
+                    },
+                    boxShadow: {
+                        'arcane': '0 0 15px rgba(236, 72, 153, 0.3)',
+                        'gold-glow': '0 0 15px rgba(212, 172, 13, 0.3)',
+                        'inner-dark': 'inset 0 0 20px rgba(0,0,0,0.5)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        .parchment-texture {
+            background-color: #FDFBF7;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+        .parchment-texture-dark {
+            background-color: #d6d3d1;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E");
+        }
+        .scollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .wax-seal {
+            background: radial-gradient(circle at 30% 30%, #ff4d4d, #800000);
+            box-shadow:
+                inset 2px 2px 4px rgba(255, 255, 255, 0.3),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+                0 4px 8px rgba(0, 0, 0, 0.5),
+                0 0 0 4px rgba(120, 0, 0, 0.3);
+            border: 1px solid #600000;
+        }
+        .wax-seal:active {
+            transform: scale(0.95);
+            box-shadow:
+                inset 4px 4px 8px rgba(0, 0, 0, 0.6),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-dark-bg text-gray-200 font-body min-h-screen pb-24 relative selection:bg-primary selection:text-white overflow-x-hidden">
+<div class="fixed top-0 left-0 w-full h-20 bg-gradient-to-b from-dark-nav to-transparent z-20 pointer-events-none"></div>
+
+<!-- Header -->
+<header class="sticky top-0 z-30 bg-dark-bg/95 backdrop-blur-md border-b border-white/5 shadow-lg pt-12 pb-4 px-6 mb-6">
+    <div class="flex items-center justify-between max-w-md mx-auto">
+    <div>
+    <h1 class="font-display text-2xl font-bold text-secondary tracking-widest uppercase drop-shadow-md">
+                        Projetos
+                    </h1>
+    <p class="text-xs text-stone-500 font-serif italic tracking-wide">Expanda o domínio da Guilda</p>
+    </div>
+    <div class="flex items-center space-x-2 bg-dark-card border border-stone-800 rounded-full px-3 py-1">
+    <span class="text-secondary font-display font-bold text-sm">T$ {{ guild.funds|floatformat:2 }}</span>
+    <span class="material-icons-round text-secondary text-sm">monetization_on</span>
+    </div>
+    </div>
+    <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-secondary/30 to-transparent"></div>
+</header>
+
+<main class="max-w-md mx-auto px-4 space-y-6">
+
+{% if in_progress_buildings %}
+<section class="relative group">
+    <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-secondary rounded-lg blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+    <div class="relative bg-dark-card border border-stone-800 rounded-lg p-5 shadow-2xl overflow-hidden">
+    <div class="absolute top-0 right-0 p-3 opacity-10">
+    <span class="material-symbols-outlined text-6xl">foundation</span>
+    </div>
+    <div class="flex justify-between items-start mb-4">
+    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-900/30 text-yellow-500 border border-yellow-700/50 uppercase tracking-wider">
+                            Em Andamento
+                        </span>
+    <span class="text-xs text-stone-400 font-mono">Restam ? Dias</span>
+    </div>
+    <h3 class="font-display text-xl font-bold text-white mb-1">Construção em Andamento</h3>
+    <div class="w-full bg-stone-800 rounded-full h-1.5 mb-4">
+    <div class="bg-gradient-to-r from-primary to-orange-600 h-1.5 rounded-full" style="width: 50%"></div>
+    </div>
+    <div class="flex justify-between text-xs text-stone-400">
+    <span>Progresso</span>
+    <span class="text-white font-bold">50%</span>
+    </div>
+    </div>
+</section>
+{% endif %}
+
+<div class="flex items-center justify-center gap-4 py-2">
+<div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-stone-700"></div>
+<span class="text-stone-600 font-display text-xs uppercase tracking-widest">Disponíveis</span>
+<div class="h-[1px] flex-1 bg-gradient-to-l from-transparent to-stone-700"></div>
+</div>
+
+{% for building in buildings %}
+    {% if guild.level >= building.min_level_required %}
+    <!-- Available Building -->
+    <article class="relative w-full shadow-xl rounded-sm overflow-hidden transform transition-all hover:scale-[1.01]">
+        <div class="absolute inset-0 parchment-texture z-0 opacity-100"></div>
+        <div class="relative z-10 p-5 pb-16 border-t-4 border-primary">
+            <div class="flex justify-between items-start">
+            <h2 class="font-display text-2xl font-black text-stone-900 uppercase leading-tight max-w-[70%]">
+                                    {{ building.name }}
+                                </h2>
+            <div class="w-10 h-10 border-2 border-stone-800 rounded-full flex items-center justify-center bg-stone-900 text-secondary shadow-md">
+            <span class="material-symbols-outlined">whatshot</span>
+            </div>
+            </div>
+            <div class="my-4 pl-4 border-l-2 border-primary/40">
+            <p class="font-serif italic text-stone-600 text-sm leading-relaxed">
+                                    {{ building.description|default:"Uma construção formidável." }}
+                                </p>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-6 mb-2">
+            <div class="bg-stone-200/50 rounded p-2 border border-stone-300">
+            <span class="block text-[10px] font-bold text-stone-500 uppercase tracking-wide">Custo</span>
+            <div class="flex items-center gap-1 text-stone-800 font-bold">
+            <span class="material-icons-round text-sm text-yellow-600">savings</span>
+                                        T$ {{ building.cost|floatformat:2 }}
+                                    </div>
+            </div>
+            <div class="bg-stone-200/50 rounded p-2 border border-stone-300">
+            <span class="block text-[10px] font-bold text-stone-500 uppercase tracking-wide">Tempo</span>
+            <div class="flex items-center gap-1 text-stone-800 font-bold">
+            <span class="material-icons-round text-sm text-blue-600">schedule</span>
+                                        Instantâneo
+                                    </div>
+            </div>
+            </div>
+            <div class="mt-4 space-y-3">
+                {% for power in building.powers.all %}
+                <div class="bg-stone-200/40 rounded p-2 border border-stone-300">
+                    <h4 class="text-primary font-bold text-xs mb-1 uppercase tracking-wider flex items-center gap-1">
+                        <span class="material-icons-round text-[10px] text-primary">bolt</span>
+                        {{ power.title }}
+                    </h4>
+                    <p class="text-stone-600 text-[10px] leading-relaxed italic">{{ power.description }}</p>
+                </div>
+                {% empty %}
+                <!-- Fallback for buildings without explicit powers but with flags -->
+                {% if building.bonus_gold_cap %}
+                <li class="flex items-center gap-2 text-xs font-bold text-stone-700">
+                    <span class="material-icons-round text-[10px] text-green-700">add</span>
+                    Aumenta Limite de Ouro
+                </li>
+                {% endif %}
+                {% if building.bonus_member_slots %}
+                <li class="flex items-center gap-2 text-xs font-bold text-stone-700">
+                    <span class="material-icons-round text-[10px] text-green-700">add</span>
+                    Aumenta Vagas de Membros
+                </li>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="absolute bottom-4 right-4 z-20">
+            <button onclick="build('{{ building.slug }}')" class="wax-seal w-16 h-16 rounded-full flex flex-col items-center justify-center text-white cursor-pointer group hover:scale-105 transition-transform duration-200">
+            <span class="material-icons-round text-2xl drop-shadow-md group-hover:animate-pulse">construction</span>
+            <span class="text-[8px] font-display font-bold tracking-widest uppercase mt-0.5 opacity-90">Construir</span>
+            </button>
+        </div>
+        <div class="absolute bottom-0 left-0 w-full h-3 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDEyIiBwcmVzZXJ2ZUFzcGVjdHJhdGlvPSJub25lIj48cGF0aCBkPSJNMCAwdjEybDEyMDAtMTJWMHoiIGZpbGw9IiNkMWQ1ZGIiIG9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-contain rotate-180 opacity-50"></div>
+    </article>
+    {% else %}
+    <!-- Blocked Building -->
+    <article class="relative w-full shadow-lg rounded-sm overflow-hidden opacity-90">
+        <div class="absolute inset-0 parchment-texture-dark z-0"></div>
+        <div class="absolute inset-0 bg-stone-900/10 z-0 pointer-events-none"></div>
+        <div class="relative z-10 p-5 pb-6 border-t-4 border-stone-500">
+        <div class="flex justify-between items-start opacity-60">
+        <h2 class="font-display text-2xl font-black text-stone-800 uppercase leading-tight max-w-[70%]">
+                                {{ building.name }}
+                            </h2>
+        <div class="w-10 h-10 border-2 border-stone-600 rounded-full flex items-center justify-center bg-stone-700 text-stone-400">
+        <span class="material-symbols-outlined">lock</span>
+        </div>
+        </div>
+        <div class="my-4 pl-4 border-l-2 border-stone-400 opacity-60">
+        <p class="font-serif italic text-stone-600 text-sm leading-relaxed">
+                                {{ building.description }}
+                            </p>
+        </div>
+        <div class="bg-stone-800/90 rounded border border-stone-600 p-3 mt-4 flex items-center gap-4 shadow-inner-dark">
+        <div class="w-10 h-10 rounded bg-black/40 flex items-center justify-center flex-shrink-0 text-red-500">
+        <span class="material-icons-round">lock</span>
+        </div>
+        <div>
+        <span class="block text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Requisito Bloqueado</span>
+        <p class="text-xs text-stone-300 font-bold">Nível de Guilda {{ building.min_level_required }}</p>
+        </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-6 opacity-40 grayscale">
+        <div class="bg-stone-200/50 rounded p-2 border border-stone-400">
+        <span class="block text-[10px] font-bold text-stone-500 uppercase tracking-wide">Custo</span>
+        <div class="flex items-center gap-1 text-stone-800 font-bold">
+                                    T$ {{ building.cost|floatformat:2 }}
+                                </div>
+        </div>
+        </div>
+        </div>
+    </article>
+    {% endif %}
+{% empty %}
+    <p class="text-stone-500 text-center italic">Nenhum projeto disponível no momento.</p>
+{% endfor %}
+
+<div class="h-10"></div>
+</main>
+
+<!-- Bottom Nav -->
+<nav class="fixed bottom-0 left-0 w-full bg-dark-nav border-t border-gray-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.5)] z-40 pb-safe">
+<div class="grid grid-cols-5 h-16 max-w-md mx-auto relative">
+<div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 transition-colors group" href="{% url 'sede' %}">
+<span class="material-symbols-outlined text-2xl mb-1 group-hover:scale-110 transition-transform">castle</span>
+<span class="text-[10px] font-bold tracking-wide uppercase">Sede</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 transition-colors group" href="{% url 'missoes' %}">
+<span class="material-symbols-outlined text-2xl mb-1 group-hover:scale-110 transition-transform">history_edu</span>
+<span class="text-[10px] font-bold tracking-wide uppercase">Contratos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary relative group" href="{% url 'construcoes' %}">
+<div class="absolute top-0 w-full h-[2px] bg-secondary shadow-[0_0_10px_rgba(212,172,13,0.8)]"></div>
+<div class="absolute inset-0 bg-secondary/5 rounded-t-lg"></div>
+<span class="material-symbols-outlined text-2xl mb-1 drop-shadow-[0_0_5px_rgba(212,172,13,0.5)] group-hover:scale-110 transition-transform">home_repair_service</span>
+<span class="text-[10px] font-bold tracking-wide uppercase drop-shadow-sm">Construções</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 transition-colors group" href="{% url 'bestiario' %}">
+<span class="material-symbols-outlined text-2xl mb-1 group-hover:scale-110 transition-transform">menu_book</span>
+<span class="text-[10px] font-bold tracking-wide uppercase">Bestiário</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 transition-colors group" href="{% url 'mestre' %}">
+<span class="material-symbols-outlined text-2xl mb-1 group-hover:scale-110 transition-transform">supervisor_account</span>
+<span class="text-[10px] font-bold tracking-wide uppercase">Mestre</span>
+</a>
+</div>
+</nav>
+
+<script>
+    async function build(slug) {
+        if (!confirm('Deseja iniciar esta construção?')) return;
+
+        try {
+            const response = await fetch(`/api/guilds/{{ guild.id }}/construct_building/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ building_slug: slug })
+            });
+
+            if (response.ok) {
+                alert('Construção iniciada com sucesso!');
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert('Erro: ' + (data.error || JSON.stringify(data)));
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Erro ao conectar ao servidor.');
+        }
+    }
+</script>
+
+</body></html>

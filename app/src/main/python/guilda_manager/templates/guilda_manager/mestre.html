@@ -1,0 +1,730 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="dark" lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Painel do Mestre - A Guilda do Macaco Caolho</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#8B1E1E",
+                        gold: "#D4AF37",
+                        ivory: "#F4F1EA",
+                        parchment: "#E8D5B5",
+                        "background-dark": "#0F0C0C",
+                        obsidian: "#1A1A1D",
+                        bronze: "#804A00",
+                        stone: "#2c2c2c",
+                    },
+                    fontFamily: {
+                        display: ["Cinzel", "serif"],
+                        medieval: ["MedievalSharp", "cursive"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    boxShadow: {
+                        'epic': '0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 4px 10px -5px rgba(139, 30, 30, 0.3)',
+                        'red-glow': '0 0 12px rgba(139, 30, 30, 0.6)',
+                        'gold-inner': 'inset 0 0 10px rgba(212, 175, 55, 0.2)',
+                        'stone-inset': 'inset 0 2px 4px rgba(0,0,0,0.6)',
+                    },
+                    backgroundImage: {
+                        'stone-texture': "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%231a1a1a' fill-opacity='0.4' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E\")",
+                    }
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Inter", sans-serif;
+            background-color: #0F0C0C;
+            background-image: radial-gradient(circle at 50% 30%, #2a0a0a 0%, #0f0c0c 70%);
+            min-height: max(884px, 100dvh);
+        }
+        .building-card {
+            background: linear-gradient(135deg, #1e1b18 0%, #13110f 100%);
+            border: 2px solid #3d352c;
+            position: relative;
+            overflow: hidden;
+        }
+        .building-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm20 0a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM10 37a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm20 0a7 7 0 1 0 0-14 7 7 0 0 0 0 14z' fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        .corner-accent {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #D4AF37;
+            opacity: 0.6;
+        }
+        .top-left { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+        .top-right { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+        .bottom-left { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+        .bottom-right { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+
+        .stone-input {
+            background-color: #1A1A1D;
+            border: 1px solid #3d352c;
+            color: #F4F1EA;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .stone-input:focus {
+            border-color: #D4AF37;
+            ring: 1px solid #D4AF37;
+            outline: none;
+        }
+
+        .tab-btn {
+            position: relative;
+            background: linear-gradient(to bottom, #2c2520, #1a1512);
+            border: 1px solid #3d352c;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            border-color: #8B1E1E;
+            box-shadow: 0 0 15px rgba(139, 30, 30, 0.4);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0; right: 0;
+            height: 2px;
+            background: #8B1E1E;
+            box-shadow: 0 0 8px #8B1E1E;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0F0C0C;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3d352c;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8B1E1E;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Vial Progress */
+        .vial-progress-container {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #3d352c;
+            border-radius: 9999px;
+            padding: 2px;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+        }
+        .vial-progress-fill {
+            height: 8px;
+            border-radius: 9999px;
+            position: relative;
+            overflow: hidden;
+            transition: width 0.5s ease-out;
+        }
+        .vial-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+        }
+
+        .stone-select {
+            appearance: none;
+            background-color: #1a1512;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23D4AF37' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            color: #F4F1EA;
+            border: 1px solid #3d352c;
+            border-bottom: 2px solid #1a1512;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .stone-select:focus {
+             border-color: #D4AF37;
+             outline: none;
+             box-shadow: 0 0 0 1px #D4AF37;
+        }
+
+        .parchment-badge {
+            background-color: #E8D5B5;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E");
+            box-shadow: inset 0 0 10px rgba(139,69,19,0.2), 0 4px 6px rgba(0,0,0,0.5);
+            border: 1px solid #8B4513;
+        }
+
+        .wax-seal-btn {
+            background: radial-gradient(circle at 30% 30%, #a02020, #601010);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.2);
+            border: 1px solid #4a0a0a;
+            position: relative;
+        }
+        .wax-seal-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="text-slate-800 dark:text-ivory min-h-screen flex flex-col overflow-x-hidden pb-24">
+
+    <!-- HEADER -->
+    <header class="p-6 pt-12 flex flex-col gap-6 w-full relative z-10 bg-gradient-to-b from-black/80 to-transparent">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full border-2 border-gold bg-primary/80 flex items-center justify-center shadow-lg">
+                    <span class="cinzel text-lg font-black text-gold">{{ guild.level }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-gold text-2xl">crown</span>
+                    <h1 class="cinzel text-xl font-black text-white tracking-widest uppercase">
+                        Painel do Mestre
+                    </h1>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <span class="material-symbols-outlined text-gold">notifications</span>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex w-full gap-2 overflow-x-auto pb-2 no-scrollbar">
+            <button onclick="openTab('despacho')" id="btn-despacho" class="tab-btn active px-4 py-2 rounded flex-shrink-0 min-w-[100px] flex items-center justify-center">
+                <span class="cinzel text-[10px] font-bold text-gold tracking-wider group-hover:text-gold">DESPACHO</span>
+            </button>
+            <button onclick="openTab('historico')" id="btn-historico" class="tab-btn px-4 py-2 rounded flex-shrink-0 min-w-[100px] flex items-center justify-center opacity-70 hover:opacity-100">
+                <span class="cinzel text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-gold">HISTÓRICO</span>
+            </button>
+            <button onclick="openTab('gestao')" id="btn-gestao" class="tab-btn px-4 py-2 rounded flex-shrink-0 min-w-[100px] flex items-center justify-center opacity-70 hover:opacity-100">
+                <span class="cinzel text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-gold">GESTÃO</span>
+            </button>
+            <button onclick="openTab('config')" id="btn-config" class="tab-btn px-4 py-2 rounded flex-shrink-0 min-w-[100px] flex items-center justify-center opacity-70 hover:opacity-100">
+                <span class="cinzel text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-gold">CONFIG</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col gap-8 px-4 py-2 max-w-md mx-auto w-full relative z-10">
+
+        <!-- MESSAGES -->
+        {% if success_message %}
+        <div class="bg-green-900/20 border border-green-500/30 rounded p-3 flex items-center gap-3 animate-pulse">
+            <span class="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+            <p class="text-[10px] text-green-100 font-sans">{{ success_message }}</p>
+        </div>
+        {% endif %}
+        {% if error_message %}
+        <div class="bg-red-900/20 border border-red-500/30 rounded p-3 flex items-center gap-3 animate-pulse">
+            <span class="material-symbols-outlined text-red-400 text-sm">error</span>
+            <p class="text-[10px] text-red-100 font-sans">{{ error_message }}</p>
+        </div>
+        {% endif %}
+
+        <!-- TAB 1: DESPACHO -->
+        <div id="tab-despacho" class="tab-content block space-y-8">
+            <section class="building-card rounded-xl p-6 shadow-epic">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+
+                <div class="flex items-center gap-3 mb-6 relative z-10 border-b border-white/5 pb-2">
+                    <span class="material-symbols-outlined text-primary">add_circle</span>
+                    <h2 class="cinzel text-lg font-black text-white leading-tight uppercase">Novo Despacho</h2>
+                </div>
+
+                <form method="POST" class="space-y-5 relative z-10">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="dispatch">
+
+                    <div>
+                        <label class="block cinzel text-xs font-bold text-gold uppercase mb-2">Esquadrão / Unidade</label>
+                        <div class="relative">
+                            <select name="squad_id" class="stone-select w-full rounded px-3 py-2 text-sm appearance-none cursor-pointer" required>
+                                <option value="">Selecione...</option>
+                                {% for squad in squads %}
+                                <option value="{{ squad.id }}">{{ squad.name }} (Rank {{ squad.rank.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block cinzel text-xs font-bold text-gold uppercase mb-2">Nível de Ameaça (Rank)</label>
+                        <div class="relative">
+                            <select name="rank" class="stone-select w-full rounded px-3 py-2 text-sm appearance-none cursor-pointer" required>
+                                {% for code, label in ranks %}
+                                <option value="{{ code }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block cinzel text-xs font-bold text-gold uppercase mb-2">Duração (Dias)</label>
+                        <input name="duration" class="stone-input w-full rounded px-3 py-2 text-sm" placeholder="Ex: 3" type="number" value="3" min="1" required/>
+                    </div>
+
+                    <button type="submit" class="w-full mt-4 bg-gradient-to-r from-red-900 to-primary border border-red-500/30 text-white font-bold py-3 px-4 rounded shadow-[0_0_15px_rgba(139,30,30,0.5)] hover:shadow-[0_0_25px_rgba(139,30,30,0.8)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group">
+                        <span class="cinzel tracking-widest text-sm">DESPACHAR ESQUADRÃO</span>
+                        <span class="material-symbols-outlined text-lg group-hover:rotate-12 transition-transform">send</span>
+                    </button>
+                </form>
+            </section>
+
+            <section class="building-card rounded-xl p-6 shadow-epic">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+
+                <div class="flex items-center gap-3 mb-6 relative z-10 border-b border-white/5 pb-2">
+                    <span class="material-symbols-outlined text-gold">hourglass_top</span>
+                    <h2 class="cinzel text-lg font-black text-white leading-tight uppercase">Despachos em Andamento</h2>
+                </div>
+
+                <div class="space-y-4 relative z-10">
+                    {% if dispatches %}
+                        {% for d in dispatches %}
+                        <div class="bg-black/40 border border-white/10 rounded-lg p-4 relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-stone-texture opacity-20"></div>
+                            <div class="relative z-10 flex justify-between items-start mb-3">
+                                <div>
+                                    <h3 class="cinzel text-base font-bold text-ivory">{{ d.squad.name }}</h3>
+                                    <p class="text-xs text-gray-500 font-sans mt-0.5">Início: {{ d.start_date|date:"d/m/Y H:i" }}</p>
+                                </div>
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="bg-stone-800 text-white text-[10px] font-bold px-2 py-0.5 rounded border border-gray-700">RANK {{ d.get_rank_display }}</span>
+                                    <span class="text-[10px] text-yellow-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
+                                        {{ d.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="relative z-10 grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-black/30 p-2 rounded border border-white/5">
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Previsão</p>
+                                    <p class="text-xs text-ivory font-medium">{{ d.target_date|date:"d/m/Y H:i" }}</p>
+                                </div>
+                                <div class="bg-black/30 p-2 rounded border border-white/5">
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Duração</p>
+                                    <p class="text-xs text-ivory font-medium">{{ d.duration_days }} Dias</p>
+                                </div>
+                            </div>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="resolve">
+                                <input type="hidden" name="dispatch_id" value="{{ d.id }}">
+                                <button type="submit" class="relative z-10 w-full bg-gradient-to-r from-amber-700 to-yellow-800 border border-gold/40 text-ivory text-xs font-bold py-2.5 px-4 rounded shadow-lg hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-base">casino</span>
+                                    <span class="cinzel tracking-wide">RESOLVER (TESTE DE DESTINO)</span>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-xs text-slate-500 text-center py-4 italic">Nenhum despacho ativo no momento.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 2: HISTÓRICO -->
+        <div id="tab-historico" class="tab-content hidden space-y-6">
+            <section class="building-card rounded-xl p-6 shadow-2xl">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h2 class="cinzel text-sm font-black text-white leading-tight uppercase border-b border-gold/30 pb-2 w-full">Missões Concluídas por Rank</h2>
+                </div>
+                <div class="relative z-10 overflow-x-auto no-scrollbar -mx-2 px-2 pb-4">
+                    <div class="flex gap-3 w-max">
+                        {% for rank, count in quest_stats.items %}
+                        <div class="parchment-badge rounded flex flex-col items-center justify-center w-20 h-24 flex-shrink-0">
+                            <span class="text-3xl cinzel font-black text-primary mb-1">{{ rank }}</span>
+                            <span class="text-xl font-medieval font-bold text-black">{{ count }}</span>
+                            <span class="text-[8px] uppercase tracking-widest text-slate-800 font-bold mt-1">Missões</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="building-card rounded-xl p-6 shadow-2xl flex-1">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h2 class="cinzel text-sm font-black text-white leading-tight uppercase border-b border-gold/30 pb-2 w-full">Evolução de Esquadrões</h2>
+                </div>
+                <div class="relative z-10">
+                    <div class="grid grid-cols-12 gap-2 text-[8px] uppercase tracking-widest text-ivory/60 font-bold border-b border-white/5 pb-2 mb-3">
+                        <div class="col-span-5">Nome</div>
+                        <div class="col-span-2 text-center">Rank</div>
+                        <div class="col-span-2 text-center">Total</div>
+                        <div class="col-span-3 text-right">Status</div>
+                    </div>
+                    <div class="space-y-3">
+                        {% for squad in squads %}
+                        <div class="grid grid-cols-12 gap-2 items-center bg-white/5 rounded p-2 border border-white/5">
+                            <div class="col-span-5">
+                                <span class="font-medieval text-lg text-gold">{{ squad.name }}</span>
+                                <div class="text-[9px] text-slate-500">Esquadrão Tático</div>
+                            </div>
+                            <div class="col-span-2 text-center">
+                                <span class="cinzel font-bold text-ivory">{{ squad.rank.name|default:"-" }}</span>
+                            </div>
+                            <div class="col-span-2 text-center">
+                                <span class="font-mono text-ivory">{{ squad.missions_completed }}</span>
+                            </div>
+                            <div class="col-span-3 flex justify-end">
+                                <div class="flex items-center gap-1 bg-amber-900/30 border border-amber-700/50 rounded-full px-2 py-0.5">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                                    <span class="text-[8px] text-amber-200 uppercase font-bold tracking-wider">Ativo</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 3: GESTÃO -->
+        <div id="tab-gestao" class="tab-content hidden space-y-6">
+            <section class="building-card rounded-xl p-6 shadow-2xl">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h2 class="cinzel text-lg font-black text-primary leading-tight uppercase border-b border-primary/30 pb-2 w-full">Gerenciar Esquadrões</h2>
+                </div>
+                <div class="space-y-6 relative z-10">
+                    <form method="POST" class="flex flex-col gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create_squad">
+                        <label class="text-[10px] text-ivory/60 font-bold uppercase tracking-widest">Novo Esquadrão</label>
+                        <div class="flex gap-2">
+                            <input name="name" class="stone-input w-full rounded p-3 text-sm font-medieval tracking-wide placeholder-slate-600 focus:ring-0" placeholder="Nome do Esquadrão" type="text" required/>
+                            <button type="submit" class="wax-seal-btn px-4 rounded text-white cinzel font-bold text-[10px] uppercase tracking-wider flex items-center justify-center hover:brightness-110 transition-all">
+                                Adicionar
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="grid grid-cols-12 gap-2 text-[9px] text-ivory/40 font-bold uppercase tracking-widest border-b border-white/5 pb-1 mt-2">
+                        <div class="col-span-5">Nome</div>
+                        <div class="col-span-4">Patente</div>
+                        <div class="col-span-3 text-right">Ações</div>
+                    </div>
+
+                    {% for squad in squads %}
+                    <form method="POST" class="grid grid-cols-12 gap-2 items-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit_squad">
+                        <input type="hidden" name="squad_id" value="{{ squad.id }}">
+
+                        <div class="col-span-5">
+                            <input name="name" class="stone-input w-full rounded p-2 text-xs font-medieval tracking-wide focus:ring-0" type="text" value="{{ squad.name }}" onchange="this.form.submit()"/>
+                        </div>
+                        <div class="col-span-4">
+                            <select name="rank_id" class="stone-select w-full rounded p-2 pr-6 text-xs font-medieval tracking-wide" onchange="this.form.submit()">
+                                {% for r in squad_ranks %}
+                                <option value="{{ r.id }}" {% if squad.rank_id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-span-3 flex justify-end">
+                            <button type="submit" name="action" value="delete_squad" onclick="return confirm('Tem certeza?')" class="bg-red-900/40 hover:bg-red-900/60 border border-red-800/50 text-red-200 text-[9px] font-bold uppercase px-2 py-2 rounded transition-colors w-full">
+                                Excluir
+                            </button>
+                        </div>
+                    </form>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="building-card rounded-xl p-6 shadow-2xl">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h2 class="cinzel text-lg font-black text-primary leading-tight uppercase border-b border-primary/30 pb-2 w-full">Gerenciar Patentes</h2>
+                </div>
+                <div class="space-y-6 relative z-10">
+                    <form method="POST" class="border border-dashed border-gold/30 bg-gold/5 p-3 rounded-lg">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create_rank">
+                        <h3 class="cinzel text-xs font-bold text-gold mb-3 uppercase tracking-wide">Criar Nova Patente</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-[9px] text-ivory/60 font-bold uppercase block mb-1">Nome</label>
+                                <input name="name" class="stone-input w-full rounded p-2 text-xs font-medieval tracking-wide focus:ring-0" type="text" required/>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="text-[9px] text-ivory/60 font-bold uppercase block mb-1">Ordem</label>
+                                    <input name="order" class="stone-input w-full rounded p-2 text-xs font-medieval tracking-wide text-center focus:ring-0" type="number" value="10" required/>
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-ivory/60 font-bold uppercase block mb-1">Missões</label>
+                                    <input name="missions" class="stone-input w-full rounded p-2 text-xs font-medieval tracking-wide text-center focus:ring-0" type="number" value="0"/>
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-ivory/60 font-bold uppercase block mb-1">N. Guilda</label>
+                                    <input name="guild_level" class="stone-input w-full rounded p-2 text-xs font-medieval tracking-wide text-center focus:ring-0" type="number" value="1"/>
+                                </div>
+                            </div>
+                            <button type="submit" class="wax-seal-btn w-full py-2 mt-2 rounded text-white cinzel font-bold text-xs uppercase tracking-widest hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">add_circle</span> Criar Patente
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="overflow-hidden rounded border border-white/5">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-white/5 text-[9px] uppercase text-ivory/60 font-bold tracking-wider">
+                                    <th class="p-2 font-normal text-center w-10">#</th>
+                                    <th class="p-2 font-normal">Nome</th>
+                                    <th class="p-2 font-normal">Requisitos</th>
+                                    <th class="p-2 font-normal text-right">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 text-xs font-medieval text-ivory/90">
+                                {% for r in squad_ranks %}
+                                <tr>
+                                    <td class="p-2 text-center text-slate-500">{{ r.order }}</td>
+                                    <td class="p-2 font-bold text-gold">{{ r.name }}</td>
+                                    <td class="p-2 text-[10px] text-slate-400">{{ r.missions_required }} missões, NG {{ r.min_guild_level }}</td>
+                                    <td class="p-2 text-right">
+                                        <form method="POST" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_rank">
+                                            <input type="hidden" name="rank_id" value="{{ r.id }}">
+                                            <button type="submit" onclick="return confirm('Tem certeza?')" class="text-red-400 hover:text-red-300 text-[10px] font-sans font-bold uppercase">Excluir</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 4: CONFIGURAÇÃO -->
+        <div id="tab-config" class="tab-content hidden space-y-8">
+            <section class="building-card rounded-xl p-6 shadow-2xl">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h2 class="cinzel text-xl font-black text-white leading-tight uppercase border-b border-gold/30 pb-2 w-full">Status da Guilda</h2>
+                </div>
+                <div class="flex items-center gap-6 mb-8 relative z-10">
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-full border-4 border-double border-gold/60 bg-gradient-to-br from-primary to-black flex flex-col items-center justify-center shadow-red-glow">
+                            <span class="text-[10px] text-gold uppercase tracking-widest font-bold">Nível</span>
+                            <span class="cinzel text-3xl font-black text-white">{{ guild.level }}</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 space-y-2">
+                        <div class="flex justify-between items-center border-b border-white/5 pb-1">
+                            <span class="text-ivory/60 text-xs font-bold uppercase tracking-wider">GXP</span>
+                            <span class="text-gold font-medieval text-lg">{{ guild.gxp }}</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/5 pb-1">
+                            <span class="text-ivory/60 text-xs font-bold uppercase tracking-wider">Influência</span>
+                            <span class="text-gold font-medieval text-lg">{{ guild.influence_points }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-6 relative z-10">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5">
+                            <span class="text-ivory/80 font-bold uppercase tracking-wide">Membros (NPCs)</span>
+                            <span class="text-gold font-mono">{{ guild.members.count }} / {{ guild.max_member_slots }}</span>
+                        </div>
+                        <div class="vial-progress-container">
+                            <div class="vial-progress-fill bg-gradient-to-r from-red-900 via-red-600 to-red-500 shadow-[0_0_10px_rgba(220,38,38,0.5)]" style="width: {% widthratio guild.members.count guild.max_member_slots 100 %}%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5">
+                            <span class="text-ivory/80 font-bold uppercase tracking-wide">Slots de Construção</span>
+                            <span class="text-gold font-mono">{{ guild.used_building_slots }} / {{ guild.base_stats.base_building_slots }}</span>
+                        </div>
+                        <div class="vial-progress-container">
+                            <div class="vial-progress-fill bg-gradient-to-r from-slate-700 to-slate-500" style="width: {% widthratio guild.used_building_slots guild.base_stats.base_building_slots 100 %}%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5">
+                            <span class="text-ivory/80 font-bold uppercase tracking-wide">Tesouro (T$)</span>
+                            <span class="text-gold font-mono">{{ guild.funds }} / {{ guild.max_gold_cap }}</span>
+                        </div>
+                        <div class="vial-progress-container">
+                             <div class="vial-progress-fill bg-gradient-to-r from-yellow-700 via-yellow-500 to-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)]" style="width: 50%;"></div>
+                        </div>
+                        <script>
+                            (function(){
+                                const funds = {{ guild.funds|stringformat:"f" }};
+                                const max = {{ guild.max_gold_cap|stringformat:"f" }};
+                                const pct = max > 0 ? Math.min((funds/max)*100, 100) : 0;
+                                document.currentScript.previousElementSibling.firstElementChild.style.width = pct + '%';
+                            })();
+                        </script>
+                    </div>
+                </div>
+            </section>
+
+            <section class="building-card rounded-xl p-6 shadow-2xl">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h2 class="cinzel text-xl font-black text-white leading-tight uppercase border-b border-gold/30 pb-2 w-full">Estatuto e Alinhamento</h2>
+                </div>
+                <form method="POST" class="space-y-6 relative z-10">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="config">
+                    <div>
+                        <label class="block text-primary font-bold text-xs uppercase tracking-widest mb-2 ml-1">Eixo Legalidade</label>
+                        <select name="legal_status" class="stone-select w-full rounded p-3 text-sm font-medieval tracking-wide">
+                            {% for code, label in legal_statuses %}
+                            <option value="{{ code }}" {% if guild.legal_status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-primary font-bold text-xs uppercase tracking-widest mb-2 ml-1">Eixo Moralidade</label>
+                        <select name="moral_alignment" class="stone-select w-full rounded p-3 text-sm font-medieval tracking-wide">
+                            {% for code, label in moral_alignments %}
+                            <option value="{{ code }}" {% if guild.moral_alignment == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mt-4 flex justify-center">
+                        <button type="submit" class="relative group">
+                            <div class="absolute inset-0 bg-red-600 blur opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
+                            <div class="relative bg-gradient-to-b from-primary to-red-950 border border-red-500/50 px-8 py-3 rounded shadow-epic flex items-center gap-2 overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-300 to-transparent opacity-50"></div>
+                                <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-900 to-transparent opacity-50"></div>
+                                <span class="material-symbols-outlined text-red-200 text-lg">verified</span>
+                                <span class="cinzel font-bold text-white tracking-widest text-sm uppercase group-hover:text-red-100 transition-colors">Salvar Alterações</span>
+                            </div>
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+    </main>
+
+    <footer class="bg-black/50 p-8 text-center border-t border-white/5 mt-auto mb-20">
+        <p class="text-[10px] text-slate-500 cinzel tracking-widest leading-relaxed">
+            Painel do Mestre v2.4
+            <br/>
+            Tormenta 20 é um produto da Jambô Editora.
+            <br/>
+            <span class="opacity-50 italic">Área Restrita</span>
+        </p>
+    </footer>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/5 px-6 py-4 flex justify-between items-center z-50">
+        <a href="{% url 'sede' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+            <span class="material-symbols-outlined group-hover:text-gold transition-colors">home</span>
+            <span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase">Sede</span>
+        </a>
+        <a href="{% url 'missoes' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+            <span class="material-symbols-outlined group-hover:text-gold transition-colors">history_edu</span>
+            <span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase">Contratos</span>
+        </a>
+        <div class="relative -mt-12">
+            <a href="{% url 'construcoes' %}" class="w-14 h-14 bg-primary rounded-full flex items-center justify-center border-4 border-background-dark shadow-epic group transition-all hover:scale-105 active:scale-95">
+                <span class="material-symbols-outlined text-white text-3xl">add</span>
+            </a>
+        </div>
+        <a href="{% url 'bestiario' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+            <span class="material-symbols-outlined group-hover:text-gold transition-colors">menu_book</span>
+            <span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase">Bestiário</span>
+        </a>
+        <a href="{% url 'mestre' %}" class="flex flex-col items-center gap-1 group text-ivory">
+            <span class="material-symbols-outlined text-gold transition-colors">shield</span>
+            <span class="text-[9px] cinzel text-gold font-bold uppercase">Mestre</span>
+        </a>
+    </nav>
+
+    <script>
+        function openTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Deactivate buttons
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+                el.classList.remove('text-gold');
+                el.classList.add('opacity-70');
+                el.querySelector('span').classList.remove('text-gold');
+                el.querySelector('span').classList.add('text-gray-400');
+            });
+
+            // Show target
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+            // Activate button
+            const btn = document.getElementById('btn-' + tabId);
+            btn.classList.add('active');
+            btn.classList.remove('opacity-70');
+            btn.querySelector('span').classList.remove('text-gray-400');
+            btn.querySelector('span').classList.add('text-gold');
+
+            // Persist tab
+            localStorage.setItem('mestre_tab', tabId);
+        }
+
+        // Initialize from local storage or default
+        const savedTab = localStorage.getItem('mestre_tab');
+        if (savedTab && document.getElementById('tab-' + savedTab)) {
+            openTab(savedTab);
+        } else {
+            openTab('despacho');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+{% extends 'guilda_manager/base.html' %}
+{% load static %}
+
+{% block title %}Construções - Tormenta 20{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Buildings Grid */
+        .buildings-section {
+            margin-top: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Mobile center */
+            gap: 15px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-soft);
+            padding-bottom: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .section-header {
+                justify-content: flex-start;
+            }
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .buildings-section h2 {
+            font-family: var(--font-heading);
+            color: var(--border-strong);
+            font-size: 2rem;
+            border: none;
+            padding: 0;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+        }
+
+        .buildings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        @media (min-width: 768px) {
+            .buildings-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+
+        .building-card {
+            background: linear-gradient(to bottom, var(--bg-card), #dec1a0);
+            border: 3px double var(--border-strong);
+            border-radius: 8px;
+            padding: 0;
+            position: relative;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+        }
+
+        .building-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+        }
+
+        .building-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: rgba(63, 15, 18, 0.05);
+            border-bottom: 1px solid rgba(63, 15, 18, 0.1);
+        }
+
+        .building-title {
+            font-family: var(--font-heading);
+            color: var(--border-strong);
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .building-type {
+            font-size: 0.75rem;
+            background-color: var(--color-header);
+            color: var(--text-white);
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .building-body {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .building-description {
+            margin-bottom: 15px;
+            font-size: 1rem;
+            color: #222;
+        }
+
+        .building-flavor {
+            font-family: var(--font-body);
+            font-style: italic;
+            color: #4a4a4a;
+            border-left: 3px solid var(--color-tormenta);
+            padding: 8px 12px;
+            margin: 0 0 20px 0;
+            background-color: rgba(255,255,255,0.4);
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .building-cost {
+            font-weight: bold;
+            color: var(--border-strong);
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            border-bottom: 1px dotted var(--border-soft);
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+
+        .building-effects-container {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .building-effect {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .building-effect-title {
+            font-weight: bold;
+            color: var(--color-tormenta);
+        }
+
+        .building-requirement {
+            margin-top: auto;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            background-color: rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--color-magic);
+            font-style: italic;
+        }
+
+        .empty-slot {
+            border: 3px dashed rgba(111, 60, 39, 0.3);
+            background-color: rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: var(--color-magic);
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .empty-slot:hover {
+            background-color: rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="container">
+        <section class="buildings-section">
+            <div class="section-header">
+                <img src="/sede/construction.png" alt="" class="section-icon">
+                <h2>Construções</h2>
+            </div>
+            <div id="buildings-grid" class="buildings-grid">
+                <!-- Cards will be injected here -->
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Mock Data
+        const guildData = {
+            slots: { buildings: {curr: 2, max: 2} },
+            buildings: [
+                {
+                    name: "A Grande Forja",
+                    type: "Metalurgia",
+                    flavor_text: "\"O calor é insuportável para quem não é do ramo, mas é o abraço do lar para um ferreiro.\"",
+                    cost: 5000.00,
+                    effects: [
+                        { name: "Manufatura Pesada", description: "Permite a criação e Reduz o material de fabricação de armas e armaduras metálicas em 20% (cumulativo com outros poderes)." },
+                        { name: "Ferreiro amigo", description: "Disponibiliza armas e armaduras simples na loja da guilda, ao comprar um desses itens, o jogador pode escolher pagar 150T$ para escolher um modificador simples qualquer." }
+                    ],
+                    requirement: "A construção precisa de um personagem treinado em Ofício (Armeiro) ou um NPC especializado para operar."
+                },
+                {
+                    name: "Laboratório de Alquimia",
+                    type: "Alquimia",
+                    flavor_text: "\"Vidrarias borbulhantes, alambiques de cobre e ventiladores para expulsar vapores tóxicos.\"",
+                    cost: 5000.00,
+                    effects: [
+                        { name: "Destilação", description: "Ao fabricar poções, elixires ou itens alquímicos (como Fogo Alquímico), o personagem recupera 20% do custo de fabricação em materiais sobressalentes (reduzindo o custo final)." },
+                        { name: "Segurança", description: "Permite fabricar venenos e ácidos sem risco de se envenenar acidentalmente em caso de falha (o laboratório possui exaustores e equipamentos de proteção)." }
+                    ]
+                }
+            ]
+        };
+
+        // Render Function
+        function renderGuild(data) {
+            // Buildings Grid
+            const grid = document.getElementById('buildings-grid');
+            if (!grid) return;
+            grid.innerHTML = ''; // Clear existing
+
+            // Render Active Buildings
+            data.buildings.forEach(building => {
+                const card = document.createElement('div');
+                card.className = 'building-card';
+
+                // Build Effects HTML
+                let effectsHtml = '';
+                if (building.effects && building.effects.length > 0) {
+                    effectsHtml = `<div class="building-effects-container">`;
+                    building.effects.forEach(effect => {
+                        effectsHtml += `
+                            <div class="building-effect">
+                                <span class="building-effect-title">${effect.name}:</span> ${effect.description}
+                            </div>
+                        `;
+                    });
+                    effectsHtml += `</div>`;
+                }
+
+                // Build Requirement HTML
+                let requirementHtml = '';
+                if (building.requirement) {
+                    requirementHtml = `<div class="building-requirement">Requisito: ${building.requirement}</div>`;
+                }
+
+                // Build Cost HTML
+                let costHtml = '';
+                if (building.cost) {
+                    costHtml = `<div class="building-cost">Custo de Construção: T$ ${building.cost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="building-header">
+                        <div class="building-title">${building.name}</div>
+                        <div class="building-type">${building.type}</div>
+                    </div>
+                    <div class="building-body">
+                        <div class="building-flavor">${building.flavor_text}</div>
+                        ${costHtml}
+                        ${effectsHtml}
+                        ${requirementHtml}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Calculate Empty Slots
+            const totalSlots = data.slots.buildings.max;
+            const usedSlots = data.buildings.length;
+
+            const emptySlotsCount = totalSlots - usedSlots;
+
+            for (let i = 0; i < emptySlotsCount; i++) {
+                const emptyCard = document.createElement('div');
+                emptyCard.className = 'empty-slot';
+                emptyCard.textContent = 'Espaço Vazio';
+                grid.appendChild(emptyCard);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGuild(guildData);
+        });
+    </script>
+{% endblock %}

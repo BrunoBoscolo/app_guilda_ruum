@@ -1,0 +1,21 @@
+// --- ADICIONE ESTE BLOCO NO TOPO ---
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://chaquo.com/maven" }
+    }
+    dependencies {
+        // Aqui nós FORÇAMOS o Gradle a baixar a versão 16.0.0 antes de qualquer coisa
+        classpath "com.chaquo.python:gradle:16.0.0"
+    }
+}
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    // Mude de 9.0.0 para 8.1.0
+    id 'com.android.application' version '8.1.0' apply false
+    id 'com.android.library' version '8.1.0' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.0' apply false // Garanta que o Kotlin seja compatível
+    id 'com.chaquo.python' version '15.0.1' apply false
+}

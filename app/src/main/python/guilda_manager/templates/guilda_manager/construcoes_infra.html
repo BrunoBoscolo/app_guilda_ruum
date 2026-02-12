@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Minhas Construções - A Guilda do Macaco Caolho</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#8B1E1E",
+                        gold: "#D4AF37",
+                        ivory: "#F4F1EA",
+                        parchment: "#E8D5B5",
+                        "background-dark": "#0F0C0C",
+                        obsidian: "#1A1A1D",
+                        bronze: "#804A00",
+                    },
+                    fontFamily: {
+                        display: ["Cinzel", "serif"],
+                        medieval: ["MedievalSharp", "cursive"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    boxShadow: {
+                        'epic': '0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 4px 10px -5px rgba(139, 30, 30, 0.3)',
+                        'red-glow': '0 0 12px rgba(139, 30, 30, 0.6)',
+                        'gold-inner': 'inset 0 0 10px rgba(212, 175, 55, 0.2)',
+                    }
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Inter", sans-serif;
+            background-color: #0F0C0C;
+            background-image: radial-gradient(circle at 50% 30%, #2a0a0a 0%, #0f0c0c 70%);
+        }
+        .building-card {
+            background: linear-gradient(135deg, #1e1b18 0%, #13110f 100%);
+            border: 2px solid #3d352c;
+            position: relative;
+            overflow: hidden;
+        }
+        .building-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm20 0a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM10 37a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm20 0a7 7 0 1 0 0-14 7 7 0 0 0 0 14z' fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        .corner-accent {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #D4AF37;
+            opacity: 0.6;
+        }
+        .top-left { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+        .top-right { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+        .bottom-left { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+        .bottom-right { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+        .blueprint-box {
+            background: rgba(232, 213, 181, 0.05);
+            border: 1px dashed rgba(212, 175, 55, 0.3);
+        }
+        .requirement-box {
+            background: linear-gradient(to bottom, #2c2520, #1a1512);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-slate-800 dark:text-ivory min-h-screen flex flex-col overflow-x-hidden pb-24">
+<header class="p-6 pt-12 flex items-center justify-between w-full relative z-10">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full border-2 border-gold bg-primary/80 flex items-center justify-center shadow-lg">
+<span class="cinzel text-lg font-black text-gold">{{ guild.level }}</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-gold text-2xl">home_repair_service</span>
+<h1 class="cinzel text-xl font-black text-white tracking-widest uppercase">
+                    Construções
+                </h1>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-gold">notifications</span>
+</div>
+</header>
+<main class="flex-1 flex flex-col gap-8 px-4 py-4 max-w-md mx-auto w-full">
+
+{% for construction in constructions %}
+<section class="building-card rounded-xl p-6 shadow-2xl">
+    <div class="corner-accent top-left"></div>
+    <div class="corner-accent top-right"></div>
+    <div class="corner-accent bottom-left"></div>
+    <div class="corner-accent bottom-right"></div>
+    <div class="flex justify-between items-start mb-4 relative z-10">
+    <h2 class="cinzel text-2xl font-black text-white leading-tight uppercase">{{ construction.building.name }}</h2>
+    <span class="cinzel text-[10px] text-gold/60 font-bold tracking-widest border border-gold/20 px-2 py-0.5 rounded">EDIFICAÇÃO</span>
+    </div>
+    <div class="blueprint-box p-4 rounded-lg mb-6 relative z-10">
+    <p class="medieval italic text-gold/80 text-sm leading-relaxed text-center">
+                        "{{ construction.building.description }}"
+                    </p>
+    </div>
+    <div class="mb-6 relative z-10">
+    <div class="flex items-center gap-2 mb-4">
+    <span class="material-symbols-outlined text-gold text-sm">payments</span>
+    <p class="cinzel text-sm font-bold text-gold uppercase tracking-tighter">Custo Original: T$ {{ construction.building.cost|floatformat:2 }}</p>
+    </div>
+    <div class="space-y-4">
+        {% for power in construction.building.powers.all %}
+        <div>
+            <h4 class="text-primary font-bold text-sm mb-1 uppercase tracking-wider">{{ power.title }}</h4>
+            <p class="text-ivory/70 text-sm leading-relaxed">{{ power.description }}</p>
+        </div>
+        {% empty %}
+        <!-- Fallback for buildings without explicit powers but with flags -->
+        {% if construction.building.bonus_gold_cap %}
+        <div>
+        <h4 class="text-primary font-bold text-sm mb-1 uppercase tracking-wider">Tesouro Expandido</h4>
+        <p class="text-ivory/70 text-sm leading-relaxed">Aumenta o limite máximo de ouro da guilda.</p>
+        </div>
+        {% endif %}
+        {% if construction.building.bonus_member_slots %}
+        <div>
+        <h4 class="text-primary font-bold text-sm mb-1 uppercase tracking-wider">Alojamentos</h4>
+        <p class="text-ivory/70 text-sm leading-relaxed">Aumenta a capacidade máxima de membros da guilda.</p>
+        </div>
+        {% endif %}
+        {% if construction.building.bonus_healing %}
+        <div>
+        <h4 class="text-primary font-bold text-sm mb-1 uppercase tracking-wider">Enfermaria</h4>
+        <p class="text-ivory/70 text-sm leading-relaxed">Permite recuperação mais rápida de membros feridos.</p>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    </div>
+    <div class="requirement-box p-4 rounded-lg border border-white/5 relative z-10">
+    <div class="flex items-center gap-2 mb-1">
+    <span class="material-symbols-outlined text-xs text-gold/50">info</span>
+    <span class="cinzel text-[10px] font-bold text-white/40 uppercase tracking-widest">Estado</span>
+    </div>
+    <p class="text-ivory/60 text-xs italic leading-relaxed">
+                        Construído em {{ construction.built_at|date:"d/m/Y" }}
+                    </p>
+    </div>
+</section>
+{% empty %}
+<section class="building-card rounded-xl p-6 shadow-2xl">
+    <p class="text-center text-ivory/60">Nenhuma construção finalizada ainda.</p>
+</section>
+{% endfor %}
+
+</main>
+<footer class="bg-black/50 p-8 text-center border-t border-white/5 mt-10">
+<p class="text-[10px] text-slate-500 cinzel tracking-widest leading-relaxed">
+            Criado por <span class="text-gold">Bruno "ByeMars" Boscolo</span> &amp; <span class="text-gold">Gustavo "Garu" Oliveira</span>
+<br/>
+            Tormenta 20 é um produto da Jambô Editora.
+            <br/>
+<span class="opacity-50 italic">Projeto de fãs não lucrativo</span>
+</p>
+</footer>
+<nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/5 px-6 py-4 flex justify-between items-center z-50">
+<a href="{% url 'sede' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+<span class="material-symbols-outlined group-hover:text-gold transition-colors">home</span>
+<span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase">Sede</span>
+</a>
+<a href="{% url 'missoes' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+<span class="material-symbols-outlined group-hover:text-gold transition-colors">history_edu</span>
+<span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase">Contratos</span>
+</a>
+<div class="relative -mt-12">
+<a href="{% url 'construcoes' %}" class="w-14 h-14 bg-primary rounded-full flex items-center justify-center border-4 border-background-dark shadow-epic group transition-all hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined text-white text-3xl">add</span>
+</a>
+</div>
+<a href="{% url 'bestiario' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+<span class="material-symbols-outlined group-hover:text-ivory transition-colors">menu_book</span>
+<span class="text-[9px] cinzel group-hover:text-ivory font-bold uppercase">Bestiário</span>
+</a>
+<a href="{% url 'mestre' %}" class="flex flex-col items-center gap-1 group text-slate-500">
+<span class="material-symbols-outlined group-hover:text-ivory transition-colors">shield</span>
+<span class="text-[9px] cinzel group-hover:text-ivory font-bold uppercase">Mestre</span>
+</a>
+</nav>
+
+</body></html>

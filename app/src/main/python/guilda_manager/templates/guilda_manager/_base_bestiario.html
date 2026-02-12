@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>{% block title %}Bestiário - Tormenta 20{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#8B1E1E",
+                        gold: "#D4AF37",
+                        ivory: "#F4F1EA",
+                        parchment: "#E8D5B5",
+                        "background-dark": "#0F0C0C",
+                        obsidian: "#1A1A1D",
+                        bronze: "#804A00",
+                        "brain-pink": "#E38AAE",
+                        "card-bg": "#F5F0E6",
+                        "card-header-red": "#4A1A1A",
+                        "card-header-gray": "#4A4A4A",
+                        "card-header-gold": "#B8860B",
+                    },
+                    fontFamily: {
+                        display: ["Cinzel", "serif"],
+                        medieval: ["MedievalSharp", "cursive"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    boxShadow: {
+                        'epic': '0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 4px 10px -5px rgba(139, 30, 30, 0.3)',
+                        'red-glow': '0 0 12px rgba(139, 30, 30, 0.6)',
+                        'gold-glow': '0 0 15px rgba(212, 175, 55, 0.5)',
+                        'gold-inner': 'inset 0 0 10px rgba(212, 175, 55, 0.2)',
+                        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
+                        'paper': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'legendary': '0 0 20px rgba(255, 215, 0, 0.4), 0 0 40px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.1)',
+                    },
+                    backgroundImage: {
+                        'gold-gradient': 'linear-gradient(135deg, #B8860B 0%, #FFD700 50%, #B8860B 100%)',
+                        'legendary-gradient': 'linear-gradient(135deg, #FFD700 0%, #FFF8DC 20%, #B8860B 50%, #FFD700 80%, #B8860B 100%)',
+                        'sparkles': 'radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px), radial-gradient(rgba(255,255,255,.3), rgba(255,255,255,.1) 2px, transparent 3px)',
+                        'ornate-pattern': 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M10 0 L20 10 L10 20 L0 10 Z\' fill=\'%23996515\' fill-opacity=\'0.1\'/%3E%3C/svg%3E")',
+                    }
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Inter", sans-serif;
+            background-color: #0F0C0C;
+            background-image: radial-gradient(circle at 50% 30%, #2a0a0a 0%, #0f0c0c 70%);
+            min-height: max(884px, 100dvh);
+        }
+
+        /* Common Utility Classes */
+        .parchment-texture {
+            background-color: #F5F0E6;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+
+        /* Redacted Text Effect */
+        .data-redacted {
+            background: #1a1a1a;
+            color: #333;
+            border-radius: 2px;
+            padding: 0 4px;
+            font-family: monospace;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            min-width: 40px;
+            vertical-align: middle;
+        }
+        .data-redacted::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                #1a1a1a,
+                #1a1a1a 10px,
+                #222 10px,
+                #222 20px
+            );
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="text-slate-800 dark:text-ivory min-h-screen flex flex-col overflow-x-hidden pb-24">
+
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="bg-black/50 p-8 text-center border-t border-white/5 mt-auto">
+        <p class="text-[10px] text-slate-500 cinzel tracking-widest leading-relaxed">
+            Criado por <span class="text-gold">Bruno "Mars" Boscolo</span> e <span class="text-gold">Gustavo "Garu" Oliveira</span>
+            <br/>
+            Tormenta 20 é um produto da Jambô Editora e seus respectivos criadores, todos os direitos reservados.
+            <br/>
+            <span class="opacity-50 italic">Este é um projeto de fãs e não possui fins lucrativos</span>
+        </p>
+    </footer>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/5 px-6 py-4 flex justify-between items-center z-50">
+        <a href="{% url 'sede' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
+            <span class="material-symbols-outlined group-hover:text-gold transition-colors">home</span>
+            <span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase">Sede</span>
+        </a>
+        <a href="{% url 'missoes' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
+            <span class="material-symbols-outlined group-hover:text-gold transition-colors">history_edu</span>
+            <span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase">Contratos</span>
+        </a>
+
+        <div class="relative -mt-12">
+            <a href="{% url 'bestiario_create' %}" class="w-14 h-14 bg-primary rounded-full flex items-center justify-center border-4 border-background-dark shadow-epic group transition-all hover:scale-105 active:scale-95" title="Adicionar Novo Monstro">
+                <span class="material-symbols-outlined text-white text-3xl">add</span>
+            </a>
+        </div>
+
+        <a href="{% url 'bestiario' %}" class="flex flex-col items-center gap-1 group text-gold">
+            <span class="material-symbols-outlined text-gold transition-colors">menu_book</span>
+            <span class="text-[9px] cinzel text-gold font-bold uppercase">Bestiário</span>
+        </a>
+
+        <a href="{% url 'mestre' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-ivory transition-colors">
+            <span class="material-symbols-outlined group-hover:text-ivory transition-colors">shield</span>
+            <span class="text-[9px] cinzel group-hover:text-ivory font-bold uppercase">Mestre</span>
+        </a>
+    </nav>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

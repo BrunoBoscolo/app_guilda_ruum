@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GDR - Gerenciador de RPG{% endblock %}</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Glide.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.6.0/css/glide.core.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.6.0/css/glide.theme.min.css">
+    <style>
+        @font-face {
+            font-family: 'Iowan Old Style';
+            src: url('/sede/iowanoldstyle_bold.otf') format('opentype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* CSS Variables */
+        :root {
+            /* Backgrounds */
+            --bg-main: #f6f6f6;
+            --bg-card: #e8d1b5;
+            --bg-header: #062936;
+            --bg-alt: #ddd9d5;
+
+            /* Text & Borders */
+            --text-main: #000000;
+            --text-white: #ffffff;
+            --border-strong: #3f0f12;
+            --border-soft: #6f3c27;
+
+            /* Accents */
+            --color-tormenta: #b02b2e;
+            --color-gold: #f0dc82;
+            --color-magic: #727175;
+
+            /* Fonts */
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'Iowan Old Style', serif;
+        }
+
+        /* Reset & Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-main);
+            background-image: radial-gradient(circle, var(--bg-main), #e0e0e0);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-heading);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Topbar Styles (Mobile First) */
+        .topbar {
+            background-color: #ffffff;
+            color: var(--color-tormenta);
+            padding: 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--color-tormenta);
+        }
+
+        .topbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Align hamburger to right on mobile */
+            position: relative; /* For absolute positioning of mobile menu */
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            z-index: 1001; /* Above menu */
+        }
+
+        .topbar-logo {
+            display: none; /* Hidden on mobile */
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .topbar-logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        /* Hamburger Menu Button */
+        .hamburger-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: var(--color-tormenta);
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1001;
+        }
+
+        /* Navigation (Mobile: Hidden/Overlay) */
+        .topbar-nav {
+            display: none; /* Hidden by default on mobile */
+            position: absolute;
+            top: 100%; /* Directly below topbar */
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 2px solid var(--color-tormenta);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .topbar-nav.active {
+            display: flex;
+        }
+
+        .topbar-link {
+            text-decoration: none;
+            color: var(--color-tormenta);
+            font-family: var(--font-heading);
+            font-weight: bold;
+            font-size: 1rem; /* Smaller size */
+            padding: 15px 20px; /* Larger tap targets on mobile */
+            width: 100%;
+            text-align: center;
+            border-bottom: 1px solid rgba(176, 43, 46, 0.1);
+            transition: background-color 0.2s;
+        }
+
+        .topbar-link:last-child {
+            border-bottom: none;
+        }
+
+        .topbar-link:hover, .topbar-link.active {
+            background-color: rgba(176, 43, 46, 0.05);
+        }
+
+        /* Mobile Menu Logo */
+        .mobile-nav-logo {
+            display: block;
+            width: 150px;
+            height: auto;
+            margin: 20px auto 10px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Desktop Styles */
+        @media (min-width: 768px) {
+            .topbar .container {
+                justify-content: space-between; /* Restore space-between for desktop */
+            }
+
+            .topbar-logo {
+                display: flex; /* Visible on desktop */
+            }
+
+            .hamburger-btn {
+                display: none; /* Hide hamburger */
+            }
+
+            .topbar-nav {
+                display: flex; /* Always visible */
+                position: static; /* Normal flow */
+                flex-direction: row;
+                width: auto;
+                padding: 0;
+                border-bottom: none;
+                box-shadow: none;
+                gap: 20px;
+                background-color: transparent;
+            }
+
+            .topbar-center {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+            }
+
+            /* Center the nav in the available space between logo and right-spacer */
+            /* To achieve true centering of tabs, topbar-left and topbar-right should have equal width */
+            .topbar-left, .topbar-right {
+                flex: 1;
+                flex-basis: 0;
+            }
+            .topbar-right {
+                justify-content: flex-end;
+            }
+
+            .topbar-link {
+                width: auto;
+                border-bottom: none;
+                padding: 5px 10px;
+                font-size: 0.95rem; /* Slightly smaller for desktop elegance */
+                border-radius: 4px;
+            }
+
+            .topbar-link:hover {
+                background-color: rgba(176, 43, 46, 0.1);
+            }
+
+            .mobile-nav-logo {
+                display: none;
+            }
+        }
+
+        /* Content Wrapper */
+        .content-wrapper {
+            flex: 1;
+        }
+
+        /* Footer Styles */
+        .site-footer {
+            background-color: var(--color-tormenta);
+            color: var(--text-white);
+            padding: 20px 0; /* Reduced padding */
+            margin-top: auto;
+            border-top: 4px solid var(--border-strong);
+            text-align: center;
+            font-family: var(--font-body);
+            font-size: 0.8rem; /* Reduced font size */
+        }
+
+        .site-footer p {
+            margin-bottom: 5px; /* Tighter spacing */
+            color: rgba(255, 255, 255, 0.9); /* Subtle text */
+        }
+
+        .site-footer .disclaimer {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+    <nav class="topbar">
+        <div class="container">
+            <div class="topbar-left">
+                <a href="/sede/" class="topbar-logo">
+                    <img src="/sede/logo_gdr.svg" alt="LOGO GDR">
+                </a>
+            </div>
+
+            <div class="topbar-center">
+                <div class="topbar-nav" id="main-nav">
+                    <a href="/sede/" class="topbar-link">Sede</a>
+                    <a href="/missoes/" class="topbar-link">Contratos</a>
+                    <a href="/construcoes/" class="topbar-link">Construções</a>
+                    <a href="/bestiario/" class="topbar-link">Bestiário</a>
+                    <a href="/mestre/" class="topbar-link">Mestre</a>
+                    <img src="/sede/logo_gdr.svg" alt="LOGO GDR" class="mobile-nav-logo">
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <button class="hamburger-btn" id="mobile-menu-btn" aria-label="Abrir Menu">
+                    &#9776; <!-- Hamburger Icon -->
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>Criado por Bruno "ByeMars" Boscolo e Gustavo "Garu" Oliveira</p>
+            <p>Tormenta 20 é um produto da Jambô Editora e seus respectivos criadores, todos os direitos reservados.</p>
+            <p class="disclaimer">Este é um projeto de fãs e não possui fins lucrativos</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('mobile-menu-btn');
+            const nav = document.getElementById('main-nav');
+
+            if (btn && nav) {
+                btn.addEventListener('click', () => {
+                    nav.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+
+    <!-- Glide.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.6.0/glide.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

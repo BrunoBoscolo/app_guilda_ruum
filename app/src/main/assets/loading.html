@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-br"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Tormenta 20 - Loading</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script>
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                primary: "#8B1E1E", // Deep Blood Red
+                gold: "#D4AF37",
+                ivory: "#F4F1EA",
+                "background-dark": "#050404",
+              },
+              fontFamily: {
+                display: ["Cinzel", "serif"],
+                medieval: ["MedievalSharp", "cursive"],
+                sans: ["Inter", "sans-serif"],
+              },
+              boxShadow: {
+                'glow': '0 0 40px rgba(139, 30, 30, 0.5)',
+                'gold-glow': '0 0 20px rgba(212, 175, 55, 0.4)',
+              },
+              backgroundImage: {
+                'void-gradient': 'radial-gradient(circle at center, rgba(60, 10, 10, 0.5) 0%, rgba(5, 4, 4, 1) 70%)',
+              }
+            },
+          },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+            @apply bg-background-dark text-ivory overflow-hidden;
+        }
+        .cinzel { font-family: 'Cinzel', serif; }
+        .runic-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .runic-ring {
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            border: 2px dashed rgba(212, 175, 55, 0.3);
+            position: absolute;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+            animation: spinRing 20s linear infinite;
+        }
+        .pulse-core {
+            animation: corePulse 3s infinite ease-in-out;
+        }
+        @keyframes corePulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 40px rgba(212, 175, 55, 0.6); }
+        }
+        @keyframes spinRing {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="h-screen w-full relative flex flex-col items-center justify-center">
+<div class="absolute inset-0 bg-background-dark z-0">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vw] h-[150vw] bg-void-gradient opacity-80 pointer-events-none"></div>
+    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay"></div>
+</div>
+<div class="relative z-10 flex flex-col items-center justify-center flex-1 w-full max-w-md p-8">
+    <div class="relative w-64 h-64 flex items-center justify-center mb-12">
+        <div class="runic-ring"></div>
+        <div class="absolute w-48 h-48 bg-primary/20 rounded-full blur-3xl"></div>
+        <div class="relative w-32 h-32 rounded-full bg-gradient-to-br from-[#2a1a1a] to-[#0f0a0a] border-[3px] border-gold shadow-gold-glow flex items-center justify-center pulse-core overflow-hidden">
+            <div class="absolute inset-2 border border-gold/30 rounded-full"></div>
+            <span class="material-symbols-outlined text-6xl text-transparent bg-clip-text bg-gradient-to-b from-gold via-[#fffbeb] to-[#b8860b] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    visibility
+                </span>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+            <div class="absolute bottom-4 text-gold/40">
+                <span class="material-symbols-outlined text-xs">hotel_class</span>
+            </div>
+        </div>
+    </div>
+    <div class="text-center space-y-4">
+        <h2 class="cinzel text-xl text-gold/90 font-bold tracking-[0.2em] uppercase drop-shadow-lg">
+            Carregando Crônica...
+        </h2>
+        <div class="flex items-center justify-center gap-3 opacity-50">
+            <div class="h-[1px] w-12 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+            <span class="material-symbols-outlined text-[10px] text-gold">swords</span>
+            <div class="h-[1px] w-12 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+        </div>
+    </div>
+</div>
+<div class="relative z-10 pb-8 text-center opacity-60">
+    <p class="cinzel text-[10px] text-ivory tracking-wider">
+        Tormenta 20 - Dashboard de Guilda
+    </p>
+</div>
+</body></html>

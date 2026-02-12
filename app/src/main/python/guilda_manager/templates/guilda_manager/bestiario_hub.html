@@ -1,0 +1,110 @@
+{% extends 'guilda_manager/_base_bestiario.html' %}
+{% load static %}
+
+{% block title %}Central do Bestiário - Tormenta 20{% endblock %}
+
+{% block extra_head %}
+<style>
+    .bestiary-card {
+        background: linear-gradient(160deg, #1e1b18 0%, #0f0c0c 100%);
+        border: 1px solid #3d352c;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .bestiary-card::before {
+         content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231f1812' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.3;
+        pointer-events: none;
+    }
+    .bestiary-card:active {
+        transform: scale(0.98);
+    }
+    .corner-rune {
+        position: absolute;
+        width: 32px;
+        height: 32px;
+        border: 2px solid #D4AF37;
+        opacity: 0.8;
+        pointer-events: none;
+    }
+    .top-left { top: 6px; left: 6px; border-right: 0; border-bottom: 0; border-top-left-radius: 4px; }
+    .top-right { top: 6px; right: 6px; border-left: 0; border-bottom: 0; border-top-right-radius: 4px; }
+    .bottom-left { bottom: 6px; left: 6px; border-right: 0; border-top: 0; border-bottom-left-radius: 4px; }
+    .bottom-right { bottom: 6px; right: 6px; border-left: 0; border-top: 0; border-bottom-right-radius: 4px; }
+    .card-icon-container {
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(0,0,0,0) 70%);
+    }
+    .locked-card {
+        background: linear-gradient(160deg, #1a1a1a 0%, #0d0d0d 100%);
+        border-color: #333;
+        opacity: 0.7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="p-6 pt-12 flex flex-col items-center justify-center w-full relative z-10 text-center space-y-2">
+    <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-gold text-3xl">auto_stories</span>
+    </div>
+    <h1 class="cinzel text-2xl font-black text-transparent bg-clip-text bg-gradient-to-b from-gold via-[#FFE082] to-[#806020] tracking-[0.15em] uppercase drop-shadow-md">
+        Central do Bestiário
+    </h1>
+    <div class="h-px w-24 bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
+</header>
+
+<main class="flex-1 flex flex-col gap-6 px-6 py-4 max-w-md mx-auto w-full">
+    <a href="{% url 'bestiario_list' %}" class="bestiary-card rounded-xl p-8 shadow-2xl group cursor-pointer border-t-2 border-t-gold/20 block">
+        <div class="corner-rune top-left group-hover:border-gold transition-colors duration-300"></div>
+        <div class="corner-rune top-right group-hover:border-gold transition-colors duration-300"></div>
+        <div class="corner-rune bottom-left group-hover:border-gold transition-colors duration-300"></div>
+        <div class="corner-rune bottom-right group-hover:border-gold transition-colors duration-300"></div>
+        <div class="relative z-10 flex flex-col items-center text-center">
+            <div class="card-icon-container w-24 h-24 flex items-center justify-center rounded-full mb-4">
+                <span class="material-symbols-outlined text-gold text-5xl filled-icon drop-shadow-lg">menu_book</span>
+            </div>
+            <h2 class="cinzel text-xl font-bold text-ivory mb-3 group-hover:text-gold transition-colors">LISTA DE BESTIÁRIO</h2>
+            <p class="medieval text-ivory/80 text-sm leading-relaxed max-w-[240px]">
+                Acesse os registros detalhados de todas as criaturas conhecidas e seus segredos.
+            </p>
+        </div>
+    </a>
+
+    <a href="{% url 'bestiario_rememoracao' %}" class="bestiary-card rounded-xl p-8 shadow-2xl group cursor-pointer border-t-2 border-t-gold/20 block">
+        <div class="corner-rune top-left group-hover:border-gold transition-colors duration-300"></div>
+        <div class="corner-rune top-right group-hover:border-gold transition-colors duration-300"></div>
+        <div class="corner-rune bottom-left group-hover:border-gold transition-colors duration-300"></div>
+        <div class="corner-rune bottom-right group-hover:border-gold transition-colors duration-300"></div>
+        <div class="relative z-10 flex flex-col items-center text-center">
+            <div class="card-icon-container w-24 h-24 flex items-center justify-center rounded-full mb-4">
+                <span class="material-symbols-outlined text-brain-pink text-5xl filled-icon drop-shadow-lg filter shadow-pink-500/20">psychology</span>
+            </div>
+            <h2 class="cinzel text-xl font-bold text-ivory mb-3 group-hover:text-brain-pink transition-colors">REMEMORAÇÃO</h2>
+            <p class="medieval text-ivory/80 text-sm leading-relaxed max-w-[240px]">
+                Verifique a clareza das memórias sobre encontros recentes com monstros.
+            </p>
+        </div>
+    </a>
+
+    <section class="locked-card rounded-xl p-8 shadow-inner relative grayscale border-t-2 border-t-gray-700">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMiIvPgo8cGF0aCBkPSJNMCAwTDggOFpNOCAwTDAgOFoiIHN0cm9rZT0iIzIyMiIgc3Ryb2tlLXdpZHRoPSIxIi8+Cjwvc3ZnPg==')] opacity-30 pointer-events-none z-0"></div>
+        <div class="relative z-10 flex flex-col items-center text-center opacity-60">
+            <div class="w-24 h-24 flex items-center justify-center rounded-full mb-4 bg-black/20">
+                <span class="material-symbols-outlined text-gray-400 text-5xl filled-icon">skull</span>
+            </div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="material-symbols-outlined text-xs text-gray-500">lock</span>
+                <h2 class="cinzel text-xl font-bold text-gray-400">AUTÓPSIA</h2>
+            </div>
+            <p class="medieval text-gray-500 text-sm leading-relaxed max-w-[240px]">
+                Análise forense de criaturas.
+                <br/><span class="text-[10px] uppercase tracking-widest font-sans font-bold mt-1 block text-gray-600 border border-gray-700 rounded-full py-0.5 px-2 w-max mx-auto">Em breve</span>
+            </p>
+        </div>
+    </section>
+</main>
+{% endblock %}

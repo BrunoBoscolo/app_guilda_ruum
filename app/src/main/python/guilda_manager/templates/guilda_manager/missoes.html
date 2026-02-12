@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+{% load static %}
+<html class="dark" lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Contratos - {{ guild.name }}</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<!-- Glide.js CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.6.0/css/glide.core.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.6.0/css/glide.theme.min.css">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#8B1E1E",
+              gold: "#D4AF37",
+              ivory: "#F4F1EA",
+              parchment: "#E8D5B5",
+              "background-dark": "#0F0C0C",
+              obsidian: "#1A1A1D",
+            },
+            fontFamily: {
+              display: ["Cinzel", "serif"],
+              medieval: ["MedievalSharp", "cursive"],
+              sans: ["Inter", "sans-serif"],
+            },
+            boxShadow: {
+              'epic': '0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 4px 10px -5px rgba(139, 30, 30, 0.3)',
+              'red-glow': '0 0 12px rgba(139, 30, 30, 0.6)',
+              'scroll-shadow': '0 20px 60px -10px rgba(0,0,0,0.7)',
+              'iron-inset': 'inset 0 2px 4px rgba(255,255,255,0.1), inset 0 -2px 4px rgba(0,0,0,0.5)',
+            }
+          },
+        },
+      };
+</script>
+<style type="text/tailwindcss">
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Inter", sans-serif;
+            background-color: #0F0C0C;
+            background-image: radial-gradient(circle at 50% 30%, #2a0a0a 0%, #0f0c0c 70%);
+            min-height: max(884px, 100dvh);
+        }
+        .scroll-container {
+            position: relative;
+            width: 90vw;
+            max-width: 450px;
+            margin: 0 auto;
+            min-height: 520px; /* Dynamic height with min constraint */
+            will-change: transform;
+        }
+
+        /* The clipping wrapper for the roll animation */
+        .scroll-clipper {
+             position: relative;
+             width: 100%;
+             padding-top: 12px;
+             overflow: hidden;
+             z-index: 10;
+        }
+
+        .parchment-texture {
+            background-color: #e6d5b8;
+            background-repeat: repeat-y;
+            background-size: 100% auto;
+            position: relative;
+            padding: 3rem 1.5rem 4.5rem 1.5rem;
+            min-height: 520px;
+            clip-path: polygon(0% 2%, 3% 0%, 7% 3%, 11% 0%, 15% 2%, 20% 0%, 25% 3%, 30% 1%, 35% 4%, 40% 1%, 45% 3%, 50% 0%, 55% 2%, 60% 0%, 65% 3%, 70% 1%, 75% 4%, 80% 1%, 85% 3%, 90% 0%, 95% 2%, 100% 0%, 100% 100%, 97% 98%, 93% 100%, 89% 97%, 85% 99%, 80% 97%, 75% 100%, 70% 98%, 65% 100%, 60% 97%, 55% 99%, 50% 97%, 45% 100%, 40% 98%, 35% 100%, 30% 97%, 25% 99%, 20% 97%, 15% 100%, 10% 98%, 5% 100%, 0% 97%);
+            border-left: 2px solid rgba(0, 0, 0, 0.05);
+            border-right: 2px solid rgba(0, 0, 0, 0.05);
+
+            /* Flex layout for content */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .parchment-texture::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuCeWasXjgz3v9-snhlKXfV2z_9Bjx0IcjvIw45P3zs1NdHZVy9LpwgEhGM7bmuYPvvVrPfgzywvwc1RcMfloDa2zBdxdd4k9W2aZqjYjGm87cM8TmZEvGWFrERvA-FM_LMVs05SQqIWdA7DonKQUWNeIREVtKDkrewtadIT14ykILzvycEhSVcszIVwG1OnvbhH2ecqEwEIS9ajRZ4nWurvUN7qJnq5X3UuphIBpkIxmSknI4F93S8FtpyNmKTrUyOFoIDOGqMjupA);
+            background-repeat: repeat;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .burnt-edge-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 0 0 40px rgba(74, 45, 15, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .scroll-rod {
+            height: 32px;
+            width: 106%;
+            margin-left: -3%;
+            background: linear-gradient(to bottom, #2c2520 0%, #4a3c31 40%, #5c4b3d 50%, #4a3c31 60%, #2c2520 100%);
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+            position: absolute;
+            z-index: 20;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .scroll-rod-top {
+            top: 0;
+            z-index: 30; /* Above everything */
+        }
+        .scroll-rod-bottom {
+            bottom: -16px; /* Attached to bottom of parchment wrapper */
+            width: 106%;
+            margin-left: -3%;
+        }
+
+        .scroll-body-wrapper {
+            position: relative;
+            width: 100%;
+            min-height: 100%;
+            transform: translateY(-85%) translateZ(0);
+            transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+            will-change: transform;
+        }
+
+        .glide__slide--active .scroll-body-wrapper {
+            transform: translateY(0) translateZ(0);
+        }
+
+        .wax-seal {
+            position: absolute;
+            width: 64px;
+            z-index: 30;
+            filter: drop-shadow(3px 5px 5px rgba(0,0,0,0.5));
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(1.5) rotate(var(--rotation));
+        }
+
+        @keyframes seal-stamp {
+            0% { opacity: 0; transform: scale(1.5) rotate(var(--rotation)); }
+            100% { opacity: 1; transform: scale(1) rotate(var(--rotation)); }
+        }
+
+        .glide__slide--active .wax-seal {
+            animation: seal-stamp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.6s forwards;
+        }
+
+        .ink-text {
+            color: #1a1510;
+            text-shadow: 0.5px 0.5px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        /* Glide Adjustments */
+        .glide__slide {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0.5;
+            transform: scale(0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .glide__slide--active {
+            opacity: 1;
+            transform: scale(1);
+            z-index: 10;
+        }
+
+        /* Scroll Impact Animation */
+        @keyframes scroll-impact {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.96); }
+            100% { transform: scale(1); }
+        }
+
+        .glide__slide--active .scroll-container {
+             animation: scroll-impact 0.3s ease-out 0.8s;
+        }
+
+        /* Content Fade In */
+        .quest-content-fade {
+            opacity: 0;
+            transition: opacity 0.5s ease 0.5s;
+        }
+        .glide__slide--active .quest-content-fade {
+            opacity: 1;
+        }
+</style>
+</head>
+<body class="text-slate-800 dark:text-ivory min-h-screen flex flex-col overflow-x-hidden">
+<header class="p-6 pt-12 flex items-center justify-between w-full relative z-50">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full border-2 border-gold bg-primary/80 flex items-center justify-center shadow-lg">
+<span class="cinzel text-lg font-black text-gold">{{ guild.level }}</span>
+</div>
+<h1 class="cinzel text-sm font-bold text-white tracking-widest uppercase">
+                Contratos de Guilda
+            </h1>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-gold">notifications</span>
+</div>
+</header>
+
+<main class="flex-1 flex flex-col items-center justify-center px-4 relative pb-24 w-full">
+
+    {% if quests %}
+    <div class="glide w-full max-w-lg mx-auto"> <!-- Container for Glide -->
+        <div class="glide__track" data-glide-el="track">
+            <ul class="glide__slides">
+                {% for quest in quests %}
+                <li class="glide__slide pt-10">
+                    <div class="scroll-container">
+                        <!-- Top Rod Fixed -->
+                        <div class="scroll-rod scroll-rod-top"></div>
+
+                        <!-- Clipper -->
+                        <div class="scroll-clipper">
+                            <!-- Moving Wrapper -->
+                            <div class="scroll-body-wrapper">
+                                <div class="parchment-texture">
+                                    <div class="burnt-edge-overlay"></div>
+
+                                    <!-- Dynamic Seal -->
+                                    <img src="{% static quest.seal_image_path %}" class="wax-seal" alt="Seal"
+                                         style="top: calc(1.5rem + {{ quest.seal_top_offset }}px); right: calc(0.8rem + {{ quest.seal_right_offset }}px); --rotation: {{ quest.seal_rotation }}deg;">
+
+                                    <!-- Content -->
+                                    <div class="quest-content-fade w-full flex flex-col items-center h-full">
+                                        <h2 class="cinzel text-2xl font-black ink-text mt-8 border-b-2 border-black/10 pb-2 w-full px-4 tracking-tighter text-center leading-tight">
+                                            {{ quest.title }}
+                                        </h2>
+
+                                        <div class="flex items-center gap-2 mt-4 mb-4">
+                                            <span class="material-symbols-outlined text-xs ink-text opacity-70">schedule</span>
+                                            <p class="cinzel text-sm font-bold ink-text opacity-80 uppercase tracking-widest">{{ quest.duration_days }} Dias</p>
+                                        </div>
+
+                                        <div class="px-4 relative z-10 flex-1 w-full text-center">
+                                            <p class="medieval text-lg ink-text leading-relaxed px-2">
+                                                "{{ quest.description|linebreaksbr }}"
+                                            </p>
+                                        </div>
+
+                                        <div class="mt-auto pt-4 w-full relative z-10 pb-2">
+                                            <div class="h-px w-3/4 mx-auto bg-gradient-to-r from-transparent via-black/20 to-transparent mb-2"></div>
+                                            <p class="cinzel text-[10px] font-bold ink-text opacity-60 tracking-[0.2em] uppercase text-center">
+                                                Recompensa de Guilda
+                                            </p>
+                                            <div class="flex flex-col items-center mt-2">
+                                                <p class="cinzel text-xl font-black text-primary">
+                                                    T$ {{ quest.gold_reward }}
+                                                </p>
+                                                <p class="cinzel text-xs font-bold text-gray-700/80 mt-1">
+                                                    + {{ quest.gxp_reward }} GXP
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Bottom Rod attached to parchment -->
+                                <div class="scroll-rod scroll-rod-bottom"></div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Bullets -->
+        <div class="glide__bullets mt-4 flex justify-center gap-2" data-glide-el="controls[nav]">
+            {% for quest in quests %}
+            <button class="glide__bullet w-2 h-2 rounded-full bg-white/20 transition-all hover:bg-gold focus:bg-gold" data-glide-dir="={{ forloop.counter0 }}"></button>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center text-ivory/50 font-cinzel">
+        <p>Nenhum contrato disponível no momento.</p>
+    </div>
+    {% endif %}
+
+</main>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/5 px-6 py-4 flex justify-between items-center z-50">
+<a href="{% url 'sede' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
+<span class="material-symbols-outlined group-hover:text-gold transition-colors">home</span>
+<span class="text-[9px] cinzel group-hover:text-gold font-bold uppercase">Sede</span>
+</a>
+<a href="{% url 'missoes' %}" class="flex flex-col items-center gap-1 group text-gold">
+<span class="material-symbols-outlined">history_edu</span>
+<span class="text-[9px] cinzel font-bold uppercase">Contratos</span>
+</a>
+<div class="relative -mt-12">
+<a href="{% url 'construcoes' %}" class="w-14 h-14 bg-primary rounded-full flex items-center justify-center border-4 border-background-dark shadow-epic group transition-all hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined text-white text-3xl">add</span>
+</a>
+</div>
+<a href="{% url 'bestiario' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-ivory transition-colors">
+<span class="material-symbols-outlined group-hover:text-ivory transition-colors">menu_book</span>
+<span class="text-[9px] cinzel group-hover:text-ivory font-bold uppercase">Bestiário</span>
+</a>
+<a href="{% url 'mestre' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-ivory transition-colors">
+<span class="material-symbols-outlined group-hover:text-ivory transition-colors">shield</span>
+<span class="text-[9px] cinzel group-hover:text-ivory font-bold uppercase">Mestre</span>
+</a>
+</nav>
+
+<footer class="bg-black p-8 text-center border-t border-white/5 mt-10 pb-24">
+<p class="text-[10px] text-slate-500 cinzel tracking-widest leading-relaxed">
+            Criado por <span class="text-gold">Bruno "Mars" Boscolo</span> e <span class="text-gold">Gustavo "Garu" Oliveira</span>
+<br/>
+            Tormenta 20 é um produto da Jambô Editora.
+            <br/>
+<span class="opacity-50 italic">Projeto de fãs não lucrativo</span>
+</p>
+</footer>
+
+<!-- Glide JS Init -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.6.0/glide.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const glideElement = document.querySelector('.glide');
+        if (glideElement) {
+            new Glide('.glide', {
+                type: 'carousel',
+                startAt: 0,
+                perView: 1,
+                gap: 20,
+                focusAt: 'center',
+                peek: {
+                    before: 20,
+                    after: 20
+                },
+                breakpoints: {
+                    800: {
+                        perView: 1,
+                        peek: 60
+                    },
+                    480: {
+                        perView: 1,
+                        peek: 20
+                    }
+                }
+            }).mount();
+        }
+    });
+</script>
+
+</body>
+</html>
