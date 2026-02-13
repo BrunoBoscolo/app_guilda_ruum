@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Aharadak Entry Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;0,900;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec1313",
+                        "aharadak-crimson": "#8a0b0b",
+                        "aharadak-red": "#ff0033",
+                        "aharadak-dark": "#1a0505",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#050000",
+                        "gold": "#D4AF37",
+                        "stone": "#2a2a2a",
+                    },
+                    fontFamily: {
+                        "display": ["Noto Serif", "serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    backgroundImage: {
+                        'void-pattern': "radial-gradient(circle at center, rgba(139, 0, 0, 0.2) 0%, rgba(5, 0, 0, 0) 70%)",
+                        'crystal-gradient': "linear-gradient(135deg, rgba(236, 19, 19, 0.9) 0%, #8a0b0b 100%)",
+                        'stone-gradient': "linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%)",
+                        'storm-nebula': "radial-gradient(circle at 50% 30%, rgba(139, 0, 0, 0.25) 0%, transparent 60%), radial-gradient(circle at 80% 80%, rgba(80, 0, 0, 0.3) 0%, transparent 50%)",
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .text-gold-weathered {
+            background: linear-gradient(180deg, #ffeaa7 0%, #D4AF37 40%, #8a7008 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.8);
+            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+        }
+        .eye-glow {
+            filter: drop-shadow(0 0 25px rgba(236, 19, 19, 0.5)) drop-shadow(0 0 60px rgba(139, 0, 0, 0.6));
+        }
+        .btn-crystal {
+            box-shadow:
+                inset 0 0 20px rgba(255, 100, 100, 0.3),
+                0 0 15px rgba(236, 19, 19, 0.4),
+                0 4px 0 #5c0707;
+            border: 1px solid rgba(212, 175, 55, 0.6);
+            transition: all 0.2s ease;
+        }
+        .btn-crystal:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 5px rgba(236, 19, 19, 0.4);
+        }
+        .btn-stone {
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                0 4px 0 #0f0f0f,
+                0 10px 20px rgba(0,0,0,0.5);
+            border: 1px solid #444;
+            transition: all 0.2s ease;
+        }
+        .btn-stone:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #0f0f0f;
+        }.eldritch-icon {
+            color: #ff3333;
+            text-shadow: 0 0 10px #800000, 0 0 20px #ff0000;
+        }.bg-tormenta-texture {
+            background-color: #050000;
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E"),
+                radial-gradient(circle at 20% 10%, rgba(139, 0, 0, 0.25) 0%, transparent 40%),
+                radial-gradient(circle at 80% 90%, rgba(185, 28, 28, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(153, 27, 27, 0.1) 0%, transparent 60%);
+        }
+        .lightning-crack {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M100,0 Q120,50 90,80 T130,150 T100,200' stroke='rgba(220, 20, 60, 0.2)' stroke-width='1.5' fill='none' /%3E%3Cpath d='M200,50 Q180,100 220,130 T170,200' stroke='rgba(139, 0, 0, 0.2)' stroke-width='1' fill='none' /%3E%3C/svg%3E");
+            opacity: 0.4;
+            mask-image: radial-gradient(circle at center, transparent 30%, black 100%);
+        }
+        .nebula-swirl {
+            background:
+                radial-gradient(ellipse at top left, rgba(153, 27, 27, 0.3), transparent 60%),
+                radial-gradient(ellipse at bottom right, rgba(127, 29, 29, 0.3), transparent 50%),
+                radial-gradient(circle at center, transparent 30%, #050000 100%);
+            mix-blend-mode: color-dodge;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(667px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark min-h-screen text-white font-display overflow-hidden relative selection:bg-primary selection:text-white">
+<div class="fixed inset-0 z-0 pointer-events-none bg-tormenta-texture overflow-hidden">
+<div class="absolute inset-0 nebula-swirl opacity-70"></div>
+<div class="absolute inset-0 lightning-crack"></div>
+<div class="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 animate-pulse-slow mix-blend-screen"></div>
+<div class="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-background-dark/95"></div>
+<div class="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-aharadak-dark via-background-dark/60 to-transparent"></div>
+</div>
+<main class="relative z-10 h-screen flex flex-col items-center justify-center px-6 py-12 safe-area-inset-bottom">
+<div class="flex-1 flex flex-col items-center justify-center w-full max-w-md mt-4 mb-8">
+<div class="relative w-72 h-72 md:w-96 md:h-96 flex items-center justify-center">
+<div class="absolute inset-0 border border-red-900/40 rounded-full scale-110 opacity-40 blur-sm"></div>
+<div class="relative w-full h-full eye-glow flex items-center justify-center">
+<span class="material-symbols-outlined eldritch-icon" style="font-size: 200px;">
+                        visibility
+                    </span>
+<span class="material-symbols-outlined absolute text-red-700 opacity-60 mix-blend-screen" style="font-size: 80px; top: 25%; left: 25%; transform: rotate(-15deg);">
+                        visibility
+                    </span>
+<span class="material-symbols-outlined absolute text-aharadak-red opacity-60 mix-blend-screen" style="font-size: 60px; bottom: 30%; right: 20%; transform: rotate(20deg);">
+                        visibility
+                    </span>
+</div>
+</div>
+</div>
+<div class="w-full max-w-sm space-y-6 mb-16">
+<a href="{% url 'create_guild' %}" class="block">
+<button class="group relative w-full h-16 rounded-lg btn-crystal overflow-hidden">
+<div class="absolute inset-0 bg-crystal-gradient"></div>
+<div class="absolute top-0 left-0 w-full h-1/2 bg-white/10 blur-sm"></div>
+<div class="relative z-10 flex items-center justify-center h-full space-x-3">
+<span class="material-icons text-gold text-2xl drop-shadow-lg">diversity_3</span>
+<span class="text-lg font-bold tracking-widest text-white drop-shadow-md group-hover:text-gold transition-colors duration-300">CRIAR GUILDA</span>
+</div>
+<div class="absolute top-1 left-1 w-2 h-2 border-t border-l border-gold/60"></div>
+<div class="absolute top-1 right-1 w-2 h-2 border-t border-r border-gold/60"></div>
+<div class="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-gold/60"></div>
+<div class="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-gold/60"></div>
+</button>
+</a>
+<a href="{% url 'sync_guild' %}" class="block">
+<button class="group relative w-full h-16 rounded-lg btn-stone overflow-hidden">
+<div class="absolute inset-0 bg-stone-gradient"></div>
+<div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/concrete-wall.png')] opacity-20 mix-blend-overlay"></div>
+<div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-orange-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="relative z-10 flex items-center justify-center h-full space-x-3">
+<span class="material-icons text-orange-400/80 text-2xl group-hover:text-orange-400 transition-colors">sync</span>
+<span class="text-lg font-bold tracking-widest text-gray-300 group-hover:text-orange-100 transition-colors duration-300 shadow-black drop-shadow-sm">SINCRONIZAR</span>
+</div>
+</button>
+</a>
+</div>
+<div class="text-center pb-4 opacity-40 absolute bottom-8">
+<p class="text-xs tracking-wider text-red-200/50 mix-blend-plus-lighter">VERSÃO 2.4.0 • JAMBO EDITORA</p>
+</div>
+</main>
+</body></html>

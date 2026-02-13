@@ -4,6 +4,7 @@ from django.utils import timezone
 from decimal import Decimal
 from .services import GuildLevelService
 import random
+import string
 
 class SquadRank(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -101,6 +102,28 @@ class Guild(models.Model):
         choices=MoralAlignment.choices,
         default=MoralAlignment.HUMANITARIAN
     )
+
+    code = models.CharField(max_length=10, unique=True, null=True, blank=True)
+    emblem = models.CharField(max_length=50, default='swords')
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+             self.code = self.generate_unique_code()
+        super().save(*args, **kwargs)
+
+    def generate_unique_code(self):
+        while True:
+            # Format: XXX-0000
+            letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            digits = ''.join(random.choices(string.digits, k=4))
+            code = f"{letters}-{digits}"
+            if not self.__class__.objects.filter(code=code).exists():
+                return code
+
+    @property
+    def qr_code_url(self):
+        # Using a reliable public QR code API
+        return f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={self.code}"
 
     def __str__(self):
         return self.name
