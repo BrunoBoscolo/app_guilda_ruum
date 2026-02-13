@@ -70,6 +70,33 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        .borda-olho {
+            -webkit-mask-image: url('borda_olhos.svg');
+            mask-image: url('borda_olhos.svg');
+            -webkit-mask-size: contain;
+            mask-size: contain;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-position: center;
+            background: linear-gradient(to bottom, #8B0000, #FFD700);
+        }
+        .pupila {
+            -webkit-mask-image: url('pupila.svg');
+            mask-image: url('pupila.svg');
+            -webkit-mask-size: auto 50%;
+            mask-size: auto 50%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-position: center;
+            background: linear-gradient(to bottom, #8B0000, #FFD700);
+            animation: lookSide 4s infinite alternate ease-in-out;
+        }
+        @keyframes lookSide {
+            0% { transform: translateX(-15%); }
+            100% { transform: translateX(15%); }
+        }
     </style>
     <style>
         body {
@@ -91,15 +118,11 @@
     <div class="relative w-64 h-64 flex items-center justify-center mb-12">
         <div class="runic-ring"></div>
         <div class="absolute w-48 h-48 bg-primary/20 rounded-full blur-3xl"></div>
-        <div class="relative w-32 h-32 rounded-full bg-gradient-to-br from-[#2a1a1a] to-[#0f0a0a] border-[3px] border-gold shadow-gold-glow flex items-center justify-center pulse-core overflow-hidden">
-            <div class="absolute inset-2 border border-gold/30 rounded-full"></div>
-            <span class="material-symbols-outlined text-6xl text-transparent bg-clip-text bg-gradient-to-b from-gold via-[#fffbeb] to-[#b8860b] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                    visibility
-                </span>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
-            <div class="absolute bottom-4 text-gold/40">
-                <span class="material-symbols-outlined text-xs">hotel_class</span>
-            </div>
+        <div class="relative w-48 h-48 flex items-center justify-center pulse-core overflow-hidden">
+             <!-- Pupil (Behind Border) -->
+             <div class="absolute inset-0 pupila z-10"></div>
+             <!-- Eye Border -->
+             <div class="absolute inset-0 borda-olho z-20"></div>
         </div>
     </div>
     <div class="text-center space-y-4">
