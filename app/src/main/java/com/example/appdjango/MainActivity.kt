@@ -24,6 +24,10 @@ class MainActivity : AppCompatActivity() {
         // Configurações do WebView
         myWebView.settings.javaScriptEnabled = true
         myWebView.settings.domStorageEnabled = true
+        myWebView.settings.allowFileAccess = true
+        myWebView.settings.allowContentAccess = true
+        myWebView.settings.allowFileAccessFromFileURLs = true
+        myWebView.settings.allowUniversalAccessFromFileURLs = true
         myWebView.webViewClient = WebViewClient()
 
         // 1. Carregar a tela de loading HTML local IMEDIATAMENTE
