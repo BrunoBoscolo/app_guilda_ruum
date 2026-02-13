@@ -84,13 +84,72 @@ class QuestViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(quest)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+def root_routing_view(request):
+    if Guild.objects.exists():
+        return redirect('sede')
+    else:
+        return redirect('entry_portal')
+
+def entry_portal_view(request):
+    if Guild.objects.exists():
+        return redirect('sede')
+    return render(request, 'guilda_manager/entry_portal.html')
+
+def create_guild_view(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        emblem = request.POST.get('emblem')
+        legal_status = request.POST.get('legal_status')
+        moral_alignment = request.POST.get('moral_alignment')
+        motto = request.POST.get('motto')
+
+        if name:
+            Guild.objects.create(
+                name=name,
+                emblem=emblem or 'swords',
+                legal_status=legal_status or Guild.LegalStatus.INDEPENDENT,
+                moral_alignment=moral_alignment or Guild.MoralAlignment.HUMANITARIAN,
+                description=motto or ''
+            )
+            return redirect('sede')
+
+    return render(request, 'guilda_manager/create_guild.html')
+
+def sync_guild_view(request):
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        # Simulate Sync Logic
+        # In a real app, this would fetch from server.
+        # Here we just validate and create a dummy guild or assume it worked.
+        # Check code format XXX-0000
+        import re
+        if code and re.match(r'^[A-Z]{3}-\d{4}$', code):
+             # Create a guild with this code if not exists
+             if not Guild.objects.exists():
+                 Guild.objects.create(
+                     name=f"Guilda {code}",
+                     code=code,
+                     description="Guilda sincronizada via código."
+                 )
+             return redirect('sede')
+        else:
+            return render(request, 'guilda_manager/sync_guild.html', {'error': 'Código inválido'})
+
+    return render(request, 'guilda_manager/sync_guild.html')
+
+def share_guild_view(request):
+    guild = Guild.objects.first()
+    if not guild:
+        return redirect('entry_portal')
+    return render(request, 'guilda_manager/share_guild.html', {'guild': guild})
+
 def landing_view(request):
     return render(request, 'guilda_manager/landing.html')
 
 def sede_view(request):
     guild = Guild.objects.first()
     if not guild:
-        guild = Guild.objects.create(name="A Guilda do Macaco Caolho")
+        return redirect('entry_portal')
 
     max_xp = 100  # Placeholder as per design
     xp_percent = min((guild.gxp / max_xp) * 100, 100)
@@ -123,7 +182,7 @@ def sede_view(request):
 def missoes_view(request):
     guild = Guild.objects.first()
     if not guild:
-        guild = Guild.objects.create(name="A Guilda do Macaco Caolho")
+        return redirect('entry_portal')
 
     quests = Quest.objects.all()
 
@@ -153,7 +212,7 @@ def construcoes_view(request):
 def construcoes_projetos_view(request):
     guild = Guild.objects.first()
     if not guild:
-         guild = Guild.objects.create(name="A Guilda do Macaco Caolho")
+         return redirect('entry_portal')
 
     # Get IDs of buildings already constructed
     built_ids = guild.guild_buildings.values_list('building_id', flat=True)
@@ -171,7 +230,7 @@ def construcoes_projetos_view(request):
 def construcoes_infra_view(request):
     guild = Guild.objects.first()
     if not guild:
-         guild = Guild.objects.create(name="A Guilda do Macaco Caolho")
+         return redirect('entry_portal')
 
     constructions = guild.guild_buildings.select_related('building').all().order_by('-built_at')
 
@@ -511,8 +570,7 @@ def bestiario_create_view(request):
 def mestre_view(request):
     guild = Guild.objects.first() # Assuming single guild
     if not guild:
-        # Create a default guild if none exists (for safety/demo)
-        guild = Guild.objects.create(name="Guilda Nova")
+        return redirect('entry_portal')
 
     context = {}
 

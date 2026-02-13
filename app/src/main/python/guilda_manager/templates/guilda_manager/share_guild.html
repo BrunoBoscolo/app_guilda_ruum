@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Compartilhar Crônica - Tormenta 20</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;family=Merriweather:ital,wght@0,300;0,400;1,300&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#8B1E1E", // Deep Blood Red
+              gold: "#D4AF37",
+              ivory: "#F4F1EA",
+              amber: "#FFBF00",
+              "background-dark": "#0F0C0C",
+              "stone-dark": "#1c1919",
+              "parchment-dark": "#262222",
+            },
+            fontFamily: {
+              display: ["Cinzel", "serif"],
+              medieval: ["MedievalSharp", "cursive"],
+              sans: ["Inter", "sans-serif"],
+              serif: ["Merriweather", "serif"],
+            },
+            boxShadow: {
+              'epic': '0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 4px 10px -5px rgba(139, 30, 30, 0.3)',
+              'red-glow': '0 0 20px rgba(139, 30, 30, 0.8)',
+              'gold-glow': '0 0 15px rgba(212, 175, 55, 0.4)',
+              'ivory-glow': '0 0 15px rgba(244, 241, 234, 0.3)',
+              'inner-gold': 'inset 0 0 15px rgba(212, 175, 55, 0.2)',
+            }
+          },
+        },
+      };
+    </script>
+<style type="text/tailwindcss">
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+            background-color: #0F0C0C;
+        }
+        .rpg-gradient-overlay {
+            background: linear-gradient(0deg, rgba(15, 12, 12, 1) 0%, rgba(15, 12, 12, 0.7) 50%, rgba(15, 12, 12, 0.3) 100%);
+        }
+        .stone-card {
+            background: radial-gradient(circle at center, #2a2424 0%, #1a1616 100%);
+            border: 1px solid #3d3434;
+        }
+        .parchment-box {
+            background: #262222;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        .qr-frame {
+            border: 3px solid #D4AF37;
+            position: relative;
+        }
+        .qr-frame::before, .qr-frame::after {
+            content: '';
+            position: absolute;
+            width: 110%;
+            height: 110%;
+            top: -5%;
+            left: -5%;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            pointer-events: none;
+        }
+        .corner-filigree {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .corner-tl { top: -2px; left: -2px; border-top: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 4px 0 0 0; }
+        .corner-tr { top: -2px; right: -2px; border-top: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 4px 0 0; }
+        .corner-bl { bottom: -2px; left: -2px; border-bottom: 3px solid #D4AF37; border-left: 3px solid #D4AF37; border-radius: 0 0 0 4px; }
+        .corner-br { bottom: -2px; right: -2px; border-bottom: 3px solid #D4AF37; border-right: 3px solid #D4AF37; border-radius: 0 0 4px 0; }
+        .btn-stone {
+            background: linear-gradient(135deg, #2a2424 0%, #1c1919 100%);
+            border: 1px solid #3d3434;
+            color: #FFBF00;
+            text-shadow: 0 0 5px rgba(255, 191, 0, 0.5);
+        }
+        .btn-crystal {
+            background: linear-gradient(135deg, #8B1E1E 0%, #5a1212 100%);
+            border: 1px solid #D4AF37;
+            box-shadow: 0 0 15px rgba(139, 30, 30, 0.6);
+        }
+        .runic-text {
+            font-family: 'MedievalSharp', cursive;
+            letter-spacing: 0.1em;
+        }
+    </style>
+<script>
+    function copyToClipboard(text) {
+        // Fallback for non-secure contexts (http) or old browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert('Código copiado!');
+        } catch (err) {
+            console.error('Unable to copy to clipboard', err);
+        }
+        document.body.removeChild(textArea);
+    }
+</script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-ivory min-h-screen flex flex-col overflow-hidden relative">
+<div class="absolute inset-0 z-0">
+<img alt="Tormenta Storm Clouds" class="w-full h-full object-cover opacity-40 mix-blend-overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeAZ-jPmkpeqPcFX9mSZvIOAa8DkPHca9fhyQwRocLoWIMsnbPpHBLsnBcdYyPD3cl24I4ksKZSdOwrO009crimH_UoKDU9biVOx0Rh89Nr6rENdoiG6fLgQPP8ZJS9jD2oa1XFoG7shxqvZr6M0mqs4A6skcLbWWEhc862vrQe3ltWV1fEe4z1ucj57hlynrvDsgr6RWrijICmReLU6M3obmjejhNcjg4w-IxJa0nPGkUA6_T1wgoaJlA18lbJV3r-fDsc3KmgrM"/>
+<div class="absolute inset-0 rpg-gradient-overlay"></div>
+</div>
+<header class="relative z-10 pt-14 pb-6 px-6 text-center">
+<div class="mx-auto w-14 h-14 rounded-full border-2 border-gold/40 bg-black/60 backdrop-blur-md flex items-center justify-center mb-4 shadow-gold-glow">
+<span class="material-symbols-outlined text-3xl text-gold">share</span>
+</div>
+<h1 class="font-display text-xl font-black text-gold tracking-[0.2em] uppercase drop-shadow-md">
+            Compartilhar Crônica
+        </h1>
+</header>
+<main class="flex-1 relative z-10 px-6 pb-10 flex flex-col items-center justify-center">
+<div class="w-full max-w-sm relative">
+<div class="stone-card rounded-2xl p-8 shadow-epic relative overflow-visible">
+<div class="corner-filigree corner-tl"></div>
+<div class="corner-filigree corner-tr"></div>
+<div class="corner-filigree corner-bl"></div>
+<div class="corner-filigree corner-br"></div>
+<div class="flex flex-col items-center space-y-8">
+<div class="w-full space-y-2 text-center">
+<p class="font-display text-[10px] text-gold/60 uppercase tracking-widest">Código Único</p>
+<div class="parchment-box py-4 px-6 rounded-lg border border-gold/20 shadow-inner-gold">
+<span class="font-display text-4xl font-black text-ivory tracking-tighter drop-shadow-[0_0_10px_rgba(244,241,234,0.5)]">
+                                {{ guild.code }}
+                            </span>
+</div>
+</div>
+<div class="qr-frame p-3 bg-white/95 rounded-sm shadow-gold-glow-strong">
+<img alt="QR Code" class="w-40 h-40" src="{{ guild.qr_code_url }}"/>
+</div>
+<div class="space-y-4 w-full">
+<div class="text-center">
+<p class="font-serif text-[11px] text-ivory/70 italic leading-relaxed">
+                                Convide novos heróis para sua jornada através deste portal místico.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="relative z-10 px-8 pb-12 space-y-4">
+<button onclick="copyToClipboard('{{ guild.code }}')" class="w-full btn-stone py-4 rounded-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-amber">content_copy</span>
+<span class="runic-text font-bold text-sm">COPIAR CÓDIGO</span>
+</button>
+<button class="w-full btn-crystal py-4 rounded-xl flex items-center justify-center gap-3 active:scale-95 transition-all text-white relative overflow-hidden group">
+<div class="absolute inset-0 bg-white/10 opacity-0 group-active:opacity-100 transition-opacity"></div>
+<span class="material-symbols-outlined">image</span>
+<span class="font-display font-black text-sm tracking-widest uppercase">Compartilhar Imagem</span>
+</button>
+</footer>
+<div class="fixed bottom-[-10%] left-[-10%] w-[50%] h-[40%] bg-primary/10 blur-[100px] pointer-events-none z-0"></div>
+<div class="fixed top-[10%] right-[-10%] w-[40%] h-[30%] bg-primary/10 blur-[80px] pointer-events-none z-0"></div>
+
+</body></html>

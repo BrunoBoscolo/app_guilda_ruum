@@ -18,12 +18,23 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.static import serve
 from django.conf import settings
-from guilda_manager.views import sede_view, missoes_view, construcoes_view, construcoes_projetos_view, construcoes_infra_view, bestiario_list_view, bestiario_hub_view, bestiario_rememoracao_view, bestiario_edit_view, bestiario_create_view, landing_view, mestre_view
+from guilda_manager.views import (
+    sede_view, missoes_view, construcoes_view, construcoes_projetos_view,
+    construcoes_infra_view, bestiario_list_view, bestiario_hub_view,
+    bestiario_rememoracao_view, bestiario_edit_view, bestiario_create_view,
+    landing_view, mestre_view, root_routing_view, entry_portal_view,
+    create_guild_view, sync_guild_view, share_guild_view
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('guilda_manager.urls')),
-    path('', landing_view, name='landing'),
+    path('', root_routing_view, name='root'),
+    path('landing/', landing_view, name='landing'),
+    path('entry/', entry_portal_view, name='entry_portal'),
+    path('create-guild/', create_guild_view, name='create_guild'),
+    path('sync-guild/', sync_guild_view, name='sync_guild'),
+    path('share-guild/', share_guild_view, name='share_guild'),
     path('sede/', sede_view, name='sede'),
     path('missoes/', missoes_view, name='missoes'),
     path('construcoes/', construcoes_view, name='construcoes'),
