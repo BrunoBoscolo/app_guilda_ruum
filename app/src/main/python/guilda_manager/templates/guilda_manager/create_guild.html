@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html class="dark" lang="pt-br"><head>
 <meta charset="utf-8"/>
@@ -148,6 +149,33 @@
     body {
       min-height: max(884px, 100dvh);
     }
+    .borda-olho {
+        -webkit-mask-image: url("{% static 'guilda_manager/images/borda_olhos.svg' %}");
+        mask-image: url("{% static 'guilda_manager/images/borda_olhos.svg' %}");
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background: linear-gradient(to bottom, #8B0000, #FFD700);
+    }
+    .pupila {
+        -webkit-mask-image: url("{% static 'guilda_manager/images/pupila.svg' %}");
+        mask-image: url("{% static 'guilda_manager/images/pupila.svg' %}");
+        -webkit-mask-size: auto 50%;
+        mask-size: auto 50%;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background: linear-gradient(to bottom, #8B0000, #FFD700);
+        animation: lookSide 4s infinite alternate ease-in-out;
+    }
+    @keyframes lookSide {
+        0% { transform: translateX(-15%); }
+        100% { transform: translateX(15%); }
+    }
   </style>
   </head>
 <body class="bg-background-dark text-ivory min-h-screen flex flex-col overflow-hidden relative">
@@ -202,7 +230,10 @@
 <span class="material-symbols-outlined text-2xl text-slate-400">shield</span>
 </button>
 <button type="button" onclick="selectEmblem('visibility', this)" class="emblem-btn flex-shrink-0 w-16 h-16 rounded-full border border-stone-600 bg-stone-dark/50 flex items-center justify-center hover:border-gold/50 hover:bg-stone-dark transition-all">
-<span class="material-symbols-outlined text-2xl text-slate-400">visibility</span>
+<div class="relative w-10 h-10">
+<div class="absolute inset-0 pupila z-10"></div>
+<div class="absolute inset-0 borda-olho z-20"></div>
+</div>
 </button>
 <button type="button" onclick="selectEmblem('skull', this)" class="emblem-btn flex-shrink-0 w-16 h-16 rounded-full border border-stone-600 bg-stone-dark/50 flex items-center justify-center hover:border-gold/50 hover:bg-stone-dark transition-all">
 <span class="material-symbols-outlined text-2xl text-slate-400">skull</span>
