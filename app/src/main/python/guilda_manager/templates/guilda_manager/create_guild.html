@@ -42,7 +42,7 @@
         body {
             -webkit-tap-highlight-color: transparent;
             background-color: #0F0C0C;
-            min-height: max(884px, 100dvh);
+            height: 100dvh;
         }
         .cinzel { font-family: 'Cinzel', serif; }
         .rpg-gradient-overlay {
@@ -172,7 +172,7 @@
         }
     </style>
 </head>
-<body class="text-ivory min-h-screen flex flex-col relative overflow-hidden">
+<body class="text-ivory h-full flex flex-col relative overflow-hidden">
     <!-- Background -->
     <div class="absolute inset-0 z-0">
         <img alt="Tormenta Storm" class="w-full h-full object-cover opacity-40 mix-blend-overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeAZ-jPmkpeqPcFX9mSZvIOAa8DkPHca9fhyQwRocLoWIMsnbPpHBLsnBcdYyPD3cl24I4ksKZSdOwrO009crimH_UoKDU9biVOx0Rh89Nr6rENdoiG6fLgQPP8ZJS9jD2oa1XFoG7shxqvZr6M0mqs4A6skcLbWWEhc862vrQe3ltWV1fEe4z1ucj57hlynrvDsgr6RWrijICmReLU6M3obmjejhNcjg4w-IxJa0nPGkUA6_T1wgoaJlA18lbJV3r-fDsc3KmgrM"/>
@@ -262,7 +262,7 @@
                 <h1 class="cinzel text-3xl font-black text-gold tracking-widest uppercase drop-shadow-lg">LEGALIDADE</h1>
                 <p class="text-[10px] text-slate-400 font-sans tracking-widest uppercase mt-1">Defina o status de sua guilda perante a lei</p>
             </header>
-            <main class="flex-1 relative z-10 px-4 pb-32 overflow-hidden">
+            <main class="flex-1 relative z-10 px-4 pb-32 flex flex-col min-h-0 overflow-hidden">
                 <div class="h-full overflow-y-auto custom-scroll pr-1 space-y-4">
                     <!-- Patented -->
                     <button type="button" onclick="selectLegal('PATENTED', this)" class="alignment-card selected w-full text-left p-5 rounded-lg relative overflow-hidden group border-l-4 border-l-gold">
