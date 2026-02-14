@@ -1,26 +1,25 @@
 <!DOCTYPE html>
-<html class="dark" lang="pt-br"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Fundar Nova Guilda - Tormenta 20</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;family=Merriweather:ital,wght@0,300;0,400;1,300&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
-<script>
+<html class="dark" lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Criação de Guilda - Tormenta 20</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;600&amp;family=MedievalSharp&amp;family=Merriweather:ital,wght@0,300;0,400;1,300;1,700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script>
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
             colors: {
-              primary: "#8B1E1E", // Deep Blood Red
+              primary: "#8B1E1E",
               gold: "#D4AF37",
               ivory: "#F4F1EA",
-              "background-light": "#F4F1EA",
               "background-dark": "#0F0C0C",
-              "card-light": "#FFFFFF",
-              "card-dark": "#1A1616",
-              "stone-dark": "#2a2424",
+              "stone-dark": "#1c1919",
               "parchment": "#262222",
+              "card-dark": "#1A1616",
             },
             fontFamily: {
               display: ["Cinzel", "serif"],
@@ -28,291 +27,655 @@
               sans: ["Inter", "sans-serif"],
               serif: ["Merriweather", "serif"],
             },
-            borderRadius: {
-              DEFAULT: "12px",
-            },
             boxShadow: {
-              'inner-gold': 'inset 0 0 10px rgba(212, 175, 55, 0.3)',
-              'epic': '0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 4px 10px -5px rgba(139, 30, 30, 0.3)',
               'red-glow': '0 0 20px rgba(139, 30, 30, 0.8)',
               'gold-glow': '0 0 15px rgba(212, 175, 55, 0.4)',
-              'gold-glow-strong': '0 0 20px rgba(212, 175, 55, 0.6)',
-              'seal': '0 4px 6px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -2px 4px rgba(0,0,0,0.4)',
+              'rune-glow': '0 0 12px #D4AF37',
+              'epic': '0 10px 30px -5px rgba(0, 0, 0, 0.8)',
+              'seal-glow': '0 0 30px rgba(139, 30, 30, 0.5)',
             }
           },
         },
       };
     </script>
-<style type="text/tailwindcss">
+    <style type="text/tailwindcss">
         body {
             -webkit-tap-highlight-color: transparent;
-            font-family: 'Inter', sans-serif;
+            background-color: #0F0C0C;
+            min-height: max(884px, 100dvh);
         }
         .cinzel { font-family: 'Cinzel', serif; }
         .rpg-gradient-overlay {
-            background: linear-gradient(0deg, rgba(15, 12, 12, 1) 0%, rgba(15, 12, 12, 0.6) 50%, rgba(15, 12, 12, 0.2) 100%);
+            background: linear-gradient(0deg, rgba(15, 12, 12, 1) 0%, rgba(15, 12, 12, 0.4) 50%, rgba(139, 30, 30, 0.1) 100%);
         }
-        .scrollable-parchment {
-             background: linear-gradient(145deg, #1a1616, #120f0f);
-             box-shadow: inset 0 0 30px #000000;
+        .parchment-card {
+            background: linear-gradient(145deg, #262222, #1a1616);
+            border: 1px solid rgba(212, 175, 55, 0.2);
         }
         .input-stone {
-            background-color: #1c1919;
+            background-color: #151313;
             border: 2px solid #3d3434;
             color: #F4F1EA;
-            transition: all 0.3s ease;
         }
         .input-stone:focus {
             border-color: #D4AF37;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
             outline: none;
+        }
+        .rune-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 20px 0;
+        }
+        .rune {
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'MedievalSharp', cursive;
+            color: rgba(212, 175, 55, 0.3);
+            background: rgba(0,0,0,0.4);
+            cursor: default;
+        }
+        .rune.active {
+            color: #D4AF37;
+            border-color: #D4AF37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            text-shadow: 0 0 8px #D4AF37;
+        }
+        .next-btn {
+            background: linear-gradient(135deg, #8B1E1E 0%, #4a0f0f 100%);
+            border: 1px solid #ff4d4d;
+        }
+        .corner-accent {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #D4AF37;
+            opacity: 0.6;
+        }
+        .corner-tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+        .corner-tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+        .corner-br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+        /* Step 2 & 3 Specifics */
+        .scrollable-parchment {
+             background: linear-gradient(145deg, #1c1818, #120f0f);
+             box-shadow: inset 0 0 40px #000000;
         }
         .alignment-card {
             background: linear-gradient(180deg, #262222 0%, #1c1919 100%);
             border: 1px solid #3d3434;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
         }
         .alignment-card.selected {
             background: linear-gradient(180deg, #3a2e15 0%, #262010 100%);
             border-color: #D4AF37;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
         }
-        .wax-seal {
-            background: radial-gradient(circle at 30% 30%, #a62626, #7a1515);
-            box-shadow: 0 0 15px rgba(139, 30, 30, 0.6), inset 2px 2px 5px rgba(255, 255, 255, 0.2);
+        .wax-seal-btn {
+            background: radial-gradient(circle at 40% 35%, #bf2a2a 0%, #8B1E1E 40%, #5c0d0d 100%);
+            border: 2px solid #5c0d0d;
         }
-        .corner-accent {
+        .custom-scroll::-webkit-scrollbar { width: 3px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #3d3434; border-radius: 10px; }
+
+        /* Step 4 Specifics */
+        .certificate-container {
+            background: linear-gradient(180deg, rgba(38, 34, 34, 0.95) 0%, rgba(26, 22, 22, 0.98) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            position: relative;
+        }
+        .summary-card {
+            background: rgba(15, 12, 12, 0.4);
+            border-left: 3px solid #D4AF37;
+        }
+        .wax-seal-final {
+            background: radial-gradient(circle at 30% 30%, #a32424, #661010);
+            border: 4px double rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            aspect-ratio: 1/1;
+            width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .wax-seal-final:active {
+            transform: scale(0.95);
+            filter: brightness(0.8);
+        }
+        .corner-ornament {
             position: absolute;
-            width: 24px;
-            height: 24px;
-            border: 2px solid #D4AF37;
-            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
         }
-        .corner-tl { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
-        .corner-tr { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 8px 0 0; }
-        .corner-bl { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 8px; }
-        .corner-br { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 8px 0; }.custom-scroll::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scroll::-webkit-scrollbar-track {
-            background: #1a1616;
-        }
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: #3d3434;
-            border-radius: 2px;
+        .ornament-tl { top: 10px; left: 10px; border-top: 2px solid #D4AF37; border-left: 2px solid #D4AF37; }
+        .ornament-tr { top: 10px; right: 10px; border-top: 2px solid #D4AF37; border-right: 2px solid #D4AF37; }
+        .ornament-bl { bottom: 10px; left: 10px; border-bottom: 2px solid #D4AF37; border-left: 2px solid #D4AF37; }
+        .ornament-br { bottom: 10px; right: 10px; border-bottom: 2px solid #D4AF37; border-right: 2px solid #D4AF37; }
+        .divider-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            width: 80%;
+            margin: 1rem auto;
+            opacity: 0.5;
         }
     </style>
-<script>
-    function selectEmblem(emblem, btn) {
-        document.getElementById('emblem_input').value = emblem;
-        // Update UI
-        document.querySelectorAll('.emblem-btn').forEach(b => {
-            b.classList.remove('border-gold', 'bg-primary/20', 'shadow-gold-glow');
-            b.classList.add('border-stone-600', 'bg-stone-dark/50');
-            const check = b.querySelector('.check-icon');
-            if(check) check.remove();
-        });
-        btn.classList.remove('border-stone-600', 'bg-stone-dark/50');
-        btn.classList.add('border-gold', 'bg-primary/20', 'shadow-gold-glow');
+</head>
+<body class="text-ivory min-h-screen flex flex-col relative overflow-hidden">
+    <!-- Background -->
+    <div class="absolute inset-0 z-0">
+        <img alt="Tormenta Storm" class="w-full h-full object-cover opacity-40 mix-blend-overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeAZ-jPmkpeqPcFX9mSZvIOAa8DkPHca9fhyQwRocLoWIMsnbPpHBLsnBcdYyPD3cl24I4ksKZSdOwrO009crimH_UoKDU9biVOx0Rh89Nr6rENdoiG6fLgQPP8ZJS9jD2oa1XFoG7shxqvZr6M0mqs4A6skcLbWWEhc862vrQe3ltWV1fEe4z1ucj57hlynrvDsgr6RWrijICmReLU6M3obmjejhNcjg4w-IxJa0nPGkUA6_T1wgoaJlA18lbJV3r-fDsc3KmgrM"/>
+        <div class="absolute inset-0 rpg-gradient-overlay"></div>
+    </div>
 
-        // Add check icon
-        if(!btn.querySelector('.check-icon')) {
-            const check = document.createElement('div');
-            check.className = 'absolute -bottom-1 -right-1 w-5 h-5 bg-gold rounded-full flex items-center justify-center text-black check-icon';
-            check.innerHTML = '<span class="material-symbols-outlined text-sm font-bold">check</span>';
-            btn.appendChild(check);
+    <!-- Main Form -->
+    <form method="POST" action="{% url 'create_guild' %}" id="guildForm" class="flex-1 flex flex-col relative z-10 h-full">
+        {% csrf_token %}
+        <input type="hidden" name="name" id="input_name">
+        <input type="hidden" name="emblem" id="input_emblem" value="swords">
+        <input type="hidden" name="motto" id="input_motto">
+        <input type="hidden" name="legal_status" id="input_legal" value="PATENTED">
+        <input type="hidden" name="moral_alignment" id="input_moral" value="CORPORATE">
+
+        <!-- Step 1: Identity -->
+        <div id="step-1" class="step-section flex-1 flex flex-col">
+            <nav class="pt-10">
+                <div class="rune-container">
+                    <div class="rune active">ᚦ</div>
+                    <div class="rune">ᚨ</div>
+                    <div class="rune">ᚱ</div>
+                </div>
+                <div class="text-center mt-2">
+                    <span class="cinzel text-[10px] text-gold/60 tracking-[0.3em] uppercase">Passo 1: Identidade</span>
+                </div>
+            </nav>
+            <main class="flex-1 px-6 pt-6 pb-24 flex flex-col">
+                <div class="parchment-card rounded-2xl p-8 shadow-epic relative flex-1 border border-white/5">
+                    <div class="corner-accent corner-tl"></div>
+                    <div class="corner-accent corner-tr"></div>
+                    <div class="corner-accent corner-bl"></div>
+                    <div class="corner-accent corner-br"></div>
+                    <div class="space-y-10">
+                        <section class="space-y-4">
+                            <label class="block cinzel text-sm font-bold text-gold tracking-widest uppercase text-center">
+                                Nome da Guilda
+                            </label>
+                            <div class="relative">
+                                <input id="visible_name" class="w-full input-stone rounded-lg px-4 py-4 text-center font-medieval text-xl placeholder-stone-700 shadow-inner" placeholder="Digite o nome..." type="text" required oninput="updateName(this.value)"/>
+                            </div>
+                        </section>
+                        <section class="space-y-6">
+                            <label class="block cinzel text-sm font-bold text-gold tracking-widest uppercase text-center">
+                                Logotipo
+                            </label>
+                            <div class="grid grid-cols-4 gap-4 justify-items-center">
+                                <button type="button" onclick="selectEmblem('swords', this)" class="emblem-btn w-14 h-14 rounded-full bg-stone-dark border-2 border-gold flex items-center justify-center shadow-gold-glow">
+                                    <span class="material-symbols-outlined text-gold text-2xl">swords</span>
+                                </button>
+                                <button type="button" onclick="selectEmblem('shield', this)" class="emblem-btn w-14 h-14 rounded-full bg-stone-dark border-2 border-stone-800 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-stone-600 text-2xl">shield</span>
+                                </button>
+                                <button type="button" onclick="selectEmblem('visibility', this)" class="emblem-btn w-14 h-14 rounded-full bg-stone-dark border-2 border-stone-800 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-stone-600 text-2xl">visibility</span>
+                                </button>
+                                <button type="button" onclick="selectEmblem('skull', this)" class="emblem-btn w-14 h-14 rounded-full bg-stone-dark border-2 border-stone-800 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-stone-600 text-2xl">skull</span>
+                                </button>
+                            </div>
+                        </section>
+                        <section class="space-y-3">
+                            <label class="block cinzel text-[10px] font-bold text-gold/70 tracking-widest uppercase text-center">
+                                Lema de Batalha
+                            </label>
+                            <textarea id="visible_motto" class="w-full input-stone rounded-lg px-4 py-3 text-sm italic font-serif text-center resize-none h-20 placeholder-stone-700" placeholder="Ex: Pelo Reinado, por Arton!" oninput="updateMotto(this.value)"></textarea>
+                        </section>
+                    </div>
+                </div>
+            </main>
+            <div class="fixed bottom-0 left-0 right-0 px-6 pb-10 pt-4 z-20 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent">
+                <button type="button" onclick="nextStep(2)" class="w-full next-btn text-white font-black cinzel text-xl tracking-[0.25em] py-5 rounded-lg shadow-red-glow flex items-center justify-center gap-3 active:scale-[0.98] transition-transform">
+                    <span>PRÓXIMO</span>
+                    <span class="material-symbols-outlined text-gold">chevron_right</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Legality -->
+        <div id="step-2" class="step-section flex-1 flex flex-col hidden">
+            <header class="relative z-10 pt-10 pb-4 px-6 text-center">
+                <div class="flex justify-center items-center gap-4 mb-2">
+                    <div class="h-[1px] w-12 bg-gradient-to-r from-transparent to-gold/40"></div>
+                    <span class="cinzel text-[10px] text-gold tracking-[0.3em] font-bold uppercase">Passo 2 de 3</span>
+                    <div class="h-[1px] w-12 bg-gradient-to-l from-transparent to-gold/40"></div>
+                </div>
+                <h1 class="cinzel text-3xl font-black text-gold tracking-widest uppercase drop-shadow-lg">LEGALIDADE</h1>
+                <p class="text-[10px] text-slate-400 font-sans tracking-widest uppercase mt-1">Defina o status de sua guilda perante a lei</p>
+            </header>
+            <main class="flex-1 relative z-10 px-4 pb-32 overflow-hidden">
+                <div class="h-full overflow-y-auto custom-scroll pr-1 space-y-4">
+                    <!-- Patented -->
+                    <button type="button" onclick="selectLegal('PATENTED', this)" class="alignment-card selected w-full text-left p-5 rounded-lg relative overflow-hidden group border-l-4 border-l-gold">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 rounded-full bg-stone-dark/80 border border-gold/40 flex items-center justify-center flex-shrink-0 shadow-gold-glow">
+                                <span class="material-symbols-outlined text-3xl text-gold">verified_user</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-display font-bold text-ivory text-lg uppercase tracking-wider mb-1">Guilda Patenteada</h3>
+                                <p class="text-[11px] text-gold/90 font-serif italic mb-3">Foco em prestígio e apoio do reino. Ideal para heróis públicos.</p>
+                                <div class="space-y-3 mt-4">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-gold mt-1">history_edu</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">Burocracia Ajeitada</h4>
+                                            <p class="text-[10px] text-slate-300 font-serif leading-relaxed">Paga 10% a menos em equipamentos mundanos ou superiores.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-gold mt-1">workspace_premium</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">O Peso da Coroa</h4>
+                                            <p class="text-[10px] text-slate-300 font-serif leading-relaxed">Deve pagar Taxa de Tributo de 10% de todo Tesouro obtido ao governo local.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-gold mt-1">policy</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">Imunidade Diplomática Menor</h4>
+                                            <p class="text-[10px] text-slate-300 font-serif leading-relaxed">Crimes leves resultam em multa em vez de prisão imediata.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="corner-accent corner-tr opacity-20"></div>
+                        <div class="corner-accent corner-br opacity-20"></div>
+                    </button>
+                    <!-- Independent -->
+                    <button type="button" onclick="selectLegal('INDEPENDENT', this)" class="alignment-card w-full text-left p-5 rounded-lg relative overflow-hidden group border-l-4 border-l-slate-600">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 rounded-full bg-stone-dark/80 border border-slate-600 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-3xl text-slate-400">balance</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-display font-bold text-slate-300 text-lg uppercase tracking-wider mb-1">Guilda Independente</h3>
+                                <p class="text-[11px] text-slate-400 font-serif italic mb-3">Crescimento equilibrado e flexibilidade. Sem mestres, sem regras.</p>
+                                <div class="space-y-3 mt-4">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-slate-400 mt-1">shuffle</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">Flexibilidade</h4>
+                                            <p class="text-[10px] text-slate-400 font-serif leading-relaxed">Recebe contratos de todas as fontes: oficiais, civis e submundo.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-slate-400 mt-1">masks</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">Mimetismo Moral</h4>
+                                            <p class="text-[10px] text-slate-400 font-serif leading-relaxed">Escolha uma perícia para receber +5 e outra para receber -5 entre Diplomacia, Enganação, Intimidação, Atletismo, Furtividade, Investigação e Cura.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-slate-400 mt-1">warning</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">Sem Redes de Proteção</h4>
+                                            <p class="text-[10px] text-slate-400 font-serif leading-relaxed">Sem descontos ou autoridade legal para intervir em prisões.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                    <!-- Clandestine -->
+                    <button type="button" onclick="selectLegal('CLANDESTINE', this)" class="alignment-card w-full text-left p-5 rounded-lg relative overflow-hidden group border-l-4 border-l-primary">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 rounded-full bg-stone-dark/80 border border-primary/40 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-3xl text-primary">person_search</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-display font-bold text-slate-300 text-lg uppercase tracking-wider mb-1">Guilda Clandestina</h3>
+                                <p class="text-[11px] text-primary/80 font-serif italic mb-3">Alto risco com recompensas do mercado negro. Segredos valem ouro.</p>
+                                <div class="space-y-3 mt-4">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-primary mt-1">storefront</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">Mercado Negro</h4>
+                                            <p class="text-[10px] text-slate-400 font-serif leading-relaxed">Teste de Conhecimento ou Ladinagem CD 10 para acesso a itens proibidos.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-primary mt-1">payments</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">Dinheiro Sujo</h4>
+                                            <p class="text-[10px] text-slate-400 font-serif leading-relaxed">Vende itens roubados pelo valor total.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined text-[16px] text-primary mt-1">priority_high</span>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-ivory/95 uppercase tracking-tight">Procurados</h4>
+                                            <p class="text-[10px] text-slate-400 font-serif leading-relaxed">Sem sedes em áreas nobres, -5 Diplomacia e +5 Intimidação.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </main>
+            <footer class="fixed bottom-0 left-0 right-0 p-6 z-50 bg-gradient-to-t from-black via-black/95 to-transparent pt-10">
+                <button type="button" onclick="nextStep(3)" class="w-full wax-seal-btn text-white font-black cinzel text-lg tracking-[0.2em] py-4 rounded-xl shadow-red-glow flex items-center justify-center gap-3 active:scale-95 transition-transform border border-white/10">
+                    <span>PRÓXIMO</span>
+                    <span class="material-symbols-outlined text-gold">arrow_forward_ios</span>
+                </button>
+            </footer>
+        </div>
+
+        <!-- Step 3: Morality -->
+        <div id="step-3" class="step-section flex-1 flex flex-col hidden">
+            <header class="relative z-10 pt-8 pb-4 px-6 text-center">
+                <div class="flex justify-center items-center gap-2 mb-1">
+                    <div class="h-[1px] w-8 bg-gold/40"></div>
+                    <span class="cinzel text-[10px] text-gold font-bold tracking-[0.3em] uppercase">Passo 3 de 3</span>
+                    <div class="h-[1px] w-8 bg-gold/40"></div>
+                </div>
+                <h1 class="cinzel text-3xl font-black text-gold tracking-widest uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                    Moralidade
+                </h1>
+                <p class="text-[11px] text-slate-400 font-sans tracking-tight max-w-[280px] mx-auto mt-1 leading-tight">
+                    Complete o caminho ético da sua guilda definindo poderes e deveres sagrados.
+                </p>
+            </header>
+            <main class="flex-1 relative z-10 px-4 pb-32 flex flex-col min-h-0 overflow-hidden">
+                <div class="scrollable-parchment rounded-2xl p-1 w-full h-full flex flex-col border border-white/5 relative shadow-epic overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none z-20 m-3">
+                        <div class="corner-accent corner-tl"></div>
+                        <div class="corner-accent corner-tr"></div>
+                        <div class="corner-accent corner-bl"></div>
+                        <div class="corner-accent corner-br"></div>
+                    </div>
+                    <div class="overflow-y-auto custom-scroll p-4 pt-6 space-y-4 h-full relative z-10">
+                        <!-- Humanitarian -->
+                        <button type="button" onclick="selectMoral('HUMANITARIAN', this)" class="alignment-card w-full flex flex-col p-4 rounded-xl relative overflow-hidden group text-left">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-gold/20 flex items-center justify-center flex-shrink-0 group-hover:shadow-gold-glow transition-all">
+                                    <span class="material-symbols-outlined text-2xl text-gold">volunteer_activism</span>
+                                </div>
+                                <h3 class="font-cinzel font-black text-primary text-base uppercase tracking-wider">Guilda Humanitária</h3>
+                            </div>
+                            <div class="space-y-3 border-t border-white/5 pt-3">
+                                <ul class="space-y-2">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-gold mt-1 text-[10px]">•</span>
+                                        <p class="text-[11px] leading-relaxed"><strong class="text-gold font-bold">Apoio Popular:</strong> Hospedagem confortável gratuita em áreas aliadas.</p>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-gold mt-1 text-[10px]">•</span>
+                                        <p class="text-[11px] leading-relaxed"><strong class="text-gold font-bold">Boa Vontade:</strong> O custo para recrutar parceiros iniciais é 0 T$.</p>
+                                    </li>
+                                </ul>
+                                <div class="mt-2 p-2 bg-primary/10 border-l-2 border-primary/50 rounded-r">
+                                    <p class="text-[10px] text-amber-500/90 font-sans leading-relaxed italic">
+                                        <strong class="uppercase font-bold tracking-tighter not-italic">Dever: Juramento de Proteção.</strong>
+                                        Membros não podem recusar ajuda genuína a inocentes; se recusada, o jogador torna-se 'Alquebrado' e perde Traços de Guilda na região até descansar.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="absolute right-0 top-0 bottom-0 w-1 bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        </button>
+                        <!-- Corporate -->
+                        <button type="button" onclick="selectMoral('CORPORATE', this)" class="alignment-card selected w-full flex flex-col p-4 rounded-xl relative overflow-hidden group text-left">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-gold flex items-center justify-center flex-shrink-0 shadow-gold-glow">
+                                    <span class="material-symbols-outlined text-2xl text-gold">database</span>
+                                </div>
+                                <h3 class="font-cinzel font-black text-primary text-base uppercase tracking-wider">Guilda Corporativa</h3>
+                            </div>
+                            <div class="space-y-3 border-t border-gold/20 pt-3">
+                                <ul class="space-y-2">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-gold mt-1 text-[10px]">•</span>
+                                        <p class="text-[11px] leading-relaxed"><strong class="text-gold font-bold">Conexões:</strong> +2 em testes de Obter Informações e Negociação com mercadores.</p>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-gold mt-1 text-[10px]">•</span>
+                                        <p class="text-[11px] leading-relaxed"><strong class="text-gold font-bold">Ajuste de Valor:</strong> Pode rolar novamente testes de Sustento ou Ofício.</p>
+                                    </li>
+                                </ul>
+                                <div class="mt-2 p-2 bg-primary/10 border-l-2 border-primary/50 rounded-r">
+                                    <p class="text-[10px] text-amber-500 font-sans leading-relaxed italic">
+                                        <strong class="uppercase font-bold tracking-tighter not-italic">Dever: Alto Padrão.</strong>
+                                        Construções da guilda e itens criados custam 10% a mais devido à extrema exigência de qualidade.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="absolute right-0 top-0 bottom-0 w-1 bg-gold opacity-100"></div>
+                            <div class="absolute top-2 right-3">
+                                <span class="material-symbols-outlined text-gold text-lg">check_circle</span>
+                            </div>
+                        </button>
+                        <!-- Predatory -->
+                        <button type="button" onclick="selectMoral('PREDATORY', this)" class="alignment-card w-full flex flex-col p-4 rounded-xl relative overflow-hidden group text-left">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-primary/40 flex items-center justify-center flex-shrink-0 group-hover:border-primary transition-all">
+                                    <span class="material-symbols-outlined text-2xl text-primary">skull</span>
+                                </div>
+                                <h3 class="font-cinzel font-black text-primary text-base uppercase tracking-wider">Guilda Predatória</h3>
+                            </div>
+                            <div class="space-y-3 border-t border-white/5 pt-3">
+                                <ul class="space-y-2">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-gold mt-1 text-[10px]">•</span>
+                                        <p class="text-[11px] leading-relaxed"><strong class="text-gold font-bold">Medo e Respeito:</strong> Pode utilizar Intimidação no lugar de Diplomacia.</p>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-gold mt-1 text-[10px]">•</span>
+                                        <p class="text-[11px] leading-relaxed"><strong class="text-gold font-bold">Oportunista:</strong> +2 em rolagens de dano contra inimigos caídos ou desprevenidos.</p>
+                                    </li>
+                                </ul>
+                                <div class="mt-2 p-2 bg-primary/10 border-l-2 border-primary/50 rounded-r">
+                                    <p class="text-[10px] text-amber-500/90 font-sans leading-relaxed italic">
+                                        <strong class="uppercase font-bold tracking-tighter not-italic">Dever: Inimizade Eterna.</strong>
+                                        A má reputação persegue os membros; todos os testes baseados em Carisma possuem a CD aumentada em +5.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="absolute right-0 top-0 bottom-0 w-1 bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        </button>
+                        <div class="h-6"></div>
+                    </div>
+                </div>
+            </main>
+            <footer class="fixed bottom-0 left-0 right-0 p-8 z-50 bg-gradient-to-t from-black via-black/90 to-transparent">
+                <div class="max-w-xs mx-auto relative">
+                    <button type="button" onclick="nextStep(4)" class="wax-seal-btn w-full h-20 rounded-full flex flex-col items-center justify-center shadow-red-glow active:scale-95 transition-all relative overflow-hidden border-4 border-[#3d0b0b]">
+                        <div class="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]"></div>
+                        <span class="cinzel text-white font-black text-xl tracking-[0.2em] relative z-10">FORJAR GUILDA</span>
+                        <div class="flex items-center gap-1 opacity-80 relative z-10 mt-1">
+                            <span class="h-[1px] w-4 bg-gold/50"></span>
+                            <span class="material-symbols-outlined text-gold text-sm">verified_user</span>
+                            <span class="h-[1px] w-4 bg-gold/50"></span>
+                        </div>
+                        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-white/10 via-transparent to-black/20 pointer-events-none"></div>
+                    </button>
+                    <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-8 bg-primary/40 blur-md rounded-full -z-10"></div>
+                </div>
+            </footer>
+        </div>
+
+        <!-- Step 4: Confirmation -->
+        <div id="step-4" class="step-section flex-1 flex flex-col hidden">
+            <header class="relative z-10 pt-8 px-6 text-center">
+                <h1 class="cinzel text-[10px] text-gold/60 tracking-[0.4em] uppercase mb-4">Finalizar Criação</h1>
+            </header>
+            <main class="flex-1 relative z-10 px-6 pt-2 pb-32 overflow-y-auto">
+                <div class="certificate-container rounded-sm p-6 shadow-epic min-h-full flex flex-col items-center">
+                    <div class="corner-ornament ornament-tl"></div>
+                    <div class="corner-ornament ornament-tr"></div>
+                    <div class="corner-ornament ornament-bl"></div>
+                    <div class="corner-ornament ornament-br"></div>
+                    <div class="mt-4 mb-6">
+                        <div class="w-28 h-28 rounded-full bg-stone-dark border-4 border-gold shadow-gold-glow flex items-center justify-center relative">
+                            <span class="material-symbols-outlined text-gold text-5xl" id="summary_icon">swords</span>
+                            <div class="absolute -inset-1 rounded-full border border-gold/30 animate-pulse"></div>
+                        </div>
+                    </div>
+                    <h2 class="cinzel text-2xl font-black text-gold tracking-widest text-center mb-1" id="summary_name">NOME DA GUILDA</h2>
+                    <p class="font-serif italic text-gold/80 text-sm mb-6" id="summary_motto">"Lema da guilda aparecerá aqui."</p>
+                    <div class="divider-line"></div>
+                    <div class="w-full space-y-6 mt-4">
+                        <div class="summary-card p-4 rounded-r-lg">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="material-symbols-outlined text-gold text-xl">gavel</span>
+                                <h3 class="cinzel text-xs font-bold text-gold tracking-wider uppercase">Estatuto Legal</h3>
+                            </div>
+                            <div class="pl-8">
+                                <p class="font-medieval text-lg text-ivory/90 leading-tight" id="summary_legal_title">Guilda Patenteada</p>
+                                <p class="text-[11px] text-ivory/60 mt-1 italic" id="summary_legal_desc">Autorização oficial para missões de alto risco sob jurisdição do Reinado.</p>
+                            </div>
+                        </div>
+                        <div class="summary-card p-4 rounded-r-lg">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="material-symbols-outlined text-gold text-xl">account_balance</span>
+                                <h3 class="cinzel text-xs font-bold text-gold tracking-wider uppercase">Propósito Moral</h3>
+                            </div>
+                            <div class="pl-8">
+                                <p class="font-medieval text-lg text-ivory/90 leading-tight" id="summary_moral_title">Guilda Corporativa</p>
+                                <p class="text-[11px] text-ivory/60 mt-1 italic" id="summary_moral_desc">Foco em lucro e influência comercial, transformando aventuras em dividendos.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-10 pb-4 text-center">
+                        <p class="cinzel text-[9px] text-gold/40 tracking-[0.2em] uppercase">Documento de Constituição de Guilda</p>
+                    </div>
+                </div>
+            </main>
+            <div class="fixed bottom-0 left-0 right-0 h-44 z-20 pointer-events-none flex items-center justify-center">
+                <div class="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/90 to-transparent"></div>
+                <button type="submit" class="relative pointer-events-auto wax-seal-final shadow-red-glow group">
+                    <div class="absolute inset-0 rounded-full border-2 border-white/10 m-1"></div>
+                    <span class="material-symbols-outlined text-white/90 text-4xl mb-[-4px]">auto_fix_high</span>
+                    <span class="cinzel text-[10px] font-black text-white leading-none tracking-tighter">FORJAR<br/>DESTINO</span>
+                    <div class="absolute -z-10 w-full h-full bg-primary/20 blur-xl rounded-full"></div>
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        const descriptions = {
+            'PATENTED': { title: 'Guilda Patenteada', desc: 'Autorização oficial para missões de alto risco sob jurisdição do Reinado.' },
+            'INDEPENDENT': { title: 'Guilda Independente', desc: 'Crescimento equilibrado e flexibilidade. Sem mestres, sem regras.' },
+            'CLANDESTINE': { title: 'Guilda Clandestina', desc: 'Alto risco com recompensas do mercado negro. Segredos valem ouro.' },
+            'HUMANITARIAN': { title: 'Guilda Humanitária', desc: 'Apoio popular e hospedagem gratuita em áreas aliadas.' },
+            'CORPORATE': { title: 'Guilda Corporativa', desc: 'Foco em lucro e influência comercial, transformando aventuras em dividendos.' },
+            'PREDATORY': { title: 'Guilda Predatória', desc: 'Eficiência em combate e bônus de intimidação.' }
+        };
+
+        function updateName(val) {
+            document.getElementById('input_name').value = val;
+            document.getElementById('summary_name').innerText = val || "NOME DA GUILDA";
         }
-    }
 
-    function selectLegal(value, btn) {
-        document.getElementById('legal_input').value = value;
-        document.querySelectorAll('.legal-card').forEach(b => {
-            b.classList.remove('selected');
-            b.querySelector('.indicator').style.opacity = '0';
-        });
-        btn.classList.add('selected');
-        btn.querySelector('.indicator').style.opacity = '1';
-    }
+        function updateMotto(val) {
+            document.getElementById('input_motto').value = val;
+            document.getElementById('summary_motto').innerText = val ? `"${val}"` : "\"Lema da guilda aparecerá aqui.\"";
+        }
 
-    function selectMoral(value, btn) {
-        document.getElementById('moral_input').value = value;
-        document.querySelectorAll('.moral-card').forEach(b => {
-            b.classList.remove('selected');
-            b.querySelector('.indicator').style.opacity = '0';
-        });
-        btn.classList.add('selected');
-        btn.querySelector('.indicator').style.opacity = '1';
-    }
-</script>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  </head>
-<body class="bg-background-dark text-ivory min-h-screen flex flex-col overflow-hidden relative">
-<div class="absolute inset-0 z-0">
-<img alt="Atmospheric Dark Fantasy Background" class="w-full h-full object-cover opacity-30 grayscale-[0.3]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeAZ-jPmkpeqPcFX9mSZvIOAa8DkPHca9fhyQwRocLoWIMsnbPpHBLsnBcdYyPD3cl24I4ksKZSdOwrO009crimH_UoKDU9biVOx0Rh89Nr6rENdoiG6fLgQPP8ZJS9jD2oa1XFoG7shxqvZr6M0mqs4A6skcLbWWEhc862vrQe3ltWV1fEe4z1ucj57hlynrvDsgr6RWrijICmReLU6M3obmjejhNcjg4w-IxJa0nPGkUA6_T1wgoaJlA18lbJV3r-fDsc3KmgrM"/>
-<div class="absolute inset-0 rpg-gradient-overlay"></div>
-</div>
-<header class="relative z-10 pt-12 pb-6 px-6 text-center space-y-2">
-<div class="mx-auto w-16 h-16 rounded-full border-2 border-gold/30 bg-black/40 backdrop-blur-sm flex items-center justify-center mb-4 shadow-gold-glow">
-<span class="material-symbols-outlined text-4xl text-gold">history_edu</span>
-</div>
-<h1 class="cinzel text-2xl font-black text-gold tracking-widest uppercase drop-shadow-lg">
-        Fundar Nova Guilda
-    </h1>
-<p class="text-xs text-slate-400 font-sans tracking-wide">
-        Registre sua aliança nos anais da história de Arton
-    </p>
-</header>
-<main class="flex-1 relative z-10 px-4 pb-8 flex flex-col max-h-[calc(100vh-200px)]">
-<form method="POST" action="{% url 'create_guild' %}" class="relative w-full h-full flex flex-col">
-{% csrf_token %}
-<div class="scrollable-parchment rounded-xl p-1 w-full h-full flex flex-col border border-white/5 relative shadow-epic">
-<div class="absolute inset-0 pointer-events-none z-20 m-2">
-<div class="corner-accent corner-tl"></div>
-<div class="corner-accent corner-tr"></div>
-<div class="corner-accent corner-bl"></div>
-<div class="corner-accent corner-br"></div>
-</div>
-<div class="overflow-y-auto custom-scroll p-6 space-y-8 h-full relative z-10">
-<div class="space-y-2">
-<label class="block cinzel text-xs font-bold text-gold tracking-widest uppercase ml-1">
-                        Nome da Guilda
-                    </label>
-<div class="relative">
-<input name="name" class="w-full input-stone rounded-lg px-4 py-3 text-lg font-medieval placeholder-slate-600 focus:ring-0" placeholder="Ex: Os Cavaleiros do Corvo" type="text" required/>
-<span class="material-symbols-outlined absolute right-3 top-3.5 text-slate-500">edit</span>
-</div>
-</div>
-<div class="space-y-3">
-<label class="block cinzel text-xs font-bold text-gold tracking-widest uppercase ml-1">
-                        Logotipo
-                    </label>
-<input type="hidden" name="emblem" id="emblem_input" value="swords">
-<div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
-<button type="button" onclick="selectEmblem('swords', this)" class="emblem-btn flex-shrink-0 w-16 h-16 rounded-full border-2 border-gold bg-primary/20 flex items-center justify-center shadow-gold-glow relative group">
-<span class="material-symbols-outlined text-2xl text-gold">swords</span>
-<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-gold rounded-full flex items-center justify-center text-black check-icon">
-<span class="material-symbols-outlined text-sm font-bold">check</span>
-</div>
-</button>
-<button type="button" onclick="selectEmblem('shield', this)" class="emblem-btn flex-shrink-0 w-16 h-16 rounded-full border border-stone-600 bg-stone-dark/50 flex items-center justify-center hover:border-gold/50 hover:bg-stone-dark transition-all">
-<span class="material-symbols-outlined text-2xl text-slate-400">shield</span>
-</button>
-<button type="button" onclick="selectEmblem('visibility', this)" class="emblem-btn flex-shrink-0 w-16 h-16 rounded-full border border-stone-600 bg-stone-dark/50 flex items-center justify-center hover:border-gold/50 hover:bg-stone-dark transition-all">
-<span class="material-symbols-outlined text-2xl text-slate-400">visibility</span>
-</button>
-<button type="button" onclick="selectEmblem('skull', this)" class="emblem-btn flex-shrink-0 w-16 h-16 rounded-full border border-stone-600 bg-stone-dark/50 flex items-center justify-center hover:border-gold/50 hover:bg-stone-dark transition-all">
-<span class="material-symbols-outlined text-2xl text-slate-400">skull</span>
-</button>
-<button type="button" onclick="selectEmblem('magic_button', this)" class="emblem-btn flex-shrink-0 w-16 h-16 rounded-full border border-stone-600 bg-stone-dark/50 flex items-center justify-center hover:border-gold/50 hover:bg-stone-dark transition-all">
-<span class="material-symbols-outlined text-2xl text-slate-400">magic_button</span>
-</button>
-</div>
-</div>
-<div class="space-y-4 pt-2">
-<div class="flex items-center gap-2">
-<div class="h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent flex-1"></div>
-<label class="block cinzel text-sm font-bold text-gold tracking-widest uppercase text-center">
-                            Legalidade
-                        </label>
-<div class="h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent flex-1"></div>
-</div>
-<input type="hidden" name="legal_status" id="legal_input" value="PATENTED">
-<div class="grid grid-cols-1 gap-3">
-<button type="button" onclick="selectLegal('PATENTED', this)" class="legal-card selected flex items-start gap-4 p-4 rounded-lg relative overflow-hidden group">
-<div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-gold/30 flex items-center justify-center flex-shrink-0 group-hover:shadow-gold-glow transition-all mt-1">
-<span class="material-symbols-outlined text-2xl text-gold">local_police</span>
-</div>
-<div class="text-left flex-1">
-<h3 class="font-cinzel font-bold text-ivory text-sm uppercase tracking-wide">Patenteada</h3>
-<p class="text-[11px] text-ivory/80 mt-1 font-serif leading-relaxed italic">Foco em prestígio e apoio do reino. Ideal para heróis públicos.</p>
-</div>
-<div class="indicator absolute right-0 top-0 bottom-0 w-1 bg-gold opacity-100 transition-opacity"></div>
-</button>
-<button type="button" onclick="selectLegal('INDEPENDENT', this)" class="legal-card flex items-start gap-4 p-4 rounded-lg relative overflow-hidden group hover:border-stone-500">
-<div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-stone-600 flex items-center justify-center flex-shrink-0 group-hover:border-stone-400 transition-all mt-1">
-<span class="material-symbols-outlined text-2xl text-slate-400">balance</span>
-</div>
-<div class="text-left flex-1">
-<h3 class="font-cinzel font-bold text-slate-300 text-sm uppercase tracking-wide">Independente</h3>
-<p class="text-[11px] text-slate-400 mt-1 font-serif leading-relaxed italic">Crescimento equilibrado e flexibilidade. Sem mestres, sem regras.</p>
-</div>
-<div class="indicator absolute right-0 top-0 bottom-0 w-1 bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-</button>
-<button type="button" onclick="selectLegal('CLANDESTINE', this)" class="legal-card flex items-start gap-4 p-4 rounded-lg relative overflow-hidden group hover:border-stone-500">
-<div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-stone-600 flex items-center justify-center flex-shrink-0 group-hover:border-stone-400 transition-all mt-1">
-<span class="material-symbols-outlined text-2xl text-slate-400">theater_comedy</span>
-</div>
-<div class="text-left flex-1">
-<h3 class="font-cinzel font-bold text-slate-300 text-sm uppercase tracking-wide">Clandestina</h3>
-<p class="text-[11px] text-slate-400 mt-1 font-serif leading-relaxed italic">Alto risco com recompensas do mercado negro. Segredos valem ouro.</p>
-</div>
-<div class="indicator absolute right-0 top-0 bottom-0 w-1 bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-</button>
-</div>
-</div>
-<div class="space-y-4 pt-4">
-<div class="flex items-center gap-2">
-<div class="h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent flex-1"></div>
-<label class="block cinzel text-sm font-bold text-gold tracking-widest uppercase text-center">
-                            Moralidade
-                        </label>
-<div class="h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent flex-1"></div>
-</div>
-<input type="hidden" name="moral_alignment" id="moral_input" value="CORPORATE">
-<div class="grid grid-cols-1 gap-3">
-<button type="button" onclick="selectMoral('HUMANITARIAN', this)" class="moral-card flex items-start gap-4 p-4 rounded-lg relative overflow-hidden group hover:border-stone-500">
-<div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-stone-600 flex items-center justify-center flex-shrink-0 group-hover:border-stone-400 transition-all mt-1">
-<span class="material-symbols-outlined text-2xl text-slate-400">volunteer_activism</span>
-</div>
-<div class="text-left flex-1">
-<h3 class="font-cinzel font-bold text-slate-300 text-sm uppercase tracking-wide">Humanitária</h3>
-<p class="text-[11px] text-slate-400 mt-1 font-serif leading-relaxed italic">Melhor relacionamento com plebeus e bônus em cura.</p>
-</div>
-<div class="indicator absolute right-0 top-0 bottom-0 w-1 bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-</button>
-<button type="button" onclick="selectMoral('CORPORATE', this)" class="moral-card selected flex items-start gap-4 p-4 rounded-lg relative overflow-hidden group">
-<div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-gold/30 flex items-center justify-center flex-shrink-0 group-hover:shadow-gold-glow transition-all mt-1">
-<span class="material-symbols-outlined text-2xl text-gold">savings</span>
-</div>
-<div class="text-left flex-1">
-<h3 class="font-cinzel font-bold text-ivory text-sm uppercase tracking-wide">Corporativa</h3>
-<p class="text-[11px] text-ivory/80 mt-1 font-serif leading-relaxed italic">Maximize o lucro em ouro e rotas comerciais exclusivas.</p>
-</div>
-<div class="indicator absolute right-0 top-0 bottom-0 w-1 bg-gold opacity-100"></div>
-</button>
-<button type="button" onclick="selectMoral('PREDATORY', this)" class="moral-card flex items-start gap-4 p-4 rounded-lg relative overflow-hidden group hover:border-stone-500">
-<div class="w-12 h-12 rounded-full bg-stone-dark/80 border border-stone-600 flex items-center justify-center flex-shrink-0 group-hover:border-stone-400 transition-all mt-1">
-<span class="material-symbols-outlined text-2xl text-slate-400">skull</span>
-</div>
-<div class="text-left flex-1">
-<h3 class="font-cinzel font-bold text-slate-300 text-sm uppercase tracking-wide">Predatória</h3>
-<p class="text-[11px] text-slate-400 mt-1 font-serif leading-relaxed italic">Eficiência em combate e bônus de intimidação.</p>
-</div>
-<div class="indicator absolute right-0 top-0 bottom-0 w-1 bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-</button>
-</div>
-</div>
-<div class="space-y-2 pt-2">
-<label class="block cinzel text-xs font-bold text-gold tracking-widest uppercase ml-1">
-                        Lema da Guilda
-                    </label>
-<textarea name="motto" class="w-full input-stone rounded-lg px-4 py-3 text-sm font-sans placeholder-slate-600 min-h-[100px] resize-none focus:ring-0" placeholder="Digite um lema inspirador..."></textarea>
-</div>
-<div class="h-8"></div>
-</div>
-</div>
-<footer class="fixed bottom-0 left-0 right-0 p-6 z-50 bg-gradient-to-t from-black via-black/90 to-transparent pt-12">
-<button type="submit" class="w-full wax-seal text-white font-black cinzel text-lg tracking-[0.2em] py-4 rounded-xl shadow-red-glow transform active:scale-95 transition-all flex items-center justify-center gap-3 group relative overflow-hidden">
-<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-<span class="material-symbols-outlined text-2xl text-gold/80">verified</span>
-<span>Forjar Guilda</span>
-</button>
-</footer>
-</form>
-</main>
+        function selectEmblem(emblem, btn) {
+            document.getElementById('input_emblem').value = emblem;
+            document.getElementById('summary_icon').innerText = emblem;
 
-</body></html>
+            // Visual Update
+            document.querySelectorAll('.emblem-btn').forEach(b => {
+                b.classList.remove('border-gold', 'shadow-gold-glow');
+                b.classList.add('border-stone-800');
+                const icon = b.querySelector('span');
+                icon.classList.remove('text-gold');
+                icon.classList.add('text-stone-600');
+            });
+            btn.classList.remove('border-stone-800');
+            btn.classList.add('border-gold', 'shadow-gold-glow');
+            const icon = btn.querySelector('span');
+            icon.classList.remove('text-stone-600');
+            icon.classList.add('text-gold');
+        }
+
+        function selectLegal(value, btn) {
+            document.getElementById('input_legal').value = value;
+            document.getElementById('summary_legal_title').innerText = descriptions[value].title;
+            document.getElementById('summary_legal_desc').innerText = descriptions[value].desc;
+
+            // Update UI
+            document.querySelectorAll('#step-2 .alignment-card').forEach(b => {
+                b.classList.remove('selected');
+            });
+            btn.classList.add('selected');
+        }
+
+        function selectMoral(value, btn) {
+            document.getElementById('input_moral').value = value;
+            if (descriptions[value]) {
+                const titleEl = document.getElementById('summary_moral_title');
+                const descEl = document.getElementById('summary_moral_desc');
+                if (titleEl) titleEl.innerText = descriptions[value].title;
+                if (descEl) descEl.innerText = descriptions[value].desc;
+            }
+
+            // Update UI
+            document.querySelectorAll('#step-3 .alignment-card').forEach(b => {
+                b.classList.remove('selected');
+                const checkContainer = b.querySelector('.absolute.top-2.right-3');
+                if(checkContainer) checkContainer.remove();
+
+                // Reset right border color line
+                const line = b.querySelector('.absolute.right-0.bg-gold');
+                if(line) {
+                   line.classList.remove('bg-gold', 'opacity-100');
+                   line.classList.add('bg-primary', 'opacity-0', 'group-hover:opacity-100', 'transition-opacity');
+                }
+            });
+
+            btn.classList.add('selected');
+
+            // Add Checkmark if not exists
+            if (!btn.querySelector('.absolute.top-2.right-3')) {
+                const checkContainer = document.createElement('div');
+                checkContainer.className = 'absolute top-2 right-3';
+                checkContainer.innerHTML = '<span class="material-symbols-outlined text-gold text-lg">check_circle</span>';
+                btn.appendChild(checkContainer);
+            }
+             // Update line
+            const line = btn.querySelector('.absolute.right-0');
+            if(line) {
+                line.classList.remove('bg-primary', 'opacity-0', 'group-hover:opacity-100');
+                line.classList.add('bg-gold', 'opacity-100');
+            }
+        }
+
+        function nextStep(step) {
+            // Validation for Step 1
+            if (step === 2) {
+                const name = document.getElementById('input_name').value;
+                if (!name.trim()) {
+                    alert("Por favor, digite o nome da guilda.");
+                    return;
+                }
+            }
+
+            document.querySelectorAll('.step-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
