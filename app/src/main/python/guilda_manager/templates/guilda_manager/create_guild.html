@@ -42,7 +42,7 @@
         body {
             -webkit-tap-highlight-color: transparent;
             background-color: #0F0C0C;
-            height: 100dvh;
+            min-height: 100vh;
         }
         .cinzel { font-family: 'Cinzel', serif; }
         .rpg-gradient-overlay {
@@ -172,9 +172,9 @@
         }
     </style>
 </head>
-<body class="text-ivory h-full flex flex-col relative overflow-hidden">
+<body class="text-ivory min-h-screen flex flex-col relative">
     <!-- Background -->
-    <div class="absolute inset-0 z-0">
+    <div class="fixed inset-0 z-0">
         <img alt="Tormenta Storm" class="w-full h-full object-cover opacity-40 mix-blend-overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeAZ-jPmkpeqPcFX9mSZvIOAa8DkPHca9fhyQwRocLoWIMsnbPpHBLsnBcdYyPD3cl24I4ksKZSdOwrO009crimH_UoKDU9biVOx0Rh89Nr6rENdoiG6fLgQPP8ZJS9jD2oa1XFoG7shxqvZr6M0mqs4A6skcLbWWEhc862vrQe3ltWV1fEe4z1ucj57hlynrvDsgr6RWrijICmReLU6M3obmjejhNcjg4w-IxJa0nPGkUA6_T1wgoaJlA18lbJV3r-fDsc3KmgrM"/>
         <div class="absolute inset-0 rpg-gradient-overlay"></div>
     </div>
@@ -262,8 +262,8 @@
                 <h1 class="cinzel text-3xl font-black text-gold tracking-widest uppercase drop-shadow-lg">LEGALIDADE</h1>
                 <p class="text-[10px] text-slate-400 font-sans tracking-widest uppercase mt-1">Defina o status de sua guilda perante a lei</p>
             </header>
-            <main class="flex-1 relative z-10 px-4 pb-32 flex flex-col min-h-0 overflow-hidden">
-                <div class="h-full overflow-y-auto custom-scroll pr-1 space-y-4">
+            <main class="flex-1 relative z-10 px-4 pb-32 flex flex-col">
+                <div class="pr-1 space-y-4">
                     <!-- Patented -->
                     <button type="button" onclick="selectLegal('PATENTED', this)" class="alignment-card selected w-full text-left p-5 rounded-lg relative overflow-hidden group border-l-4 border-l-gold">
                         <div class="flex items-start gap-4">
@@ -396,15 +396,15 @@
                     Complete o caminho ético da sua guilda definindo poderes e deveres sagrados.
                 </p>
             </header>
-            <main class="flex-1 relative z-10 px-4 pb-32 flex flex-col min-h-0 overflow-hidden">
-                <div class="scrollable-parchment rounded-2xl p-1 w-full h-full flex flex-col border border-white/5 relative shadow-epic overflow-hidden">
+            <main class="flex-1 relative z-10 px-4 pb-32 flex flex-col">
+                <div class="scrollable-parchment rounded-2xl p-1 w-full flex flex-col border border-white/5 relative shadow-epic">
                     <div class="absolute inset-0 pointer-events-none z-20 m-3">
                         <div class="corner-accent corner-tl"></div>
                         <div class="corner-accent corner-tr"></div>
                         <div class="corner-accent corner-bl"></div>
                         <div class="corner-accent corner-br"></div>
                     </div>
-                    <div class="overflow-y-auto custom-scroll p-4 pt-6 space-y-4 h-full relative z-10">
+                    <div class="p-4 pt-6 space-y-4 relative z-10">
                         <!-- Humanitarian -->
                         <button type="button" onclick="selectMoral('HUMANITARIAN', this)" class="alignment-card w-full flex flex-col p-4 rounded-xl relative overflow-hidden group text-left">
                             <div class="flex items-center gap-3 mb-3">
@@ -518,7 +518,7 @@
             <header class="relative z-10 pt-8 px-6 text-center">
                 <h1 class="cinzel text-[10px] text-gold/60 tracking-[0.4em] uppercase mb-4">Finalizar Criação</h1>
             </header>
-            <main class="flex-1 relative z-10 px-6 pt-2 pb-32 overflow-y-auto">
+            <main class="flex-1 relative z-10 px-6 pt-2 pb-32">
                 <div class="certificate-container rounded-sm p-6 shadow-epic min-h-full flex flex-col items-center">
                     <div class="corner-ornament ornament-tl"></div>
                     <div class="corner-ornament ornament-tr"></div>
