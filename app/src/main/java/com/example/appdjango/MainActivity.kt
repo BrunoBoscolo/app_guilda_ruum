@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.view.View // Import necessário para referenciar View.GONE, etc.
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebChromeClient
+import android.webkit.JsResult
+import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
@@ -29,6 +32,28 @@ class MainActivity : AppCompatActivity() {
         myWebView.settings.allowFileAccessFromFileURLs = true
         myWebView.settings.allowUniversalAccessFromFileURLs = true
         myWebView.webViewClient = WebViewClient()
+        myWebView.webChromeClient = object : WebChromeClient() {
+            override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Alerta")
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm() }
+                    .setOnCancelListener { result?.cancel() }
+                    .show()
+                return true
+            }
+
+            override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Confirmação")
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm() }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> result?.cancel() }
+                    .setOnCancelListener { result?.cancel() }
+                    .show()
+                return true
+            }
+        }
 
         // 1. Carregar a tela de loading HTML local IMEDIATAMENTE
         myWebView.loadUrl("file:///android_asset/loading.html")
