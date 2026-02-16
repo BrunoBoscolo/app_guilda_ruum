@@ -578,19 +578,38 @@ def mestre_view(request):
         action = request.POST.get('action')
 
         if action == 'dispatch':
-            squad_id = request.POST.get('squad_id')
-            rank = request.POST.get('rank')
-            duration = int(request.POST.get('duration', 1))
+            try:
+                npc_count = int(request.POST.get('npc_count', 0))
+                duration = int(request.POST.get('duration', 1))
+            except ValueError:
+                npc_count = 0
+                duration = 1
 
-            squad = get_object_or_404(Squad, id=squad_id)
+            mission_id = request.POST.get('mission_id')
 
-            Dispatch.objects.create(
-                squad=squad,
-                rank=rank,
-                duration_days=duration,
-                status=Dispatch.Status.PENDING
-            )
-            context['success_message'] = f"Esquadrão {squad.name} despachado com sucesso!"
+            active_members_count = guild.members.filter(status=Member.Status.ACTIVE).count()
+
+            if npc_count <= 0:
+                 context['error_message'] = "Número de NPCs inválido."
+            elif npc_count > active_members_count:
+                 context['error_message'] = f"Número de NPCs excede o total de membros ativos ({active_members_count})."
+            elif not mission_id:
+                 context['error_message'] = "Missão não selecionada."
+            else:
+                mission = get_object_or_404(Quest, id=mission_id)
+
+                Dispatch.objects.create(
+                    mission=mission,
+                    npc_count=npc_count,
+                    duration_days=duration,
+                    status=Dispatch.Status.PENDING,
+                    rank=mission.rank
+                )
+
+                mission.status = Quest.Status.DELEGATED
+                mission.save()
+
+                context['success_message'] = f"Despacho iniciado para missão '{mission.title}' com {npc_count} NPCs!"
 
         elif action == 'resolve':
             dispatch_id = request.POST.get('dispatch_id')
@@ -680,6 +699,7 @@ def mestre_view(request):
     squads = Squad.objects.all().order_by('-rank__order', 'name')
     squad_ranks = SquadRank.objects.all().order_by('order')
     dispatches = Dispatch.objects.filter(status=Dispatch.Status.PENDING).order_by('target_date')
+    open_quests = Quest.objects.filter(status=Quest.Status.OPEN).order_by('rank', 'title')
 
     # History Stats
     # Quest counts by rank
@@ -698,6 +718,7 @@ def mestre_view(request):
         'squads': squads,
         'squad_ranks': squad_ranks,
         'dispatches': dispatches,
+        'open_quests': open_quests,
         'quest_stats': quest_stats,
         'ranks': Quest.Rank.choices,
         'legal_statuses': Guild.LegalStatus.choices,

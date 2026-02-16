@@ -403,8 +403,10 @@ class Dispatch(models.Model):
         FAILED = 'FAILED', 'Falhou'
         DISASTER = 'DISASTER', 'Desastre'
 
-    squad = models.ForeignKey(Squad, related_name='dispatches', on_delete=models.CASCADE)
-    rank = models.CharField(max_length=2, choices=Quest.Rank.choices, default=Quest.Rank.F)
+    squad = models.ForeignKey(Squad, related_name='dispatches', on_delete=models.CASCADE, null=True, blank=True)
+    rank = models.CharField(max_length=2, choices=Quest.Rank.choices, null=True, blank=True)
+    npc_count = models.IntegerField(default=0)
+    mission = models.ForeignKey(Quest, related_name='dispatches', on_delete=models.CASCADE, null=True, blank=True)
     duration_days = models.IntegerField(default=1)
 
     start_date = models.DateTimeField(default=timezone.now)
@@ -427,7 +429,12 @@ class Dispatch(models.Model):
             return None
 
         # Guild Context
-        guild = self.squad.guild
+        if self.squad:
+            guild = self.squad.guild
+        elif self.mission:
+            guild = self.mission.guild
+        else:
+            return None
 
         # War Room Check
         has_war_room = guild.guild_buildings.filter(building__name='Sala de Cartografia').exists() or \
@@ -454,12 +461,16 @@ class Dispatch(models.Model):
             self.status = self.Status.DISASTER
 
             # Blood Cost
-            deaths = random.randint(1, 6)
-            members = list(self.squad.members.filter(status=Member.Status.ACTIVE))
-
-            # Shuffle and kill
-            random.shuffle(members)
-            victims = members[:deaths]
+            if self.squad:
+                deaths = random.randint(1, 6)
+                members = list(self.squad.members.filter(status=Member.Status.ACTIVE))
+                random.shuffle(members)
+                victims = members[:deaths]
+            else:
+                deaths = self.npc_count
+                members = list(guild.members.filter(status=Member.Status.ACTIVE))
+                random.shuffle(members)
+                victims = members[:deaths]
 
             for v in victims:
                 v.status = Member.Status.DECEASED
@@ -469,31 +480,33 @@ class Dispatch(models.Model):
             outcome_data['deaths'] = len(victims)
             self.result_log = f"Rolagem: {roll_final} (Crítico). Mortes: {len(victims)} ({', '.join(outcome_data['dead_names'])})"
 
+            if self.mission:
+                 self.mission.status = Quest.Status.DISASTER
+                 self.mission.save()
+
         elif roll_final >= 2:
             # Success
             self.status = self.Status.COMPLETED
 
-            # Create Internal Quest for History
-            quest = Quest.objects.create(
-                title=f"Despacho: {self.squad.name} (Rank {self.rank})",
-                description=f"Missão automática realizada pelo esquadrão {self.squad.name}.",
-                type=Quest.Type.INTERNAL,
-                status=Quest.Status.COMPLETED,
-                rank=self.rank,
-                duration_days=self.duration_days,
-                guild=guild,
-                # Rewards based on Rank defaults in Quest.save()
-            )
-            # Add members to quest history
-            quest.assigned_members.set(self.squad.members.all())
+            if self.squad:
+                # Create Internal Quest for History (Legacy)
+                quest = Quest.objects.create(
+                    title=f"Despacho: {self.squad.name} (Rank {self.rank or 'F'})",
+                    description=f"Missão automática realizada pelo esquadrão {self.squad.name}.",
+                    type=Quest.Type.INTERNAL,
+                    status=Quest.Status.COMPLETED,
+                    rank=self.rank or 'F',
+                    duration_days=self.duration_days,
+                    guild=guild,
+                )
+                quest.assigned_members.set(self.squad.members.all())
+                quest.complete_quest()
 
-            # Complete quest (distribute rewards)
-            quest.complete_quest()
-
-            # Update Squad Stats
-            self.squad.missions_completed += 1
-            self.squad.check_rank_progression()
-            self.squad.save()
+                self.squad.missions_completed += 1
+                self.squad.check_rank_progression()
+                self.squad.save()
+            elif self.mission:
+                self.mission.complete_quest()
 
             self.result_log = f"Rolagem: {roll_final}. Sucesso! Recompensa entregue."
 
