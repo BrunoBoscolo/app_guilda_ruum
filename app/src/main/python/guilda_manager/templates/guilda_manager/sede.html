@@ -77,11 +77,14 @@
   </style>
   </head>
 <body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-ivory min-h-screen flex flex-col overflow-x-hidden">
-<header class="relative w-full h-72 overflow-hidden flex items-end">
+<header class="relative w-full h-72 overflow-hidden flex flex-col justify-end">
 <img alt="Mystical Dark Red Background" class="absolute inset-0 w-full h-full object-cover grayscale-[0.5] contrast-125 scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeAZ-jPmkpeqPcFX9mSZvIOAa8DkPHca9fhyQwRocLoWIMsnbPpHBLsnBcdYyPD3cl24I4ksKZSdOwrO009crimH_UoKDU9biVOx0Rh89Nr6rENdoiG6fLgQPP8ZJS9jD2oa1XFoG7shxqvZr6M0mqs4A6skcLbWWEhc862vrQe3ltWV1fEe4z1ucj57hlynrvDsgr6RWrijICmReLU6M3obmjejhNcjg4w-IxJa0nPGkUA6_T1wgoaJlA18lbJV3r-fDsc3KmgrM"/>
 <div class="absolute inset-0 bg-primary/40 mix-blend-multiply"></div>
 <div class="absolute inset-0 rpg-gradient-overlay"></div>
-<div class="relative z-10 p-6 flex items-center gap-4 w-full">
+<div class="relative z-10 w-full flex justify-center mb-2">
+<img src="{% static 'guilda_manager/images/logo_gdr.svg' %}" class="w-32 h-32 object-contain drop-shadow-lg" alt="Logo">
+</div>
+<div class="relative z-10 p-6 pt-0 flex items-center gap-4 w-full">
 <div class="relative flex items-center justify-center">
 <div class="w-16 h-16 rounded-full border-4 border-gold bg-primary/80 flex items-center justify-center shadow-xl orb-shine">
 <span class="cinzel text-2xl font-black text-gold">{{ guild.level }}</span>
