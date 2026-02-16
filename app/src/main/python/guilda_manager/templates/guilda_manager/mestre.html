@@ -543,6 +543,32 @@
                     </div>
                 </div>
             </section>
+
+            <section class="building-card rounded-xl p-6 shadow-2xl mt-6 border-red-900/50 bg-red-950/20">
+                <div class="corner-accent top-left !border-red-900"></div>
+                <div class="corner-accent top-right !border-red-900"></div>
+                <div class="corner-accent bottom-left !border-red-900"></div>
+                <div class="corner-accent bottom-right !border-red-900"></div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <h2 class="cinzel text-lg font-black text-red-500 leading-tight uppercase border-b border-red-900/30 pb-2 w-full flex items-center gap-2">
+                        <span class="material-symbols-outlined">warning</span> Zona de Perigo
+                    </h2>
+                </div>
+                <div class="space-y-4 relative z-10">
+                    <p class="text-[10px] text-red-300/80 font-sans leading-relaxed">
+                        Ações nesta área são irreversíveis. Prossiga com extrema cautela.
+                    </p>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_guild">
+                        <button type="submit" onclick="return confirm('ATENÇÃO: Isso apagará permanentemente a guilda e todos os dados associados (Membros, Construções, Missões, etc). Esta ação NÃO pode ser desfeita. Tem certeza absoluta?');"
+                                class="w-full bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-400 font-bold py-3 px-4 rounded shadow-lg transition-colors flex items-center justify-center gap-2 group">
+                            <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">delete_forever</span>
+                            <span class="cinzel tracking-widest text-xs uppercase">Excluir Guilda Permanentemente</span>
+                        </button>
+                    </form>
+                </div>
+            </section>
         </div>
 
         <!-- TAB 4: CONFIGURAÇÃO -->

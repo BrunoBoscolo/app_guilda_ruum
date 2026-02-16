@@ -70,3 +70,16 @@ class MestreTestCase(TestCase):
         elif dispatch.status == Dispatch.Status.DISASTER:
             # Check for deaths logic if any
             pass
+
+    def test_delete_guild(self):
+        # Verify guild exists initially
+        self.assertTrue(Guild.objects.exists())
+
+        # Post action to delete guild
+        response = self.client.post('/mestre/', {'action': 'delete_guild'})
+
+        # Verify redirect
+        self.assertRedirects(response, '/entry/')
+
+        # Verify guild is deleted
+        self.assertFalse(Guild.objects.exists())
