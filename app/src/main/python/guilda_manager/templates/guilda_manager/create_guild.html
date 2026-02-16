@@ -183,7 +183,6 @@
     <form method="POST" action="{% url 'create_guild' %}" id="guildForm" class="flex-1 flex flex-col relative z-10 h-full">
         {% csrf_token %}
         <input type="hidden" name="name" id="input_name">
-        <input type="hidden" name="emblem" id="input_emblem" value="swords">
         <input type="hidden" name="motto" id="input_motto">
         <input type="hidden" name="legal_status" id="input_legal" value="PATENTED">
         <input type="hidden" name="moral_alignment" id="input_moral" value="CORPORATE">
@@ -213,25 +212,6 @@
                             </label>
                             <div class="relative">
                                 <input id="visible_name" class="w-full input-stone rounded-lg px-4 py-4 text-center font-medieval text-xl placeholder-stone-700 shadow-inner" placeholder="Digite o nome..." type="text" required oninput="updateName(this.value)"/>
-                            </div>
-                        </section>
-                        <section class="space-y-6">
-                            <label class="block cinzel text-sm font-bold text-gold tracking-widest uppercase text-center">
-                                Logotipo
-                            </label>
-                            <div class="grid grid-cols-4 gap-4 justify-items-center">
-                                <button type="button" onclick="selectEmblem('swords', this)" class="emblem-btn w-14 h-14 rounded-full bg-stone-dark border-2 border-gold flex items-center justify-center shadow-gold-glow">
-                                    <span class="material-symbols-outlined text-gold text-2xl">swords</span>
-                                </button>
-                                <button type="button" onclick="selectEmblem('shield', this)" class="emblem-btn w-14 h-14 rounded-full bg-stone-dark border-2 border-stone-800 flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-stone-600 text-2xl">shield</span>
-                                </button>
-                                <button type="button" onclick="selectEmblem('visibility', this)" class="emblem-btn w-14 h-14 rounded-full bg-stone-dark border-2 border-stone-800 flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-stone-600 text-2xl">visibility</span>
-                                </button>
-                                <button type="button" onclick="selectEmblem('skull', this)" class="emblem-btn w-14 h-14 rounded-full bg-stone-dark border-2 border-stone-800 flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-stone-600 text-2xl">skull</span>
-                                </button>
                             </div>
                         </section>
                         <section class="space-y-3">
@@ -524,12 +504,7 @@
                     <div class="corner-ornament ornament-tr"></div>
                     <div class="corner-ornament ornament-bl"></div>
                     <div class="corner-ornament ornament-br"></div>
-                    <div class="mt-4 mb-6">
-                        <div class="w-28 h-28 rounded-full bg-stone-dark border-4 border-gold shadow-gold-glow flex items-center justify-center relative">
-                            <span class="material-symbols-outlined text-gold text-5xl" id="summary_icon">swords</span>
-                            <div class="absolute -inset-1 rounded-full border border-gold/30 animate-pulse"></div>
-                        </div>
-                    </div>
+                    <div class="mt-4 mb-6"></div>
                     <h2 class="cinzel text-2xl font-black text-gold tracking-widest text-center mb-1" id="summary_name">NOME DA GUILDA</h2>
                     <p class="font-serif italic text-gold/80 text-sm mb-6" id="summary_motto">"Lema da guilda aparecerá aqui."</p>
                     <div class="divider-line"></div>
@@ -590,25 +565,6 @@
         function updateMotto(val) {
             document.getElementById('input_motto').value = val;
             document.getElementById('summary_motto').innerText = val ? `"${val}"` : "\"Lema da guilda aparecerá aqui.\"";
-        }
-
-        function selectEmblem(emblem, btn) {
-            document.getElementById('input_emblem').value = emblem;
-            document.getElementById('summary_icon').innerText = emblem;
-
-            // Visual Update
-            document.querySelectorAll('.emblem-btn').forEach(b => {
-                b.classList.remove('border-gold', 'shadow-gold-glow');
-                b.classList.add('border-stone-800');
-                const icon = b.querySelector('span');
-                icon.classList.remove('text-gold');
-                icon.classList.add('text-stone-600');
-            });
-            btn.classList.remove('border-stone-800');
-            btn.classList.add('border-gold', 'shadow-gold-glow');
-            const icon = btn.querySelector('span');
-            icon.classList.remove('text-stone-600');
-            icon.classList.add('text-gold');
         }
 
         function selectLegal(value, btn) {
