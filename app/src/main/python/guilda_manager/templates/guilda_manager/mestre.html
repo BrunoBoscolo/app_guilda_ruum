@@ -264,23 +264,17 @@
                     <input type="hidden" name="action" value="dispatch">
 
                     <div>
-                        <label class="block cinzel text-xs font-bold text-gold uppercase mb-2">Esquadrão / Unidade</label>
-                        <div class="relative">
-                            <select name="squad_id" class="stone-select w-full rounded px-3 py-2 text-sm appearance-none cursor-pointer" required>
-                                <option value="">Selecione...</option>
-                                {% for squad in squads %}
-                                <option value="{{ squad.id }}">{{ squad.name }} (Rank {{ squad.rank.name }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <label class="block cinzel text-xs font-bold text-gold uppercase mb-2">Número de NPC's</label>
+                        <input name="npc_count" class="stone-input w-full rounded px-3 py-2 text-sm" placeholder="Ex: 5" type="number" min="1" required/>
                     </div>
 
                     <div>
-                        <label class="block cinzel text-xs font-bold text-gold uppercase mb-2">Nível de Ameaça (Rank)</label>
+                        <label class="block cinzel text-xs font-bold text-gold uppercase mb-2">Missão</label>
                         <div class="relative">
-                            <select name="rank" class="stone-select w-full rounded px-3 py-2 text-sm appearance-none cursor-pointer" required>
-                                {% for code, label in ranks %}
-                                <option value="{{ code }}">{{ label }}</option>
+                            <select name="mission_id" class="stone-select w-full rounded px-3 py-2 text-sm appearance-none cursor-pointer" required>
+                                <option value="">Selecione a Missão...</option>
+                                {% for q in open_quests %}
+                                <option value="{{ q.id }}">{{ q.title }} (Rank {{ q.rank }})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -316,7 +310,12 @@
                             <div class="absolute inset-0 bg-stone-texture opacity-20"></div>
                             <div class="relative z-10 flex justify-between items-start mb-3">
                                 <div>
+                                    {% if d.mission %}
+                                    <h3 class="cinzel text-base font-bold text-ivory">{{ d.mission.title }}</h3>
+                                    <p class="text-[10px] text-amber-500 font-sans uppercase tracking-wider mb-1">{{ d.npc_count }} NPC's</p>
+                                    {% else %}
                                     <h3 class="cinzel text-base font-bold text-ivory">{{ d.squad.name }}</h3>
+                                    {% endif %}
                                     <p class="text-xs text-gray-500 font-sans mt-0.5">Início: {{ d.start_date|date:"d/m/Y H:i" }}</p>
                                 </div>
                                 <div class="flex flex-col items-end gap-1">
