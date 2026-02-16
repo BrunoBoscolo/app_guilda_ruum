@@ -725,6 +725,68 @@
         } else {
             openTab('despacho');
         }
+
+        // Swipe Gesture Logic
+        let touchstartX = 0;
+        let touchstartY = 0;
+        let touchendX = 0;
+        let touchendY = 0;
+
+        document.addEventListener('touchstart', function(event) {
+            touchstartX = event.changedTouches[0].screenX;
+            touchstartY = event.changedTouches[0].screenY;
+        }, false);
+
+        document.addEventListener('touchend', function(event) {
+            touchendX = event.changedTouches[0].screenX;
+            touchendY = event.changedTouches[0].screenY;
+            handleGesture(event);
+        }, false);
+
+        function handleGesture(e) {
+            // Ignore if start target or any parent has overflow-x-auto (horizontal scroll area)
+            // But we can check if the element is actually scrollable
+            let target = e.target;
+            while (target && target !== document.body) {
+                if (target.classList && target.classList.contains('overflow-x-auto')) {
+                    // Check if it really has scrollable content
+                    if (target.scrollWidth > target.clientWidth) {
+                        return;
+                    }
+                }
+                target = target.parentElement;
+            }
+
+            const xDiff = touchendX - touchstartX;
+            const yDiff = touchendY - touchstartY;
+
+            // Check if movement is mainly horizontal and long enough
+            if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 50) {
+                if (touchendX < touchstartX) {
+                    // Swiped Left -> Next Tab
+                    changeTab(1);
+                }
+                if (touchendX > touchstartX) {
+                    // Swiped Right -> Prev Tab
+                    changeTab(-1);
+                }
+            }
+        }
+
+        const tabs = ['despacho', 'historico', 'gestao', 'config'];
+
+        function changeTab(direction) {
+            let currentTabId = localStorage.getItem('mestre_tab') || 'despacho';
+            let currentIndex = tabs.indexOf(currentTabId);
+
+            if (currentIndex === -1) currentIndex = 0;
+
+            let newIndex = currentIndex + direction;
+
+            if (newIndex >= 0 && newIndex < tabs.length) {
+                openTab(tabs[newIndex]);
+            }
+        }
     </script>
 </body>
 </html>
