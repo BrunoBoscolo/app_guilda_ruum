@@ -614,6 +614,10 @@ def mestre_view(request):
             guild.save()
             context['success_message'] = "Configurações da Guilda atualizadas."
 
+        elif action == 'delete_guild':
+            guild.delete()
+            return redirect('entry_portal')
+
         # --- Squad CRUD ---
         elif action == 'create_squad':
             name = request.POST.get('name')
