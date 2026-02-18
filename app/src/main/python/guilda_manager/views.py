@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.text import slugify
+from decimal import Decimal
 from rest_framework import viewsets, status, decorators
 from rest_framework.response import Response
 from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building
@@ -709,6 +710,45 @@ def mestre_view(request):
             guild.moral_alignment = request.POST.get('moral_alignment')
             guild.save()
             context['success_message'] = "Configurações da Guilda atualizadas."
+
+        elif action == 'manage_gold':
+            try:
+                amount = float(request.POST.get('amount', 0))
+                operation = request.POST.get('operation')
+
+                if amount < 0:
+                     context['error_message'] = "O valor deve ser positivo."
+                else:
+                    if operation == 'add':
+                        current_funds = guild.funds
+                        max_cap = guild.max_gold_cap
+
+                        if current_funds >= max_cap:
+                             context['error_message'] = "O tesouro já está cheio!"
+                        else:
+                            new_funds = current_funds + Decimal(amount)
+                            if new_funds > max_cap:
+                                guild.funds = max_cap
+                                context['success_message'] = f"Tesouro adicionado. (Limitado ao teto de {max_cap} T$)"
+                            else:
+                                guild.funds = new_funds
+                                context['success_message'] = f"{amount} T$ adicionados ao tesouro."
+                            guild.save()
+
+                    elif operation == 'remove':
+                        current_funds = guild.funds
+                        new_funds = current_funds - Decimal(amount)
+
+                        if new_funds < 0:
+                            guild.funds = 0
+                            context['success_message'] = "Tesouro removido. (Fundos zerados)"
+                        else:
+                            guild.funds = new_funds
+                            context['success_message'] = f"{amount} T$ removidos do tesouro."
+                        guild.save()
+
+            except ValueError:
+                context['error_message'] = "Valor inválido."
 
         elif action == 'delete_guild':
             guild.delete()
