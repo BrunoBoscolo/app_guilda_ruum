@@ -144,7 +144,13 @@
     // Constants
     const HEX_RADIUS = 5;
     const GRID_SIZE = 5; // Smaller grid for performance on mobile
-    const TEXTURE_URL = "{% if map %}{% static map.background_image %}{% else %}{% static 'guilda_manager/placeholder.png' %}{% endif %}";
+
+    // Logic to determine texture URL (ImageField.url vs Static)
+    let TEXTURE_URL = "{% static 'guilda_manager/placeholder.png' %}";
+    {% if map and map.background_image %}
+        TEXTURE_URL = "{{ map.background_image.url }}";
+    {% endif %}
+
     const STATIC_PREFIX = "{% get_static_prefix %}";
     const PINS_PATH = STATIC_PREFIX + "guilda_manager/pins/";
 

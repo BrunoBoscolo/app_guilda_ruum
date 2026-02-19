@@ -847,6 +847,21 @@ def mestre_view(request):
             except (ValueError, Pin.DoesNotExist):
                 context['error_message'] = "Erro ao atualizar hexágono. Dados inválidos."
 
+        elif action == 'upload_map':
+            if 'map_image' in request.FILES:
+                image_file = request.FILES['map_image']
+
+                game_map = Map.objects.first()
+                if not game_map:
+                    game_map = Map(name="Reino")
+
+                game_map.background_image = image_file
+                game_map.save()
+                context['success_message'] = "Imagem do mapa atualizada com sucesso!"
+                context['force_tab'] = 'mapa'
+            else:
+                context['error_message'] = "Nenhuma imagem selecionada."
+
     # Data for Template
     squads = Squad.objects.all().order_by('-rank__order', 'name')
     squad_ranks = SquadRank.objects.all().order_by('order')
