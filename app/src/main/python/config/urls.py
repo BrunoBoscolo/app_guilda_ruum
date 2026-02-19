@@ -23,7 +23,7 @@ from guilda_manager.views import (
     construcoes_infra_view, bestiario_list_view, bestiario_hub_view,
     bestiario_rememoracao_view, bestiario_edit_view, bestiario_create_view,
     landing_view, mestre_view, root_routing_view, entry_portal_view,
-    create_guild_view, sync_guild_view, share_guild_view
+    create_guild_view, sync_guild_view, share_guild_view, mapa_view
 )
 
 urlpatterns = [
@@ -41,6 +41,7 @@ urlpatterns = [
     path('construcoes/projetos/', construcoes_projetos_view, name='construcoes_projetos'),
     path('construcoes/infra/', construcoes_infra_view, name='construcoes_infra'),
     path('mestre/', mestre_view, name='mestre'),
+    path('mapa/', mapa_view, name='mapa'),
     path('bestiario/', bestiario_hub_view, name='bestiario'),
     path('bestiario/lista/', bestiario_list_view, name='bestiario_list'),
     path('bestiario/rememoracao/', bestiario_rememoracao_view, name='bestiario_rememoracao'),
