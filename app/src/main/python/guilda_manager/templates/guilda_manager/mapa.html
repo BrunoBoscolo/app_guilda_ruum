@@ -200,13 +200,13 @@
     const gridGroup = new THREE.Group();
     scene.add(gridGroup);
 
-    // Helpers (Pointy-Topped Hexagon Math)
+    // Helpers (Flat-Topped Hexagon Math)
     function hexToPixel(q, r) {
-        // Pointy-Topped Math:
-        // x = size * sqrt(3) * (q + r/2)
-        // z = size * 3/2 * r
-        const x = HEX_RADIUS * Math.sqrt(3) * (q + r/2);
-        const z = HEX_RADIUS * (3/2 * r);
+        // Flat-Topped Math:
+        // x = size * 3/2 * q
+        // z = size * sqrt(3) * (r + q/2)
+        const x = HEX_RADIUS * 3/2 * q;
+        const z = HEX_RADIUS * Math.sqrt(3) * (r + q/2);
         return { x, z };
     }
 
@@ -239,13 +239,12 @@
         const width = maxX - minX;
         const height = maxZ - minZ;
 
-        // Create Pointy-Topped Hex Geometry
+        // Create Flat-Topped Hex Geometry
         // CylinderGeometry(radius, radius, height, segments) creates a prism.
-        // By default vertices start at 0 degrees (Pointy East).
-        // For Pointy-Top (North), we rotate 30 degrees (PI/6).
-        // Use a slightly larger radius (1.1) to ensure overlap and eliminate gaps
-        const geometry = new THREE.CylinderGeometry(HEX_RADIUS * 1.1, HEX_RADIUS * 1.1, 1, 6);
-        geometry.rotateY(Math.PI / 6); // Align pointy-top
+        // By default vertices start at 0 degrees (Pointy East), edges are horizontal (Flat-Topped).
+        // Use a slightly larger radius (1.02) to ensure overlap and eliminate gaps
+        const geometry = new THREE.CylinderGeometry(HEX_RADIUS * 1.02, HEX_RADIUS * 1.02, 1, 6);
+        // Default orientation is Flat-Topped, so no rotation needed
 
         const material = new THREE.MeshStandardMaterial({
             map: texture,
