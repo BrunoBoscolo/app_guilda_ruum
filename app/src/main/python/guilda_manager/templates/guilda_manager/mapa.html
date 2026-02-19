@@ -153,6 +153,8 @@
 
     const locations = JSON.parse(document.getElementById('locations-data').textContent);
 
+    let fogUniforms = null;
+
     // Setup
     const container = document.getElementById('map-container');
     const scene = new THREE.Scene();
@@ -215,19 +217,6 @@
         return { x, z };
     }
 
-    // Helper: Get Average Color from Image
-    function getAverageColor(image) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        // Draw the image scaled down to 1x1 to get average
-        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, 1, 1);
-        const data = ctx.getImageData(0, 0, 1, 1).data;
-        // Return THREE.Color (normalized 0..1)
-        return new THREE.Color(data[0]/255, data[1]/255, data[2]/255);
-    }
-
     // Load Texture & Build Grid
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load(TEXTURE_URL, (texture) => {
@@ -271,12 +260,14 @@
         gridGroup.add(plane);
 
         // Custom Fog Logic
-        const avgColor = getAverageColor(texture.image);
         const fogGeo = new THREE.PlaneGeometry(width, height);
+        fogUniforms = {
+            uMap: { value: texture },
+            uTime: { value: 0.0 }
+        };
+
         const fogMat = new THREE.ShaderMaterial({
-            uniforms: {
-                uColor: { value: avgColor },
-            },
+            uniforms: fogUniforms,
             vertexShader: `
                 varying vec2 vUv;
                 void main() {
@@ -285,20 +276,61 @@
                 }
             `,
             fragmentShader: `
-                uniform vec3 uColor;
+                uniform sampler2D uMap;
+                uniform float uTime;
                 varying vec2 vUv;
 
+                // Simplex 2D noise
+                vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+
+                float snoise(vec2 v){
+                  const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+                           -0.577350269189626, 0.024390243902439);
+                  vec2 i  = floor(v + dot(v, C.yy) );
+                  vec2 x0 = v -   i + dot(i, C.xx);
+                  vec2 i1;
+                  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+                  vec4 x12 = x0.xyxy + C.xxzz;
+                  x12.xy -= i1;
+                  i = mod(i, 289.0);
+                  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+                  + i.x + vec3(0.0, i1.x, 1.0 ));
+                  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
+                    dot(x12.zw,x12.zw)), 0.0);
+                  m = m*m ;
+                  m = m*m ;
+                  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+                  vec3 h = abs(x) - 0.5;
+                  vec3 ox = floor(x + 0.5);
+                  vec3 a0 = x - ox;
+                  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+                  vec3 g;
+                  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+                  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+                  return 130.0 * dot(m, g);
+                }
+
                 void main() {
-                    // Distance from center (0.5, 0.5)
                     vec2 center = vec2(0.5, 0.5);
                     vec2 distVec = abs(vUv - center);
-                    // Rectangular fade
                     float dist = max(distVec.x, distVec.y);
 
-                    // Fade starts at 0.35 (70% from center) and ends at 0.5 (edge)
-                    float alpha = smoothstep(0.35, 0.5, dist);
+                    float n = snoise(vUv * 3.0 + vec2(uTime * 0.05, uTime * 0.02));
 
-                    gl_FragColor = vec4(uColor, alpha);
+                    // Fog Alpha: Clear center (0), Opaque edge (1)
+                    // Start at 0.25, end at 0.5. Add noise.
+                    float fogAlpha = smoothstep(0.25, 0.45, dist + n * 0.05);
+
+                    // Sectorial Color: Sample map
+                    vec3 mapColor = texture2D(uMap, vUv).rgb;
+
+                    // Fog Color Logic:
+                    // 1. Base is darkened map color.
+                    // 2. Fade to black as we approach the very edge to blend with void.
+                    vec3 baseFog = mix(mapColor, vec3(0.0), 0.7); // Dark mist
+                    vec3 finalFog = mix(baseFog, vec3(0.0), smoothstep(0.4, 0.5, dist));
+
+                    gl_FragColor = vec4(finalFog, fogAlpha);
                 }
             `,
             transparent: true,
@@ -307,7 +339,8 @@
 
         const fogPlane = new THREE.Mesh(fogGeo, fogMat);
         fogPlane.rotation.x = -Math.PI / 2;
-        fogPlane.position.set(minX + width/2, 5, minZ + height/2);
+        fogPlane.position.set(minX + width/2, 1.5, minZ + height/2); // Lower height
+        fogPlane.raycast = function() {}; // Disable clicks on fog
         gridGroup.add(fogPlane);
 
         // Create Pointy-Topped Hex Geometry
@@ -518,6 +551,11 @@
     // Animate
     function animate() {
         requestAnimationFrame(animate);
+
+        if (fogUniforms) {
+            fogUniforms.uTime.value += 0.01;
+        }
+
         controls.update();
         renderer.render(scene, camera);
     }
