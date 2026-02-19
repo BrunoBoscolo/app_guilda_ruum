@@ -1268,10 +1268,7 @@
             const mapData = JSON.parse(document.getElementById('map-data-json').textContent);
 
             // Image URL logic
-            let mapBgUrl = "{% static 'guilda_manager/placeholder.png' %}";
-            {% if game_map.background_image %}
-                mapBgUrl = "{{ game_map.background_image.url }}";
-            {% endif %}
+            let mapBgUrl = "{{ map_image_url }}";
 
             // Hex Config
             const HEX_RADIUS = 30; // 2D Pixel Radius

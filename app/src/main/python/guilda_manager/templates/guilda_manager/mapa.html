@@ -146,10 +146,7 @@
     const GRID_SIZE = 5; // Smaller grid for performance on mobile
 
     // Logic to determine texture URL (ImageField.url vs Static)
-    let TEXTURE_URL = "{% static 'guilda_manager/placeholder.png' %}";
-    {% if map and map.background_image %}
-        TEXTURE_URL = "{{ map.background_image.url }}";
-    {% endif %}
+    let TEXTURE_URL = "{{ map_image_url }}";
 
     const STATIC_PREFIX = "{% get_static_prefix %}";
     const PINS_PATH = STATIC_PREFIX + "guilda_manager/pins/";

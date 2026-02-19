@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from decimal import Decimal
 from rest_framework import viewsets, status, decorators
 from rest_framework.response import Response
+from django.templatetags.static import static
 from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building, Map, Hexagon, Pin
 from .forms import MonsterForm
 from .serializers import GuildDashboardSerializer, BuildConstructionSerializer, QuestSerializer, MemberSerializer
@@ -883,9 +884,20 @@ def mestre_view(request):
     # Map Data for Mestre View
     game_map = Map.objects.first()
     map_hexes = []
+    map_image_url = static('guilda_manager/placeholder.png')
 
     # Need full hex details for editing
     if game_map:
+        if game_map.background_image:
+            # Check if it's uploaded to static folder logic
+            if 'static/guilda_manager' in game_map.background_image.name:
+                 # It's in static, construct static URL
+                 rel_path = game_map.background_image.name.split('static/')[-1]
+                 map_image_url = static(rel_path)
+            else:
+                 # Regular media
+                 map_image_url = game_map.background_image.url
+
         hexes = Hexagon.objects.filter(map=game_map).select_related('pin')
         for h in hexes:
             map_hexes.append({
@@ -912,7 +924,8 @@ def mestre_view(request):
         'moral_alignments': Guild.MoralAlignment.choices,
         'now': timezone.now(),
         'game_map': game_map,
-        'map_hexes': map_hexes
+        'map_hexes': map_hexes,
+        'map_image_url': map_image_url
     })
 
     return render(request, 'guilda_manager/mestre.html', context)
@@ -921,8 +934,16 @@ def mestre_view(request):
 def mapa_view(request):
     game_map = Map.objects.first()
     locations = []
+    map_image_url = static('guilda_manager/placeholder.png')
 
     if game_map:
+        if game_map.background_image:
+            if 'static/guilda_manager' in game_map.background_image.name:
+                 rel_path = game_map.background_image.name.split('static/')[-1]
+                 map_image_url = static(rel_path)
+            else:
+                 map_image_url = game_map.background_image.url
+
         hexes = Hexagon.objects.filter(map=game_map).select_related('pin')
         for h in hexes:
             loc = {
@@ -935,7 +956,7 @@ def mapa_view(request):
                 loc['model'] = h.pin.glb_path
             locations.append(loc)
 
-    context = {'locations': locations}
+    context = {'locations': locations, 'map_image_url': map_image_url}
     if game_map:
         context['map'] = game_map
 
