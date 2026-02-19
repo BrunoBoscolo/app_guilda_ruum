@@ -629,6 +629,7 @@
                     </form>
                 </div>
             </section>
+
         </div>
 
         <!-- TAB 3: CONTRATOS -->
@@ -815,6 +816,69 @@
                             Upload
                         </button>
                     </form>
+                </div>
+            </section>
+
+            <section class="building-card rounded-xl p-6 shadow-epic">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+
+                <div class="flex items-center gap-3 mb-6 relative z-10 border-b border-white/5 pb-2">
+                    <span class="material-symbols-outlined text-gold">push_pin</span>
+                    <h2 class="cinzel text-lg font-black text-white leading-tight uppercase">Gerenciar Marcadores</h2>
+                </div>
+
+                <div class="space-y-6 relative z-10">
+                    <!-- Create Pin Form -->
+                    <form method="POST" class="flex flex-col gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create_pin">
+                        <label class="text-[10px] text-ivory/60 font-bold uppercase tracking-widest">Novo Marcador</label>
+                        <div class="flex gap-2">
+                            <input name="name" class="stone-input w-full rounded p-3 text-sm font-medieval tracking-wide placeholder-slate-600 focus:ring-0" placeholder="Nome do Pin (ex: Cidade)" type="text" required/>
+                            <select name="glb_path" class="stone-select w-full rounded p-3 text-sm font-medieval tracking-wide" required>
+                                <option value="">Selecione o Modelo 3D...</option>
+                                {% for pin_file in available_pins %}
+                                <option value="{{ pin_file }}">{{ pin_file }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="wax-seal-btn px-4 rounded text-white cinzel font-bold text-[10px] uppercase tracking-wider flex items-center justify-center hover:brightness-110 transition-all">
+                                Adicionar
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- List Pins -->
+                    <div class="grid grid-cols-12 gap-2 text-[9px] text-ivory/40 font-bold uppercase tracking-widest border-b border-white/5 pb-1 mt-2">
+                        <div class="col-span-5">Nome</div>
+                        <div class="col-span-5">Arquivo Modelo</div>
+                        <div class="col-span-2 text-right">Ações</div>
+                    </div>
+
+                    {% for pin in pins %}
+                    <div class="grid grid-cols-12 gap-2 items-center bg-white/5 rounded p-2 border border-white/5">
+                        <div class="col-span-5">
+                            <span class="font-medieval text-sm text-gold">{{ pin.name }}</span>
+                        </div>
+                        <div class="col-span-5">
+                            <span class="font-mono text-[10px] text-slate-400">{{ pin.glb_path }}</span>
+                        </div>
+                        <div class="col-span-2 flex justify-end">
+                             <form method="POST" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_pin">
+                                <input type="hidden" name="pin_id" value="{{ pin.id }}">
+                                <button type="submit" onclick="event.preventDefault(); showConfirmModal('Tem certeza que deseja remover este marcador? Isso removerá o pin de todos os hexágonos que o utilizam.', () => this.form.submit());" class="text-red-500 hover:text-red-400 transition-colors material-symbols-outlined text-lg">
+                                    delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-xs text-slate-500 text-center py-4 italic">Nenhum marcador cadastrado.</p>
+                    {% endfor %}
                 </div>
             </section>
         </div>

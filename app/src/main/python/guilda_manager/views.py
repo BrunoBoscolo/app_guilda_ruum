@@ -10,6 +10,8 @@ from .forms import MonsterForm
 from .serializers import GuildDashboardSerializer, BuildConstructionSerializer, QuestSerializer, MemberSerializer
 import hashlib
 import random
+import os
+from django.conf import settings
 from types import SimpleNamespace
 
 class GuildViewSet(viewsets.ModelViewSet):
@@ -863,6 +865,25 @@ def mestre_view(request):
             else:
                 context['error_message'] = "Nenhuma imagem selecionada."
 
+        elif action == 'create_pin':
+            name = request.POST.get('name')
+            glb_path = request.POST.get('glb_path')
+            if name and glb_path:
+                Pin.objects.create(name=name, glb_path=glb_path)
+                context['success_message'] = f"Pin '{name}' criado com sucesso."
+                context['force_tab'] = 'mapa'
+            else:
+                context['error_message'] = "Nome e modelo são obrigatórios."
+
+        elif action == 'delete_pin':
+            pin_id = request.POST.get('pin_id')
+            try:
+                Pin.objects.filter(id=pin_id).delete()
+                context['success_message'] = "Pin removido com sucesso."
+                context['force_tab'] = 'mapa'
+            except Exception:
+                context['error_message'] = "Erro ao remover pin."
+
     # Data for Template
     squads = Squad.objects.all().order_by('-rank__order', 'name')
     squad_ranks = SquadRank.objects.all().order_by('order')
@@ -904,9 +925,17 @@ def mestre_view(request):
 
     pins = Pin.objects.all().order_by('name')
 
+    # List available GLB files for pins
+    pins_dir = os.path.join(settings.BASE_DIR, 'guilda_manager/static/guilda_manager/pins')
+    available_pins = []
+    if os.path.exists(pins_dir):
+        available_pins = [f for f in os.listdir(pins_dir) if f.lower().endswith('.glb')]
+    available_pins.sort()
+
     context.update({
         'guild': guild,
         'pins': pins,
+        'available_pins': available_pins,
         'squads': squads,
         'squad_ranks': squad_ranks,
         'dispatches': dispatches,
