@@ -17,7 +17,7 @@ def setup_data():
     map_obj, created = Map.objects.get_or_create(
         name="Reino do Macaco Caolho",
         defaults={
-            'background_image': 'guilda_manager/placeholder.png'
+            # Leave background_image empty to use default placeholder logic
         }
     )
     if created:
