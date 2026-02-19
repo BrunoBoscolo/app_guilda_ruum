@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.text import slugify
+from decimal import Decimal
 from rest_framework import viewsets, status, decorators
 from rest_framework.response import Response
 from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building
@@ -627,11 +628,127 @@ def mestre_view(request):
             else:
                 context['error_message'] = "Não foi possível resolver o despacho (status inválido)."
 
+        elif action == 'create_quick_mission':
+            # Quick Mission Templates
+            templates = [
+                {"title": "Escolta de Caravana", "desc": "Proteger uma caravana de mercadores viajando por estradas perigosas."},
+                {"title": "Caça aos Goblins", "desc": "Um grupo de goblins está saqueando fazendas próximas. Elimine-os."},
+                {"title": "Entrega Urgente", "desc": "Entregar uma mensagem sigilosa para um nobre em uma cidade vizinha."},
+                {"title": "Investigação na Floresta", "desc": "Lenhadores relataram sons estranhos e luzes na floresta sombria."},
+                {"title": "Limpeza de Porão", "desc": "Ratos gigantes invadiram o porão da taverna local."},
+            ]
+            template = random.choice(templates)
+
+            # Random Rank (weighted towards lower ranks)
+            rank = random.choices(['F', 'E', 'D'], weights=[50, 30, 20], k=1)[0]
+
+            # Calculate Rewards based on Rank
+            gxp = Quest.RANK_GXP_REWARDS.get(rank, 5)
+            gold = gxp * 10  # Simple formula: 1 GXP = 10 Gold
+            duration = random.randint(1, 3)  # 1-3 days for quick missions
+
+            Quest.objects.create(
+                title=template['title'],
+                description=template['desc'],
+                rank=rank,
+                gxp_reward=gxp,
+                gold_reward=gold,
+                duration_days=duration,
+                guild=guild,
+                type=Quest.Type.EXTERNAL,
+                status=Quest.Status.OPEN
+            )
+            context['success_message'] = f"Missão Rápida '{template['title']}' criada com sucesso!"
+
+        elif action == 'create_custom_mission':
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            rank = request.POST.get('rank')
+            duration_raw = request.POST.get('duration')
+            gold_raw = request.POST.get('reward_gold', 0)
+            gxp_raw = request.POST.get('reward_xp', 0)
+
+            valid_numbers = True
+            try:
+                gold = float(gold_raw)
+                gxp = int(gxp_raw)
+                duration = int(duration_raw)
+            except (ValueError, TypeError):
+                valid_numbers = False
+                context['error_message'] = "Valores numéricos inválidos."
+
+            if valid_numbers and title and description:
+                Quest.objects.create(
+                    title=title,
+                    description=description,
+                    rank=rank,
+                    gxp_reward=gxp,
+                    gold_reward=gold,
+                    duration_days=duration,
+                    guild=guild,
+                    type=Quest.Type.EXTERNAL,
+                    status=Quest.Status.OPEN
+                )
+                context['success_message'] = f"Missão Personalizada '{title}' criada com sucesso!"
+            else:
+                if not context.get('error_message'):
+                     context['error_message'] = "Título e descrição são obrigatórios."
+
+                context['form_data'] = {
+                    'title': title,
+                    'description': description,
+                    'rank': rank,
+                    'duration': duration_raw,
+                    'reward_gold': gold_raw,
+                    'reward_xp': gxp_raw
+                }
+                context['force_tab'] = 'contratos'
+                context['force_mission_view'] = 'custom'
+
         elif action == 'config':
             guild.legal_status = request.POST.get('legal_status')
             guild.moral_alignment = request.POST.get('moral_alignment')
             guild.save()
             context['success_message'] = "Configurações da Guilda atualizadas."
+
+        elif action == 'manage_gold':
+            try:
+                amount = float(request.POST.get('amount', 0))
+                operation = request.POST.get('operation')
+
+                if amount < 0:
+                     context['error_message'] = "O valor deve ser positivo."
+                else:
+                    if operation == 'add':
+                        current_funds = guild.funds
+                        max_cap = guild.max_gold_cap
+
+                        if current_funds >= max_cap:
+                             context['error_message'] = "O tesouro já está cheio!"
+                        else:
+                            new_funds = current_funds + Decimal(amount)
+                            if new_funds > max_cap:
+                                guild.funds = max_cap
+                                context['success_message'] = f"Tesouro adicionado. (Limitado ao teto de {max_cap} T$)"
+                            else:
+                                guild.funds = new_funds
+                                context['success_message'] = f"{amount} T$ adicionados ao tesouro."
+                            guild.save()
+
+                    elif operation == 'remove':
+                        current_funds = guild.funds
+                        new_funds = current_funds - Decimal(amount)
+
+                        if new_funds < 0:
+                            guild.funds = 0
+                            context['success_message'] = "Tesouro removido. (Fundos zerados)"
+                        else:
+                            guild.funds = new_funds
+                            context['success_message'] = f"{amount} T$ removidos do tesouro."
+                        guild.save()
+
+            except ValueError:
+                context['error_message'] = "Valor inválido."
 
         elif action == 'delete_guild':
             guild.delete()
