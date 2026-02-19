@@ -137,6 +137,7 @@
 <script type="module">
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { MapControls } from 'three/addons/controls/MapControls.js';
 
     // Constants
     const HEX_RADIUS = 5;
@@ -151,7 +152,7 @@
     const container = document.getElementById('map-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0F0C0C); // Dark background
-    scene.fog = new THREE.Fog(0x0F0C0C, 20, 80);
+    scene.fog = new THREE.Fog(0x0F0C0C, 20, 150);
 
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 45, 30);
@@ -162,6 +163,27 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     container.appendChild(renderer.domElement);
+
+    // Controls
+    const controls = new MapControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false; // Pan on ground plane
+    controls.minDistance = 20;
+    controls.maxDistance = 80;
+    controls.maxPolarAngle = Math.PI / 2.5; // Don't let go below ground
+    controls.enableRotate = false; // Keep fixed orientation as requested
+
+    // Ensure one-finger/left-click is PAN
+    controls.mouseButtons = {
+        LEFT: THREE.MOUSE.PAN,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.ROTATE
+    }
+    controls.touches = {
+        ONE: THREE.TOUCH.PAN,
+        TWO: THREE.TOUCH.DOLLY_ROTATE
+    }
 
     // Lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -176,7 +198,6 @@
 
     // Grid Group
     const gridGroup = new THREE.Group();
-    // Tilt the whole group slightly? No, camera angle handles it.
     scene.add(gridGroup);
 
     // Helpers
@@ -215,7 +236,8 @@
         const width = maxX - minX;
         const height = maxZ - minZ;
 
-        const geometry = new THREE.CylinderGeometry(HEX_RADIUS * 0.95, HEX_RADIUS * 0.95, 1, 6);
+        // Corrected radius to remove gaps
+        const geometry = new THREE.CylinderGeometry(HEX_RADIUS, HEX_RADIUS, 1, 6);
         const material = new THREE.MeshStandardMaterial({
             map: texture,
             roughness: 0.8,
@@ -223,9 +245,7 @@
         });
 
         hexData.forEach(d => {
-            const mesh = new THREE.Mesh(geometry.clone(), material.clone()); // Clone material to handle UVs per mesh if needed?
-            // Actually with one texture map spanning, we need custom UVs on geometry.
-            // Since we cloned geometry, we can modify it.
+            const mesh = new THREE.Mesh(geometry.clone(), material.clone());
 
             mesh.position.set(d.x, 0, d.z);
             mesh.userData = { q: d.q, r: d.r, originalY: 0 };
@@ -236,13 +256,10 @@
 
             for (let i = 0; i < uvs.count; i++) {
                 const lx = positions.getX(i);
-                const lz = positions.getZ(i); // Z in local space (Y is up) is X/Z plane?
-                // Cylinder is oriented Y-up. Top face is Y=0.5. Side is...
-                // We want to map X and Z world coords to UV.
-                // World coord of vertex = mesh.position + vertex.position (ignoring rotation since default is upright)
+                const lz = positions.getZ(i);
 
                 const wx = d.x + lx;
-                const wz = d.z + lz; // Z is depth
+                const wz = d.z + lz;
 
                 // Normalize to 0..1
                 const u = (wx - minX) / width;
@@ -270,8 +287,6 @@
                 const path = PINS_PATH + loc.model;
                 gltfLoader.load(path, (gltf) => {
                     const model = gltf.scene;
-                    // Auto-scale logic?
-                    // Assume models are roughly unit size or check bounding box.
                     const box = new THREE.Box3().setFromObject(model);
                     const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
@@ -280,8 +295,6 @@
                     model.scale.set(scale, scale, scale);
                     model.position.set(0, 0.5, 0); // Sit on top
                     hex.add(model);
-
-                    // Add a glow effect or marker?
                 });
             }
         });
@@ -294,29 +307,40 @@
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let selectedHex = null;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
 
-    function handleInput(x, y) {
-        mouse.x = (x / window.innerWidth) * 2 - 1;
-        mouse.y = -(y / window.innerHeight) * 2 + 1;
-
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(gridGroup.children);
-
-        if (intersects.length > 0) {
-            const hit = intersects[0].object;
-            // Traverse up to find the Hex Mesh (in case we hit a Pin part)
-            // But raycaster was checked against gridGroup.children (the hexes).
-            // If pin is child of hex, does intersectObjects(hexes) hit pin?
-            // No, default recursive is false. If recursive true, we hit pin.
-            // Let's set recursive false, so we only hit the cylinders.
-            // But pin might block the click?
-            // Actually, if pin is on top, we want to detect it too.
+    function onPointerDown(event) {
+        isDragging = false;
+        if (event.changedTouches) {
+            startX = event.changedTouches[0].clientX;
+            startY = event.changedTouches[0].clientY;
+        } else {
+            startX = event.clientX;
+            startY = event.clientY;
         }
     }
 
-    // Better interaction logic
+    function onPointerMove(event) {
+        let clientX, clientY;
+        if (event.changedTouches) {
+            clientX = event.changedTouches[0].clientX;
+            clientY = event.changedTouches[0].clientY;
+        } else {
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+
+        const dist = Math.sqrt(Math.pow(clientX - startX, 2) + Math.pow(clientY - startY, 2));
+        if (dist > 5) { // 5px threshold
+            isDragging = true;
+        }
+    }
+
     function onPointerUp(event) {
-        // Simple click detection
+        if (isDragging) return; // Ignore drags
+
         let clientX, clientY;
         if (event.changedTouches) {
             clientX = event.changedTouches[0].clientX;
@@ -330,7 +354,6 @@
         mouse.y = -(clientY / window.innerHeight) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
-        // Intersect recursive to hit pins too
         const intersects = raycaster.intersectObjects(gridGroup.children, true);
 
         if (intersects.length > 0) {
@@ -339,18 +362,15 @@
             while(target.parent && target.parent !== gridGroup) {
                 target = target.parent;
             }
-            // Now target should be the hex mesh (child of gridGroup)
             if (target.parent !== gridGroup) return;
 
             if (selectedHex && selectedHex !== target) {
-                 // Reset old
                  animateHex(selectedHex, 0);
             }
 
             selectedHex = target;
             animateHex(selectedHex, 2);
 
-            // Show Info
             const info = selectedHex.userData.info;
             const title = info ? info.title : "Terreno Baldio";
             const desc = info ? info.description : "Apenas hexágonos e poeira...";
@@ -369,7 +389,6 @@
     }
 
     function animateHex(hex, targetY) {
-        // Simple manual tween
         const startY = hex.position.y;
         const startTime = Date.now();
         const duration = 300;
@@ -384,6 +403,8 @@
         loop();
     }
 
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
 
     // Resize
@@ -396,8 +417,7 @@
     // Animate
     function animate() {
         requestAnimationFrame(animate);
-        // Optional: rotate grid slowly?
-        // gridGroup.rotation.y += 0.001;
+        controls.update();
         renderer.render(scene, camera);
     }
     animate();
