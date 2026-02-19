@@ -215,6 +215,19 @@
         return { x, z };
     }
 
+    // Helper: Get Average Color from Image
+    function getAverageColor(image) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        // Draw the image scaled down to 1x1 to get average
+        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, 1, 1);
+        const data = ctx.getImageData(0, 0, 1, 1).data;
+        // Return THREE.Color (normalized 0..1)
+        return new THREE.Color(data[0]/255, data[1]/255, data[2]/255);
+    }
+
     // Load Texture & Build Grid
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load(TEXTURE_URL, (texture) => {
@@ -256,6 +269,46 @@
         plane.rotation.x = -Math.PI / 2;
         plane.position.set(minX + width/2, -0.6, minZ + height/2);
         gridGroup.add(plane);
+
+        // Custom Fog Logic
+        const avgColor = getAverageColor(texture.image);
+        const fogGeo = new THREE.PlaneGeometry(width, height);
+        const fogMat = new THREE.ShaderMaterial({
+            uniforms: {
+                uColor: { value: avgColor },
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 uColor;
+                varying vec2 vUv;
+
+                void main() {
+                    // Distance from center (0.5, 0.5)
+                    vec2 center = vec2(0.5, 0.5);
+                    vec2 distVec = abs(vUv - center);
+                    // Rectangular fade
+                    float dist = max(distVec.x, distVec.y);
+
+                    // Fade starts at 0.35 (70% from center) and ends at 0.5 (edge)
+                    float alpha = smoothstep(0.35, 0.5, dist);
+
+                    gl_FragColor = vec4(uColor, alpha);
+                }
+            `,
+            transparent: true,
+            depthWrite: false,
+        });
+
+        const fogPlane = new THREE.Mesh(fogGeo, fogMat);
+        fogPlane.rotation.x = -Math.PI / 2;
+        fogPlane.position.set(minX + width/2, 5, minZ + height/2);
+        gridGroup.add(fogPlane);
 
         // Create Pointy-Topped Hex Geometry
         // CylinderGeometry(radius, radius, height, segments) creates a prism.
