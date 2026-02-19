@@ -889,14 +889,7 @@ def mestre_view(request):
     # Need full hex details for editing
     if game_map:
         if game_map.background_image:
-            # Check if it's uploaded to static folder logic
-            if 'static/guilda_manager' in game_map.background_image.name:
-                 # It's in static, construct static URL
-                 rel_path = game_map.background_image.name.split('static/')[-1]
-                 map_image_url = static(rel_path)
-            else:
-                 # Regular media
-                 map_image_url = game_map.background_image.url
+             map_image_url = game_map.background_image.url
 
         hexes = Hexagon.objects.filter(map=game_map).select_related('pin')
         for h in hexes:
@@ -938,11 +931,7 @@ def mapa_view(request):
 
     if game_map:
         if game_map.background_image:
-            if 'static/guilda_manager' in game_map.background_image.name:
-                 rel_path = game_map.background_image.name.split('static/')[-1]
-                 map_image_url = static(rel_path)
-            else:
-                 map_image_url = game_map.background_image.url
+             map_image_url = game_map.background_image.url
 
         hexes = Hexagon.objects.filter(map=game_map).select_related('pin')
         for h in hexes:

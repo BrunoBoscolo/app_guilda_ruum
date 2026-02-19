@@ -515,7 +515,7 @@ class Dispatch(models.Model):
 
 class Map(models.Model):
     name = models.CharField(max_length=100)
-    background_image = models.ImageField(upload_to='guilda_manager/static/guilda_manager/maps/', blank=True, null=True, help_text="Upload map image")
+    background_image = models.ImageField(upload_to='maps/', blank=True, null=True, help_text="Upload map image")
 
     def __str__(self):
         return self.name
