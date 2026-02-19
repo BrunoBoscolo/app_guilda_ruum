@@ -193,8 +193,12 @@
     }
 
     // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+    hemiLight.position.set(0, 20, 0);
+    scene.add(hemiLight);
 
     const dirLight = new THREE.DirectionalLight(0xD4AF37, 1.2); // Golden sunlight
     dirLight.position.set(20, 50, 20);
@@ -260,7 +264,7 @@
         gridGroup.add(plane);
 
         // Custom Fog Logic
-        const fogGeo = new THREE.PlaneGeometry(width, height);
+        const fogGeo = new THREE.PlaneGeometry(width, height, 64, 64);
         fogUniforms = {
             uMap: { value: texture },
             uTime: { value: 0.0 }
@@ -272,7 +276,22 @@
                 varying vec2 vUv;
                 void main() {
                     vUv = uv;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    vec3 pos = position;
+
+                    // Waterfall Drop Effect
+                    vec2 center = vec2(0.5);
+                    vec2 d = abs(uv - center);
+                    float dist = max(d.x, d.y);
+
+                    // Start dropping at 0.38 (leaving center flat for map)
+                    // Map content is roughly within 0.35 from center.
+                    float dropStart = 0.38;
+                    if (dist > dropStart) {
+                        float dropFactor = (dist - dropStart) / (0.5 - dropStart); // 0 to 1
+                        pos.z -= pow(dropFactor, 2.0) * 20.0;
+                    }
+
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
                 }
             `,
             fragmentShader: `
@@ -325,9 +344,11 @@
                     vec3 mapColor = texture2D(uMap, vUv).rgb;
 
                     // Fog Color Logic:
-                    // 1. Base is darkened map color.
-                    // 2. Fade to black as we approach the very edge to blend with void.
-                    vec3 baseFog = mix(mapColor, vec3(0.0), 0.7); // Dark mist
+                    // Mix with a lighter/grey mist instead of black.
+                    // 50% map, 50% mist.
+                    vec3 baseFog = mix(mapColor, vec3(0.7, 0.7, 0.8), 0.5);
+
+                    // Fade to black at very edge for smooth blending with void background
                     vec3 finalFog = mix(baseFog, vec3(0.0), smoothstep(0.4, 0.5, dist));
 
                     gl_FragColor = vec4(finalFog, fogAlpha);
