@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% load static %}
+
 <html class="dark" lang="pt-br">
 <head>
 <meta charset="utf-8"/>
@@ -101,11 +101,11 @@
 
 <!-- Nav (Visual only mostly, maintains consistency) -->
 <nav class="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 px-6 py-4 flex justify-between items-center z-50">
-    <a href="{% url 'sede' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
+    <a href="#" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
         <span class="material-symbols-outlined">home</span>
         <span class="text-[9px] cinzel font-bold uppercase">Sede</span>
     </a>
-    <a href="{% url 'missoes' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
+    <a href="#" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
         <span class="material-symbols-outlined">history_edu</span>
         <span class="text-[9px] cinzel font-bold uppercase">Contratos</span>
     </a>
@@ -114,11 +114,11 @@
             <span class="material-symbols-outlined text-3xl">map</span>
         </a>
     </div>
-    <a href="{% url 'bestiario' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
+    <a href="#" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
         <span class="material-symbols-outlined">menu_book</span>
         <span class="text-[9px] cinzel font-bold uppercase">Bestiário</span>
     </a>
-    <a href="{% url 'mestre' %}" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
+    <a href="#" class="flex flex-col items-center gap-1 group text-slate-500 hover:text-gold transition-colors">
         <span class="material-symbols-outlined">shield</span>
         <span class="text-[9px] cinzel font-bold uppercase">Mestre</span>
     </a>
@@ -142,11 +142,11 @@
     // Constants
     const HEX_RADIUS = 5;
     const GRID_SIZE = 5; // Smaller grid for performance on mobile
-    const TEXTURE_URL = "{% static 'guilda_manager/placeholder.png' %}";
-    const STATIC_PREFIX = "{% get_static_prefix %}";
+    const TEXTURE_URL = "../../static/guilda_manager/placeholder.png";
+    const STATIC_PREFIX = "../../static/";
     const PINS_PATH = STATIC_PREFIX + "guilda_manager/pins/";
 
-    const locations = {{ locations|safe }};
+    const locations = [{"q": 0, "r": 0, "title": "Center", "model": "test.glb"}];
 
     // Setup
     const container = document.getElementById('map-container');
@@ -391,9 +391,6 @@
                 target = target.parent;
             }
             if (target.parent !== gridGroup) return;
-
-            // Ignore background plane or other non-hex objects
-            if (target.userData.q === undefined) return;
 
             if (selectedHex && selectedHex !== target) {
                  animateHex(selectedHex, 0);
