@@ -243,13 +243,16 @@
         // CylinderGeometry(radius, radius, height, segments) creates a prism.
         // By default vertices start at 0 degrees (Pointy East).
         // For Pointy-Top (North), we rotate 30 degrees (PI/6).
-        const geometry = new THREE.CylinderGeometry(HEX_RADIUS, HEX_RADIUS, 1, 6);
+        // Use a slightly larger radius (1.1) to ensure overlap and eliminate gaps
+        const geometry = new THREE.CylinderGeometry(HEX_RADIUS * 1.1, HEX_RADIUS * 1.1, 1, 6);
         geometry.rotateY(Math.PI / 6); // Align pointy-top
 
         const material = new THREE.MeshStandardMaterial({
             map: texture,
             roughness: 0.8,
-            metalness: 0.1
+            metalness: 0.1,
+            transparent: false,
+            side: THREE.DoubleSide
         });
 
         hexData.forEach(d => {
