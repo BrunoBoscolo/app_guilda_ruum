@@ -1323,7 +1323,7 @@
                 polygon.setAttribute("points", hexPoints);
                 polygon.setAttribute("transform", `translate(${p.x},${p.y})`);
                 polygon.setAttribute("fill", "transparent");
-                polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.1)");
+                polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.5)");
                 polygon.setAttribute("stroke-width", "1");
                 polygon.style.pointerEvents = "all"; // Ensure clickable
                 polygon.setAttribute("data-q", h.q);
@@ -1335,7 +1335,7 @@
                     polygon.setAttribute("stroke-width", "2");
                 });
                 polygon.addEventListener('mouseleave', () => {
-                    polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.1)");
+                    polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.5)");
                     polygon.setAttribute("stroke-width", "1");
                 });
 
