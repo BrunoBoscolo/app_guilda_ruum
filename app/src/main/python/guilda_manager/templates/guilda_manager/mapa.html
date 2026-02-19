@@ -267,11 +267,23 @@
             side: THREE.DoubleSide
         });
 
+        const edgesGeometry = new THREE.EdgesGeometry(geometry, 15);
+        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1 });
+
+        
+
         hexData.forEach(d => {
             const mesh = new THREE.Mesh(geometry.clone(), material.clone());
 
             mesh.position.set(d.x, 0, d.z);
             mesh.userData = { q: d.q, r: d.r, originalY: 0 };
+
+            const outline = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+
+            outline.position.y = 0.005;
+            outline.scale.set(1.005, 1, 1.005);
+
+            mesh.add(outline);
 
             // UV Mapping
             const uvs = mesh.geometry.attributes.uv;
