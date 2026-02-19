@@ -256,8 +256,8 @@
         // CylinderGeometry(radius, radius, height, segments) creates a prism.
         // By default vertices start at 0 degrees (Pointy East), edges are horizontal (Flat-Topped).
         // Use a slightly larger radius (1.2) to ensure overlap and eliminate gaps
-        const geometry = new THREE.CylinderGeometry(HEX_RADIUS * 1.2, HEX_RADIUS * 1.2, 1, 6);
-        geometry.rotateY(Math.PI / 6); // Rotate vertices to align for Pointy-Topped
+        const geometry = new THREE.CylinderGeometry(HEX_RADIUS, HEX_RADIUS, 1, 6);
+        //geometry.rotateY(Math.PI / 6); // Rotate vertices to align for Pointy-Topped
 
         const material = new THREE.MeshStandardMaterial({
             map: texture,
