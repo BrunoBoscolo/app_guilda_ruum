@@ -200,10 +200,13 @@
     const gridGroup = new THREE.Group();
     scene.add(gridGroup);
 
-    // Helpers
+    // Helpers (Pointy-Topped Hexagon Math)
     function hexToPixel(q, r) {
-        const x = HEX_RADIUS * (3/2 * q);
-        const z = HEX_RADIUS * Math.sqrt(3) * (r + q/2);
+        // Pointy-Topped Math:
+        // x = size * sqrt(3) * (q + r/2)
+        // z = size * 3/2 * r
+        const x = HEX_RADIUS * Math.sqrt(3) * (q + r/2);
+        const z = HEX_RADIUS * (3/2 * r);
         return { x, z };
     }
 
@@ -230,14 +233,19 @@
         }
 
         // Add margin
-        const margin = HEX_RADIUS;
+        const margin = HEX_RADIUS * 2;
         minX -= margin; maxX += margin;
         minZ -= margin; maxZ += margin;
         const width = maxX - minX;
         const height = maxZ - minZ;
 
-        // Corrected radius to remove gaps
+        // Create Pointy-Topped Hex Geometry
+        // CylinderGeometry(radius, radius, height, segments) creates a prism.
+        // By default vertices start at 0 degrees (Pointy East).
+        // For Pointy-Top (North), we rotate 30 degrees (PI/6).
         const geometry = new THREE.CylinderGeometry(HEX_RADIUS, HEX_RADIUS, 1, 6);
+        geometry.rotateY(Math.PI / 6); // Align pointy-top
+
         const material = new THREE.MeshStandardMaterial({
             map: texture,
             roughness: 0.8,
@@ -294,6 +302,11 @@
 
                     model.scale.set(scale, scale, scale);
                     model.position.set(0, 0.5, 0); // Sit on top
+                    // Pins need to account for parent rotation? No, parent is Mesh.
+                    // But if parent Geometry is rotated, children are relative to Mesh transform.
+                    // Wait. geometry.rotateY() modifies vertices. It does NOT modify mesh.rotation.
+                    // So children added to mesh are unaffected by geometry rotation.
+                    // But if we want pin facing "front", that depends on model.
                     hex.add(model);
                 });
             }
