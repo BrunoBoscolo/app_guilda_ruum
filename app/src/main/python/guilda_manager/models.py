@@ -512,3 +512,31 @@ class Dispatch(models.Model):
 
         self.save()
         return outcome_data
+
+class Map(models.Model):
+    name = models.CharField(max_length=100)
+    background_image = models.ImageField(upload_to='maps/', blank=True, null=True, help_text="Upload map image")
+
+    def __str__(self):
+        return self.name
+
+class Pin(models.Model):
+    name = models.CharField(max_length=100)
+    glb_path = models.CharField(max_length=200, help_text="Filename of GLB in static/guilda_manager/pins/")
+
+    def __str__(self):
+        return self.name
+
+class Hexagon(models.Model):
+    map = models.ForeignKey(Map, related_name='hexagons', on_delete=models.CASCADE)
+    pin = models.ForeignKey(Pin, related_name='hexagons', on_delete=models.SET_NULL, null=True, blank=True)
+    q = models.IntegerField()
+    r = models.IntegerField()
+    title = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('map', 'q', 'r')
+
+    def __str__(self):
+        return f"Hex({self.q}, {self.r}) on {self.map.name}"
