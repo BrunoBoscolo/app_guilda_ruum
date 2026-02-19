@@ -959,7 +959,7 @@ def mapa_view(request):
     map_image_url = static('guilda_manager/placeholder.png')
 
     if game_map:
-        if game_map.background_image:
+        if game_map.background_image and game_map.background_image.name != 'guilda_manager/placeholder.png':
              map_image_url = game_map.background_image.url
 
         hexes = Hexagon.objects.filter(map=game_map).select_related('pin')
