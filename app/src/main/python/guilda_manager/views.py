@@ -4,7 +4,7 @@ from django.utils.text import slugify
 from decimal import Decimal
 from rest_framework import viewsets, status, decorators
 from rest_framework.response import Response
-from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building, Map, Hexagon
+from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building, Map, Hexagon, Pin
 from .forms import MonsterForm
 from .serializers import GuildDashboardSerializer, BuildConstructionSerializer, QuestSerializer, MemberSerializer
 import hashlib
@@ -812,6 +812,41 @@ def mestre_view(request):
             rank_obj.save()
             context['success_message'] = f"Patente {rank_obj.name} atualizada."
 
+        elif action == 'update_hex':
+            try:
+                q = int(request.POST.get('q'))
+                r = int(request.POST.get('r'))
+                title = request.POST.get('title')
+                description = request.POST.get('description')
+                pin_id = request.POST.get('pin_id')
+
+                # Ensure map exists
+                game_map = Map.objects.first()
+                if not game_map:
+                    # Create default if missing (should be handled by setup script but safety first)
+                    game_map = Map.objects.create(name="Reino", background_image="guilda_manager/placeholder.png")
+
+                hex_obj, created = Hexagon.objects.get_or_create(
+                    map=game_map,
+                    q=q,
+                    r=r
+                )
+
+                hex_obj.title = title
+                hex_obj.description = description
+
+                if pin_id:
+                    hex_obj.pin = Pin.objects.get(id=pin_id)
+                else:
+                    hex_obj.pin = None
+
+                hex_obj.save()
+                context['success_message'] = f"Hexágono ({q}, {r}) atualizado com sucesso."
+                context['force_tab'] = 'mapa'
+
+            except (ValueError, Pin.DoesNotExist):
+                context['error_message'] = "Erro ao atualizar hexágono. Dados inválidos."
+
     # Data for Template
     squads = Squad.objects.all().order_by('-rank__order', 'name')
     squad_ranks = SquadRank.objects.all().order_by('order')
@@ -833,6 +868,8 @@ def mestre_view(request):
     # Map Data for Mestre View
     game_map = Map.objects.first()
     map_hexes = []
+
+    # Need full hex details for editing
     if game_map:
         hexes = Hexagon.objects.filter(map=game_map).select_related('pin')
         for h in hexes:
@@ -840,11 +877,16 @@ def mestre_view(request):
                 'q': h.q,
                 'r': h.r,
                 'title': h.title,
+                'description': h.description,
+                'pin_id': h.pin.id if h.pin else None,
                 'pin_name': h.pin.name if h.pin else None
             })
 
+    pins = Pin.objects.all().order_by('name')
+
     context.update({
         'guild': guild,
+        'pins': pins,
         'squads': squads,
         'squad_ranks': squad_ranks,
         'dispatches': dispatches,

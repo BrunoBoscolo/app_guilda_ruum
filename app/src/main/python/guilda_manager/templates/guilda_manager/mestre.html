@@ -794,12 +794,71 @@
                 </div>
 
                 <div class="mt-2 text-[10px] text-gray-500 text-center italic">
-                    Arraste para mover.
+                    Arraste para mover. Clique em um hexágono para editar.
                 </div>
             </section>
         </div>
 
         {{ map_hexes|json_script:"map-data-json" }}
+
+        <!-- Hex Edit Modal -->
+        <div id="hex-edit-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300">
+            <div class="building-card max-w-sm w-[90%] p-6 rounded-xl shadow-2xl relative animate-[fadeIn_0.3s_ease-out]">
+                <!-- Accents -->
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+
+                <!-- Content -->
+                <div class="relative z-10">
+                     <div class="flex items-center gap-3 mb-4 border-b border-white/10 pb-2">
+                        <span class="material-symbols-outlined text-gold text-2xl">edit_location</span>
+                        <h3 class="cinzel text-lg font-black text-ivory uppercase tracking-wider">Editar Local</h3>
+                     </div>
+
+                     <form method="POST" id="hex-edit-form" class="space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_hex">
+                        <input type="hidden" name="q" id="modal-hex-q">
+                        <input type="hidden" name="r" id="modal-hex-r">
+
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-mono mb-1">Coordenadas: <span id="modal-coords-display" class="text-gold"></span></p>
+                        </div>
+
+                        <div>
+                            <label class="block cinzel text-xs font-bold text-gold uppercase mb-1">Título</label>
+                            <input name="title" id="modal-hex-title" class="stone-input w-full rounded p-2 text-sm" placeholder="Nome do local..." type="text"/>
+                        </div>
+
+                        <div>
+                            <label class="block cinzel text-xs font-bold text-gold uppercase mb-1">Descrição</label>
+                            <textarea name="description" id="modal-hex-desc" class="stone-input w-full rounded p-2 text-sm min-h-[80px]" placeholder="Detalhes do ambiente..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block cinzel text-xs font-bold text-gold uppercase mb-1">Marcador (Pin)</label>
+                            <select name="pin_id" id="modal-hex-pin" class="stone-select w-full rounded p-2 text-sm">
+                                <option value="">-- Nenhum --</option>
+                                {% for pin in pins %}
+                                <option value="{{ pin.id }}">{{ pin.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="flex gap-3 justify-end mt-6">
+                            <button type="button" onclick="closeHexModal()" class="px-4 py-2 rounded border border-white/10 text-gray-400 hover:text-ivory hover:border-white/30 transition-colors cinzel text-[10px] font-bold uppercase tracking-wider">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-5 py-2 rounded bg-gradient-to-br from-primary to-red-950 hover:from-red-800 hover:to-red-900 text-ivory border border-red-700/50 shadow-lg cinzel text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+                                Salvar
+                            </button>
+                        </div>
+                     </form>
+                </div>
+            </div>
+        </div>
 
         <!-- TAB 4: CONFIGURAÇÃO -->
         <div id="tab-config" class="tab-content hidden space-y-8">
@@ -1264,8 +1323,29 @@
                 polygon.setAttribute("points", hexPoints);
                 polygon.setAttribute("transform", `translate(${p.x},${p.y})`);
                 polygon.setAttribute("fill", "transparent");
-                polygon.setAttribute("stroke", "rgba(0,0,0,0.3)");
+                polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.1)");
                 polygon.setAttribute("stroke-width", "1");
+                polygon.style.pointerEvents = "all"; // Ensure clickable
+                polygon.setAttribute("data-q", h.q);
+                polygon.setAttribute("data-r", h.r);
+
+                // Hover effect
+                polygon.addEventListener('mouseenter', () => {
+                    polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.8)");
+                    polygon.setAttribute("stroke-width", "2");
+                });
+                polygon.addEventListener('mouseleave', () => {
+                    polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.1)");
+                    polygon.setAttribute("stroke-width", "1");
+                });
+
+                // Click event
+                polygon.addEventListener('click', (e) => {
+                    if (isDragging) return; // Don't trigger on drag release
+                    e.stopPropagation();
+                    openHexModal(h.q, h.r);
+                });
+
                 gMap.appendChild(polygon);
             });
 
@@ -1303,25 +1383,33 @@
 
             // Panning Logic
             let isDown = false;
+            let isDragging = false; // Distinguish click from drag
             let startX, startY;
+            let dragStartX, dragStartY;
 
             container.addEventListener('mousedown', (e) => {
                 isDown = true;
+                isDragging = false;
                 startX = e.clientX - currentX;
                 startY = e.clientY - currentY;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
                 container.style.cursor = "grabbing";
             });
 
             container.addEventListener('touchstart', (e) => {
                 if(e.touches.length === 1) {
                     isDown = true;
+                    isDragging = false;
                     startX = e.touches[0].clientX - currentX;
                     startY = e.touches[0].clientY - currentY;
-                    e.stopPropagation();
+                    dragStartX = e.touches[0].clientX;
+                    dragStartY = e.touches[0].clientY;
+                    // Don't stop propagation immediately, let clicks through if no move
                 }
             }, {passive: false});
 
-            window.addEventListener('mouseup', () => {
+            window.addEventListener('mouseup', (e) => {
                 isDown = false;
                 container.style.cursor = "grab";
             });
@@ -1333,6 +1421,13 @@
             container.addEventListener('mousemove', (e) => {
                 if(!isDown) return;
                 e.preventDefault();
+
+                const dx = e.clientX - dragStartX;
+                const dy = e.clientY - dragStartY;
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    isDragging = true;
+                }
+
                 currentX = e.clientX - startX;
                 currentY = e.clientY - startY;
                 updateTransform();
@@ -1341,10 +1436,43 @@
             container.addEventListener('touchmove', (e) => {
                 if(!isDown) return;
                 e.stopPropagation();
+
+                const dx = e.touches[0].clientX - dragStartX;
+                const dy = e.touches[0].clientY - dragStartY;
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    isDragging = true;
+                }
+
                 currentX = e.touches[0].clientX - startX;
                 currentY = e.touches[0].clientY - startY;
                 updateTransform();
             }, {passive: false});
+
+            // Make openHexModal globally accessible
+            window.openHexModal = function(q, r) {
+                const hexData = mapData.find(h => h.q === q && h.r === r);
+
+                document.getElementById('modal-hex-q').value = q;
+                document.getElementById('modal-hex-r').value = r;
+                document.getElementById('modal-coords-display').innerText = `Q: ${q}, R: ${r}`;
+
+                document.getElementById('modal-hex-title').value = hexData ? (hexData.title || '') : '';
+                document.getElementById('modal-hex-desc').value = hexData ? (hexData.description || '') : '';
+                document.getElementById('modal-hex-pin').value = hexData ? (hexData.pin_id || '') : '';
+
+                document.getElementById('hex-edit-modal').classList.remove('hidden');
+            };
+
+            window.closeHexModal = function() {
+                document.getElementById('hex-edit-modal').classList.add('hidden');
+            };
+
+            // Close on background click
+            document.getElementById('hex-edit-modal').addEventListener('click', (e) => {
+                if(e.target === document.getElementById('hex-edit-modal')) {
+                    closeHexModal();
+                }
+            });
 
         })();
     </script>
