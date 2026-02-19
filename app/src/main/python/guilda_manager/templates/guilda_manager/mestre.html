@@ -351,6 +351,9 @@
             <button onclick="openTab('contratos')" id="btn-contratos" class="tab-btn px-4 py-2 rounded flex-shrink-0 min-w-[100px] flex items-center justify-center opacity-70 hover:opacity-100">
                 <span class="cinzel text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-gold">CONTRATOS</span>
             </button>
+            <button onclick="openTab('mapa')" id="btn-mapa" class="tab-btn px-4 py-2 rounded flex-shrink-0 min-w-[100px] flex items-center justify-center opacity-70 hover:opacity-100">
+                <span class="cinzel text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-gold">MAPA</span>
+            </button>
             <button onclick="openTab('config')" id="btn-config" class="tab-btn px-4 py-2 rounded flex-shrink-0 min-w-[100px] flex items-center justify-center opacity-70 hover:opacity-100">
                 <span class="cinzel text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-gold">CONFIG</span>
             </button>
@@ -773,6 +776,31 @@
             </div>
         </div>
 
+        <!-- TAB MAPA -->
+        <div id="tab-mapa" class="tab-content hidden space-y-8">
+            <section class="building-card rounded-xl p-6 shadow-epic overflow-hidden relative" style="min-height: 400px;">
+                <div class="corner-accent top-left"></div>
+                <div class="corner-accent top-right"></div>
+                <div class="corner-accent bottom-left"></div>
+                <div class="corner-accent bottom-right"></div>
+
+                <div class="flex items-center gap-3 mb-4 relative z-10 border-b border-white/5 pb-2">
+                    <span class="material-symbols-outlined text-gold">map</span>
+                    <h2 class="cinzel text-lg font-black text-white leading-tight uppercase">Mapa do Reino</h2>
+                </div>
+
+                <div id="mestre-map-container" class="w-full h-[350px] bg-black/50 border border-white/10 rounded relative overflow-hidden select-none touch-none">
+                    <!-- SVG injected via JS -->
+                </div>
+
+                <div class="mt-2 text-[10px] text-gray-500 text-center italic">
+                    Arraste para mover.
+                </div>
+            </section>
+        </div>
+
+        {{ map_hexes|json_script:"map-data-json" }}
+
         <!-- TAB 4: CONFIGURAÇÃO -->
         <div id="tab-config" class="tab-content hidden space-y-8">
             <section class="building-card rounded-xl p-6 shadow-2xl">
@@ -1120,7 +1148,7 @@
             }
         }
 
-        const tabs = ['despacho', 'esquadroes', 'contratos', 'config'];
+        const tabs = ['despacho', 'esquadroes', 'contratos', 'mapa', 'config'];
 
         function toggleMissionView(view) {
             const selectView = document.getElementById('mission-select-view');
@@ -1147,6 +1175,178 @@
                 openTab(tabs[newIndex]);
             }
         }
+
+        // --- MAP LOGIC ---
+        (function() {
+            const container = document.getElementById('mestre-map-container');
+            if (!container) return;
+
+            const mapData = JSON.parse(document.getElementById('map-data-json').textContent);
+            const mapBgUrl = "{% if game_map %}{% static game_map.background_image %}{% else %}{% static 'guilda_manager/placeholder.png' %}{% endif %}";
+
+            // Hex Config
+            const HEX_RADIUS = 30; // 2D Pixel Radius
+            const HEX_WIDTH = Math.sqrt(3) * HEX_RADIUS;
+            const HEX_HEIGHT = 2 * HEX_RADIUS;
+
+            // Create SVG
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "100%");
+            svg.style.cursor = "grab";
+            container.appendChild(svg);
+
+            // Groups
+            const gMap = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            svg.appendChild(gMap);
+
+            // Grid Generation
+            const GRID_SIZE = 5;
+            const gridHexes = [];
+            for (let q = -GRID_SIZE; q <= GRID_SIZE; q++) {
+                let r1 = Math.max(-GRID_SIZE, -q - GRID_SIZE);
+                let r2 = Math.min(GRID_SIZE, -q + GRID_SIZE);
+                for (let r = r1; r <= r2; r++) {
+                     gridHexes.push({q, r});
+                }
+            }
+
+            // Hex to Pixel (Pointy Topped)
+            function hexToPixel(q, r) {
+                const x = HEX_RADIUS * Math.sqrt(3) * (q + r/2);
+                const y = HEX_RADIUS * 3/2 * r;
+                return { x, y };
+            }
+
+            // Calculate Bounds
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            gridHexes.forEach(h => {
+                const p = hexToPixel(h.q, h.r);
+                minX = Math.min(minX, p.x - HEX_WIDTH/2);
+                maxX = Math.max(maxX, p.x + HEX_WIDTH/2);
+                minY = Math.min(minY, p.y - HEX_HEIGHT/2);
+                maxY = Math.max(maxY, p.y + HEX_HEIGHT/2);
+            });
+
+            // Add margin to background to cover edges properly
+            const margin = HEX_RADIUS;
+            minX -= margin; maxX += margin;
+            minY -= margin; maxY += margin;
+
+            const mapWidth = maxX - minX;
+            const mapHeight = maxY - minY;
+
+            // Image
+            const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            image.setAttribute("href", mapBgUrl);
+            image.setAttribute("x", minX);
+            image.setAttribute("y", minY);
+            image.setAttribute("width", mapWidth);
+            image.setAttribute("height", mapHeight);
+            image.setAttribute("preserveAspectRatio", "none");
+            gMap.appendChild(image);
+
+            // Draw Hexes
+            function createHexPoints() {
+                const points = [];
+                for (let i = 0; i < 6; i++) {
+                    const angle_deg = 60 * i - 30;
+                    const angle_rad = Math.PI / 180 * angle_deg;
+                    points.push(`${HEX_RADIUS * Math.cos(angle_rad)},${HEX_RADIUS * Math.sin(angle_rad)}`);
+                }
+                return points.join(" ");
+            }
+            const hexPoints = createHexPoints();
+
+            gridHexes.forEach(h => {
+                const p = hexToPixel(h.q, h.r);
+                const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                polygon.setAttribute("points", hexPoints);
+                polygon.setAttribute("transform", `translate(${p.x},${p.y})`);
+                polygon.setAttribute("fill", "transparent");
+                polygon.setAttribute("stroke", "rgba(0,0,0,0.3)");
+                polygon.setAttribute("stroke-width", "1");
+                gMap.appendChild(polygon);
+            });
+
+            // Draw Pins
+            mapData.forEach(d => {
+                if (d.pin_name) {
+                     const p = hexToPixel(d.q, d.r);
+                     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                     circle.setAttribute("cx", p.x);
+                     circle.setAttribute("cy", p.y);
+                     circle.setAttribute("r", HEX_RADIUS * 0.4);
+                     circle.setAttribute("fill", "#D4AF37");
+                     circle.setAttribute("stroke", "#000");
+                     circle.setAttribute("stroke-width", "2");
+
+                     const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                     title.textContent = d.title || d.pin_name;
+                     circle.appendChild(title);
+
+                     gMap.appendChild(circle);
+                }
+            });
+
+            // Center View
+            const containerW = container.clientWidth;
+            const containerH = container.clientHeight;
+            let currentX = containerW / 2;
+            let currentY = containerH / 2;
+            let scale = 1;
+
+            function updateTransform() {
+                gMap.setAttribute("transform", `translate(${currentX}, ${currentY}) scale(${scale})`);
+            }
+            updateTransform();
+
+            // Panning Logic
+            let isDown = false;
+            let startX, startY;
+
+            container.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.clientX - currentX;
+                startY = e.clientY - currentY;
+                container.style.cursor = "grabbing";
+            });
+
+            container.addEventListener('touchstart', (e) => {
+                if(e.touches.length === 1) {
+                    isDown = true;
+                    startX = e.touches[0].clientX - currentX;
+                    startY = e.touches[0].clientY - currentY;
+                    e.stopPropagation();
+                }
+            }, {passive: false});
+
+            window.addEventListener('mouseup', () => {
+                isDown = false;
+                container.style.cursor = "grab";
+            });
+
+            window.addEventListener('touchend', () => {
+                isDown = false;
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if(!isDown) return;
+                e.preventDefault();
+                currentX = e.clientX - startX;
+                currentY = e.clientY - startY;
+                updateTransform();
+            });
+
+            container.addEventListener('touchmove', (e) => {
+                if(!isDown) return;
+                e.stopPropagation();
+                currentX = e.touches[0].clientX - startX;
+                currentY = e.touches[0].clientY - startY;
+                updateTransform();
+            }, {passive: false});
+
+        })();
     </script>
 </body>
 </html>

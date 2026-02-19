@@ -4,7 +4,7 @@ from django.utils.text import slugify
 from decimal import Decimal
 from rest_framework import viewsets, status, decorators
 from rest_framework.response import Response
-from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building
+from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building, Map, Hexagon
 from .forms import MonsterForm
 from .serializers import GuildDashboardSerializer, BuildConstructionSerializer, QuestSerializer, MemberSerializer
 import hashlib
@@ -830,6 +830,19 @@ def mestre_view(request):
         if r not in quest_stats:
             quest_stats[r] = 0
 
+    # Map Data for Mestre View
+    game_map = Map.objects.first()
+    map_hexes = []
+    if game_map:
+        hexes = Hexagon.objects.filter(map=game_map).select_related('pin')
+        for h in hexes:
+            map_hexes.append({
+                'q': h.q,
+                'r': h.r,
+                'title': h.title,
+                'pin_name': h.pin.name if h.pin else None
+            })
+
     context.update({
         'guild': guild,
         'squads': squads,
@@ -840,31 +853,33 @@ def mestre_view(request):
         'ranks': Quest.Rank.choices,
         'legal_statuses': Guild.LegalStatus.choices,
         'moral_alignments': Guild.MoralAlignment.choices,
-        'now': timezone.now()
+        'now': timezone.now(),
+        'game_map': game_map,
+        'map_hexes': map_hexes
     })
 
     return render(request, 'guilda_manager/mestre.html', context)
 
 
 def mapa_view(request):
-    locations = [
-        {
-            'q': 0, 'r': 0,
-            'title': 'Bau do Tesouro',
-            'description': 'Um bau antigo contendo riquezas esquecidas.',
-            'model': 'club-chest.glb'
-        },
-        {
-            'q': 2, 'r': -1,
-            'title': 'Goblin Archer',
-            'description': 'Um goblin arqueiro vigiando a area.',
-            'model': 'goblin_archer_miniature_stl_for_3d_printing.glb'
-        },
-        {
-            'q': -2, 'r': 2,
-            'title': 'Dragão Bebê',
-            'description': 'Um pequeno dragão recém-nascido.',
-            'model': 'cute_baby_dragon_in_egg_-_3d_print_dragonlet.glb'
-        }
-    ]
-    return render(request, 'guilda_manager/mapa.html', {'locations': locations})
+    game_map = Map.objects.first()
+    locations = []
+
+    if game_map:
+        hexes = Hexagon.objects.filter(map=game_map).select_related('pin')
+        for h in hexes:
+            loc = {
+                'q': h.q,
+                'r': h.r,
+                'title': h.title,
+                'description': h.description,
+            }
+            if h.pin:
+                loc['model'] = h.pin.glb_path
+            locations.append(loc)
+
+    context = {'locations': locations}
+    if game_map:
+        context['map'] = game_map
+
+    return render(request, 'guilda_manager/mapa.html', context)

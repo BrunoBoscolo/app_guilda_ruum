@@ -134,6 +134,8 @@
   }
 </script>
 
+{{ locations|json_script:"locations-data" }}
+
 <script type="module">
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -142,11 +144,11 @@
     // Constants
     const HEX_RADIUS = 5;
     const GRID_SIZE = 5; // Smaller grid for performance on mobile
-    const TEXTURE_URL = "{% static 'guilda_manager/placeholder.png' %}";
+    const TEXTURE_URL = "{% if map %}{% static map.background_image %}{% else %}{% static 'guilda_manager/placeholder.png' %}{% endif %}";
     const STATIC_PREFIX = "{% get_static_prefix %}";
     const PINS_PATH = STATIC_PREFIX + "guilda_manager/pins/";
 
-    const locations = {{ locations|safe }};
+    const locations = JSON.parse(document.getElementById('locations-data').textContent);
 
     // Setup
     const container = document.getElementById('map-container');
