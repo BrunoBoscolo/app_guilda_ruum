@@ -1178,6 +1178,11 @@
         }, false);
 
         function handleGesture(e) {
+                // Ignore if start target is inside the map container
+                if (e.target.closest('#mestre-map-container')) {
+                    return;
+                }
+
             // Ignore if start target or any parent has overflow-x-auto (horizontal scroll area)
             // But we can check if the element is actually scrollable
             let target = e.target;
@@ -1323,20 +1328,20 @@
                 polygon.setAttribute("points", hexPoints);
                 polygon.setAttribute("transform", `translate(${p.x},${p.y})`);
                 polygon.setAttribute("fill", "transparent");
-                polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.5)");
-                polygon.setAttribute("stroke-width", "1");
+                polygon.setAttribute("stroke", "rgba(0, 0, 0, 0.6)"); // Darker outline (Black/Dark Grey)
+                polygon.setAttribute("stroke-width", "1.5");
                 polygon.style.pointerEvents = "all"; // Ensure clickable
                 polygon.setAttribute("data-q", h.q);
                 polygon.setAttribute("data-r", h.r);
 
                 // Hover effect
                 polygon.addEventListener('mouseenter', () => {
-                    polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.8)");
-                    polygon.setAttribute("stroke-width", "2");
+                    polygon.setAttribute("stroke", "rgba(212, 175, 55, 1.0)"); // Gold on hover
+                    polygon.setAttribute("stroke-width", "2.5");
                 });
                 polygon.addEventListener('mouseleave', () => {
-                    polygon.setAttribute("stroke", "rgba(212, 175, 55, 0.5)");
-                    polygon.setAttribute("stroke-width", "1");
+                    polygon.setAttribute("stroke", "rgba(0, 0, 0, 0.6)");
+                    polygon.setAttribute("stroke-width", "1.5");
                 });
 
                 // Click event
