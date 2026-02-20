@@ -417,12 +417,13 @@
                     fogColor += vWave * 0.02; // Subtle highlights
 
                     // Fog Alpha:
-                    // Make it thicker in center (min 0.4)
-                    float baseAlpha = smoothstep(0.10, 0.20, dist + n * 0.02);
-                    float fogAlpha = 0.4 + 0.6 * baseAlpha;
+                    // Only start fogging near the edges, keeping the center clear.
+                    // Adjusted to reach full opacity before the map edge (approx 0.166 dist)
+                    float baseAlpha = smoothstep(0.10, 0.15, dist + n * 0.02);
+                    float fogAlpha = baseAlpha;
 
                     // Fade to black at very edge for smooth blending with void background
-                    vec3 finalFog = mix(fogColor, vec3(0.0), smoothstep(0.45, 0.5, dist));
+                    vec3 finalFog = mix(fogColor, vec3(0.0), smoothstep(0.16, 0.22, dist));
 
                     gl_FragColor = vec4(finalFog, fogAlpha);
                 }
