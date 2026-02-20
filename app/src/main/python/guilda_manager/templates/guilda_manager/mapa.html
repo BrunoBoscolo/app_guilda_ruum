@@ -420,7 +420,11 @@
                     // Only start fogging near the edges, keeping the center clear.
                     // Adjusted to reach full opacity before the map edge (approx 0.166 dist)
                     float baseAlpha = smoothstep(0.10, 0.15, dist + n * 0.02);
-                    float fogAlpha = baseAlpha;
+
+                    // Static fog layer to ensure border coverage regardless of noise
+                    float staticAlpha = smoothstep(0.14, 0.16, dist);
+
+                    float fogAlpha = max(baseAlpha, staticAlpha);
 
                     // Fade to black at very edge for smooth blending with void background
                     vec3 finalFog = mix(fogColor, vec3(0.0), smoothstep(0.16, 0.22, dist));
