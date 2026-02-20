@@ -418,7 +418,8 @@
 
                     // Fog Alpha:
                     // Make it thicker in center (min 0.4)
-                    float baseAlpha = smoothstep(0.10, 0.20, dist + n * 0.02);
+                    // Adjusted to reach full opacity before the map edge (approx 0.166 dist)
+                    float baseAlpha = smoothstep(0.10, 0.15, dist + n * 0.02);
                     float fogAlpha = 0.4 + 0.6 * baseAlpha;
 
                     // Fade to black at very edge for smooth blending with void background
