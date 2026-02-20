@@ -365,6 +365,12 @@
                         pos.z -= drop * drop * 50.0;
                     }
 
+                    // Extra drop for North Edge to hide parallax border
+                    if (uv.y > 0.62) {
+                        float northDrop = (uv.y - 0.62);
+                        pos.z -= northDrop * northDrop * 2000.0;
+                    }
+
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
                 }
             `,
@@ -424,7 +430,10 @@
                     // Static fog layer to ensure border coverage regardless of noise
                     float staticAlpha = smoothstep(0.14, 0.16, dist);
 
-                    float fogAlpha = max(baseAlpha, staticAlpha);
+                    // Extra opacity boost for North side to cover parallax gap
+                    float farFog = smoothstep(0.63, 0.66, vUv.y);
+
+                    float fogAlpha = max(baseAlpha, max(staticAlpha, farFog));
 
                     // Fade to black at very edge for smooth blending with void background
                     vec3 finalFog = mix(fogColor, vec3(0.0), smoothstep(0.16, 0.22, dist));
