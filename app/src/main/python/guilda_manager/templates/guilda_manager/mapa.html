@@ -354,9 +354,9 @@
                     float fogAlpha = smoothstep(0.10, 0.20, dist + n * 0.02);
 
                     // Fog Color Logic:
-                    // Use a moody blue-grey mist, highlighted by wave height
-                    vec3 fogColor = vec3(0.6, 0.65, 0.75);
-                    fogColor += vWave * 0.05;
+                    // Darker grey to avoid washing out the map
+                    vec3 fogColor = vec3(0.2, 0.22, 0.25);
+                    fogColor += vWave * 0.02; // Subtle highlights
 
                     // Fade to black at very edge for smooth blending with void background
                     vec3 finalFog = mix(fogColor, vec3(0.0), smoothstep(0.45, 0.5, dist));
@@ -370,7 +370,8 @@
 
         const fogPlane = new THREE.Mesh(fogGeo, fogMat);
         fogPlane.rotation.x = -Math.PI / 2;
-        fogPlane.position.set(minX + width/2, 1.5, minZ + height/2); // Lower height
+        // Raise fog plane to avoid clipping (wave amplitude is 4.0, so 6.0 > 4.0 safely)
+        fogPlane.position.set(minX + width/2, 6.0, minZ + height/2);
         fogPlane.raycast = function() {}; // Disable clicks on fog
         gridGroup.add(fogPlane);
 
