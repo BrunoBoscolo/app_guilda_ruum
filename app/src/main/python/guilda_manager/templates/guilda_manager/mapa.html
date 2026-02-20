@@ -278,8 +278,8 @@
                 }
             }
             fogColorMap = new THREE.DataTexture(colorData, 4, 4, THREE.RGBAFormat);
-            fogColorMap.minFilter = THREE.NearestFilter;
-            fogColorMap.magFilter = THREE.NearestFilter;
+            fogColorMap.minFilter = THREE.LinearFilter;
+            fogColorMap.magFilter = THREE.LinearFilter;
             fogColorMap.needsUpdate = true;
         } catch(e) {
             console.error("Error generating fog colors", e);
