@@ -423,7 +423,7 @@
                     float fogAlpha = 0.4 + 0.6 * baseAlpha;
 
                     // Fade to black at very edge for smooth blending with void background
-                    vec3 finalFog = mix(fogColor, vec3(0.0), smoothstep(0.45, 0.5, dist));
+                    vec3 finalFog = mix(fogColor, vec3(0.0), smoothstep(0.16, 0.22, dist));
 
                     gl_FragColor = vec4(finalFog, fogAlpha);
                 }
