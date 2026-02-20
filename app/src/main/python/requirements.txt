@@ -16,4 +16,4 @@ waitress>=2.1.2
 whitenoise>=6.5.0
 
 # Image Processing (Required for ImageField)
-Pillow>=10.0.0
+Pillow<10.0.0
