@@ -365,12 +365,6 @@
                         pos.z -= drop * drop * 50.0;
                     }
 
-                    // Extra drop for North Edge to hide parallax border
-                    if (uv.y > 0.62) {
-                        float northDrop = (uv.y - 0.62);
-                        pos.z -= northDrop * northDrop * 2000.0;
-                    }
-
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
                 }
             `,
@@ -426,14 +420,7 @@
                     // Only start fogging near the edges, keeping the center clear.
                     // Adjusted to reach full opacity before the map edge (approx 0.166 dist)
                     float baseAlpha = smoothstep(0.10, 0.15, dist + n * 0.02);
-
-                    // Static fog layer to ensure border coverage regardless of noise
-                    float staticAlpha = smoothstep(0.14, 0.16, dist);
-
-                    // Extra opacity boost for North side to cover parallax gap
-                    float farFog = smoothstep(0.63, 0.66, vUv.y);
-
-                    float fogAlpha = max(baseAlpha, max(staticAlpha, farFog));
+                    float fogAlpha = baseAlpha;
 
                     // Fade to black at very edge for smooth blending with void background
                     vec3 finalFog = mix(fogColor, vec3(0.0), smoothstep(0.16, 0.22, dist));
@@ -451,6 +438,56 @@
         fogPlane.position.set(minX + width/2, 6.0, minZ + height/2);
         fogPlane.raycast = function() {}; // Disable clicks on fog
         gridGroup.add(fogPlane);
+
+        // --- NEW STATIC FOG WALL (Far Side) ---
+        // Creates a vertical "curtain" at the North edge to hide the map border.
+        const farFogHeight = 40;
+        const farFogGeo = new THREE.PlaneGeometry(width, farFogHeight, 32, 1);
+        const farFogMat = new THREE.ShaderMaterial({
+            uniforms: fogUniforms, // Share uniforms (uFogColorMap)
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D uFogColorMap;
+                varying vec2 vUv;
+                void main() {
+                    // Map Wall U (0..1) to Texture U (0.25..0.75)
+                    // The map occupies the middle 2/4 of the fog texture in U (columns 1 and 2).
+                    float texU = mix(0.25, 0.75, vUv.x);
+
+                    // Map Top (North) is at the boundary of row 2 and 3 (y=2, y=3).
+                    // This corresponds to Texture V approx 0.75.
+                    // We sample slightly inside the map area (0.74) to get valid colors.
+                    float texV = 0.74;
+
+                    vec3 color = texture2D(uFogColorMap, vec2(texU, texV)).rgb;
+
+                    // Alpha Fade:
+                    // Opaque at bottom (y=0) to hide border.
+                    // Fades out at top (y=1).
+                    float alpha = 1.0 - smoothstep(0.4, 1.0, vUv.y);
+
+                    gl_FragColor = vec4(color, alpha);
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+        });
+
+        const farFog = new THREE.Mesh(farFogGeo, farFogMat);
+        // Position at minZ (North Edge).
+        // Y position: Center of plane is at Y. Height is 40.
+        // We want bottom to be slightly below map (Y=-5).
+        // Center Y = -5 + 20 = 15.
+        farFog.position.set(minX + width/2, 15, minZ);
+        farFog.raycast = function() {};
+        gridGroup.add(farFog);
 
         // Create Pointy-Topped Hex Geometry
         // CylinderGeometry(radius, radius, height, segments) creates a prism.
