@@ -885,9 +885,9 @@ def mestre_view(request):
                 context['error_message'] = "Erro ao remover pin."
 
     # Data for Template
-    squads = Squad.objects.all().order_by('-rank__order', 'name')
+    squads = Squad.objects.select_related('rank').all().order_by('-rank__order', 'name')
     squad_ranks = SquadRank.objects.all().order_by('order')
-    dispatches = Dispatch.objects.filter(status=Dispatch.Status.PENDING).order_by('target_date')
+    dispatches = Dispatch.objects.select_related('mission', 'squad').filter(status=Dispatch.Status.PENDING).order_by('target_date')
     open_quests = Quest.objects.filter(status=Quest.Status.OPEN).order_by('rank', 'title')
 
     # History Stats
