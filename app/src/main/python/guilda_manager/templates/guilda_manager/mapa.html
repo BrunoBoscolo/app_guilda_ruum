@@ -439,6 +439,56 @@
         fogPlane.raycast = function() {}; // Disable clicks on fog
         gridGroup.add(fogPlane);
 
+        // --- NEW STATIC FOG WALL (Far Side) ---
+        // Creates a vertical "curtain" at the North edge to hide the map border.
+        const farFogHeight = 40;
+        const farFogGeo = new THREE.PlaneGeometry(width, farFogHeight, 32, 1);
+        const farFogMat = new THREE.ShaderMaterial({
+            uniforms: fogUniforms, // Share uniforms (uFogColorMap)
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D uFogColorMap;
+                varying vec2 vUv;
+                void main() {
+                    // Map Wall U (0..1) to Texture U (0.25..0.75)
+                    // The map occupies the middle 2/4 of the fog texture in U (columns 1 and 2).
+                    float texU = mix(0.25, 0.75, vUv.x);
+
+                    // Map Top (North) is at the boundary of row 2 and 3 (y=2, y=3).
+                    // This corresponds to Texture V approx 0.75.
+                    // We sample slightly inside the map area (0.74) to get valid colors.
+                    float texV = 0.74;
+
+                    vec3 color = texture2D(uFogColorMap, vec2(texU, texV)).rgb;
+
+                    // Alpha Fade:
+                    // Opaque at bottom (y=0) to hide border.
+                    // Fades out at top (y=1).
+                    float alpha = 1.0 - smoothstep(0.4, 1.0, vUv.y);
+
+                    gl_FragColor = vec4(color, alpha);
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+        });
+
+        const farFog = new THREE.Mesh(farFogGeo, farFogMat);
+        // Position at minZ (North Edge).
+        // Y position: Center of plane is at Y. Height is 40.
+        // We want bottom to be slightly below map (Y=-5).
+        // Center Y = -5 + 20 = 15.
+        farFog.position.set(minX + width/2, 15, minZ);
+        farFog.raycast = function() {};
+        gridGroup.add(farFog);
+
         // Create Pointy-Topped Hex Geometry
         // CylinderGeometry(radius, radius, height, segments) creates a prism.
         // By default vertices start at 0 degrees (Pointy East), edges are horizontal (Flat-Topped).
