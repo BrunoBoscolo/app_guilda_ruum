@@ -106,6 +106,10 @@ class Guild(models.Model):
     code = models.CharField(max_length=10, unique=True, null=True, blank=True)
     emblem = models.CharField(max_length=50, default='swords')
 
+    # Party Location on Map
+    party_q = models.IntegerField(default=0)
+    party_r = models.IntegerField(default=0)
+
     def save(self, *args, **kwargs):
         if not self.code:
              self.code = self.generate_unique_code()
