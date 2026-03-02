@@ -135,6 +135,8 @@
 </script>
 
 {{ locations|json_script:"locations-data" }}
+{{ guild.party_q|json_script:"party-q" }}
+{{ guild.party_r|json_script:"party-r" }}
 
 <script type="module">
     import * as THREE from 'three';
@@ -150,8 +152,11 @@
 
     const STATIC_PREFIX = "{% get_static_prefix %}";
     const PINS_PATH = STATIC_PREFIX + "guilda_manager/pins/";
+    const PARTY_TOKEN_URL = "{% static 'guilda_manager/images/party_token.svg' %}";
 
     const locations = JSON.parse(document.getElementById('locations-data').textContent);
+    const partyQ = JSON.parse(document.getElementById('party-q').textContent);
+    const partyR = JSON.parse(document.getElementById('party-r').textContent);
 
     let fogUniforms = null;
 
@@ -566,15 +571,28 @@
 
                     model.scale.set(scale, scale, scale);
                     model.position.set(0, 0.5, 0); // Sit on top
-                    // Pins need to account for parent rotation? No, parent is Mesh.
-                    // But if parent Geometry is rotated, children are relative to Mesh transform.
-                    // Wait. geometry.rotateY() modifies vertices. It does NOT modify mesh.rotation.
-                    // So children added to mesh are unaffected by geometry rotation.
-                    // But if we want pin facing "front", that depends on model.
                     hex.add(model);
                 });
             }
         });
+
+        // Load Party Token (Sprite)
+        if (partyQ !== null && partyR !== null) {
+            const tokenLoader = new THREE.TextureLoader();
+            tokenLoader.load(PARTY_TOKEN_URL, (tokenTexture) => {
+                tokenTexture.colorSpace = THREE.SRGBColorSpace;
+                const tokenMat = new THREE.SpriteMaterial({ map: tokenTexture, transparent: true });
+                const tokenSprite = new THREE.Sprite(tokenMat);
+
+                // Calculate Position
+                const pos = hexToPixel(partyQ, partyR);
+                // Adjust Y to float above hex. Hex Y=0.
+                tokenSprite.position.set(pos.x, 3.5, pos.z);
+                tokenSprite.scale.set(6, 6, 1); // Size adjust
+
+                gridGroup.add(tokenSprite);
+            });
+        }
 
     }, undefined, (err) => {
         console.error("Texture Load Error", err);

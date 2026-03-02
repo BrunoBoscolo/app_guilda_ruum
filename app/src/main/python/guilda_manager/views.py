@@ -884,6 +884,28 @@ def mestre_view(request):
             except Exception:
                 context['error_message'] = "Erro ao remover pin."
 
+        elif action == 'move_party':
+            try:
+                q = int(request.POST.get('q'))
+                r = int(request.POST.get('r'))
+                guild.party_q = q
+                guild.party_r = r
+                guild.save()
+
+                # AJAX Handling
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    from django.http import JsonResponse
+                    return JsonResponse({'success': True, 'q': q, 'r': r, 'message': "Comitiva movida com sucesso."})
+
+                context['success_message'] = "A comitiva moveu-se para um novo local."
+                context['force_tab'] = 'mapa'
+            except (ValueError, TypeError):
+                msg = "Coordenadas inválidas para mover a comitiva."
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    from django.http import JsonResponse
+                    return JsonResponse({'success': False, 'error': msg})
+                context['error_message'] = msg
+
     # Data for Template
     squads = Squad.objects.select_related('rank').all().order_by('-rank__order', 'name')
     squad_ranks = SquadRank.objects.all().order_by('order')
@@ -955,6 +977,7 @@ def mestre_view(request):
 
 def mapa_view(request):
     game_map = Map.objects.first()
+    guild = Guild.objects.first() # Ensure guild is available
     locations = []
     map_image_url = static('guilda_manager/placeholder.png')
 
@@ -977,5 +1000,7 @@ def mapa_view(request):
     context = {'locations': locations, 'map_image_url': map_image_url}
     if game_map:
         context['map'] = game_map
+    if guild:
+        context['guild'] = guild
 
     return render(request, 'guilda_manager/mapa.html', context)

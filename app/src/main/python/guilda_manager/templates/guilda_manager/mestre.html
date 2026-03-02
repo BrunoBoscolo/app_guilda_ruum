@@ -798,6 +798,44 @@
                     Arraste para mover. Clique em um hexágono para editar.
                 </div>
 
+                <!-- Hex Details Panel -->
+                <div id="hex-details-panel" class="mt-4 border-t border-white/5 pt-4 hidden animate-[fadeIn_0.2s_ease-out]">
+                     <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-gold text-lg">edit_location</span>
+                            <h3 class="cinzel text-sm font-black text-ivory uppercase tracking-wider">Editar Local <span id="panel-coords-display" class="text-gold ml-2"></span></h3>
+                        </div>
+                        <button type="button" onclick="closeHexPanel()" class="text-gray-500 hover:text-ivory transition-colors material-symbols-outlined text-sm">close</button>
+                     </div>
+
+                     <form method="POST" id="hex-edit-form" class="space-y-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_hex">
+                        <input type="hidden" name="q" id="panel-hex-q">
+                        <input type="hidden" name="r" id="panel-hex-r">
+
+                        <div>
+                            <input name="title" id="panel-hex-title" class="stone-input w-full rounded p-2 text-xs" placeholder="Nome do local..." type="text"/>
+                        </div>
+
+                        <div>
+                            <textarea name="description" id="panel-hex-desc" class="stone-input w-full rounded p-2 text-xs min-h-[60px]" placeholder="Detalhes do ambiente..."></textarea>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <select name="pin_id" id="panel-hex-pin" class="stone-select flex-1 rounded p-2 text-xs">
+                                <option value="">-- Pin --</option>
+                                {% for pin in pins %}
+                                <option value="{{ pin.id }}">{{ pin.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="bg-gradient-to-br from-primary to-red-950 hover:from-red-800 hover:to-red-900 text-ivory border border-red-700/50 shadow-lg cinzel text-[10px] font-bold uppercase tracking-wider px-3 rounded flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">save</span>
+                            </button>
+                        </div>
+                     </form>
+                </div>
+
                 <div class="mt-6 border-t border-white/5 pt-4">
                     <h3 class="cinzel text-sm font-bold text-gold uppercase mb-2">Configurar Imagem do Mapa</h3>
                     <form method="POST" enctype="multipart/form-data" class="flex gap-2 items-center">
@@ -884,65 +922,15 @@
         </div>
 
         {{ map_hexes|json_script:"map-data-json" }}
+        <form method="POST" id="move-party-form" class="hidden">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="move_party">
+            <input type="hidden" name="q" id="move-q">
+            <input type="hidden" name="r" id="move-r">
+        </form>
+        {{ guild.party_q|json_script:"party-q" }}
+        {{ guild.party_r|json_script:"party-r" }}
 
-        <!-- Hex Edit Modal -->
-        <div id="hex-edit-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300">
-            <div class="building-card max-w-sm w-[90%] p-6 rounded-xl shadow-2xl relative animate-[fadeIn_0.3s_ease-out]">
-                <!-- Accents -->
-                <div class="corner-accent top-left"></div>
-                <div class="corner-accent top-right"></div>
-                <div class="corner-accent bottom-left"></div>
-                <div class="corner-accent bottom-right"></div>
-
-                <!-- Content -->
-                <div class="relative z-10">
-                     <div class="flex items-center gap-3 mb-4 border-b border-white/10 pb-2">
-                        <span class="material-symbols-outlined text-gold text-2xl">edit_location</span>
-                        <h3 class="cinzel text-lg font-black text-ivory uppercase tracking-wider">Editar Local</h3>
-                     </div>
-
-                     <form method="POST" id="hex-edit-form" class="space-y-4">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="update_hex">
-                        <input type="hidden" name="q" id="modal-hex-q">
-                        <input type="hidden" name="r" id="modal-hex-r">
-
-                        <div>
-                            <p class="text-[10px] text-gray-500 font-mono mb-1">Coordenadas: <span id="modal-coords-display" class="text-gold"></span></p>
-                        </div>
-
-                        <div>
-                            <label class="block cinzel text-xs font-bold text-gold uppercase mb-1">Título</label>
-                            <input name="title" id="modal-hex-title" class="stone-input w-full rounded p-2 text-sm" placeholder="Nome do local..." type="text"/>
-                        </div>
-
-                        <div>
-                            <label class="block cinzel text-xs font-bold text-gold uppercase mb-1">Descrição</label>
-                            <textarea name="description" id="modal-hex-desc" class="stone-input w-full rounded p-2 text-sm min-h-[80px]" placeholder="Detalhes do ambiente..."></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block cinzel text-xs font-bold text-gold uppercase mb-1">Marcador (Pin)</label>
-                            <select name="pin_id" id="modal-hex-pin" class="stone-select w-full rounded p-2 text-sm">
-                                <option value="">-- Nenhum --</option>
-                                {% for pin in pins %}
-                                <option value="{{ pin.id }}">{{ pin.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="flex gap-3 justify-end mt-6">
-                            <button type="button" onclick="closeHexModal()" class="px-4 py-2 rounded border border-white/10 text-gray-400 hover:text-ivory hover:border-white/30 transition-colors cinzel text-[10px] font-bold uppercase tracking-wider">
-                                Cancelar
-                            </button>
-                            <button type="submit" class="px-5 py-2 rounded bg-gradient-to-br from-primary to-red-950 hover:from-red-800 hover:to-red-900 text-ivory border border-red-700/50 shadow-lg cinzel text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
-                                Salvar
-                            </button>
-                        </div>
-                     </form>
-                </div>
-            </div>
-        </div>
 
         <!-- TAB 4: CONFIGURAÇÃO -->
         <div id="tab-config" class="tab-content hidden space-y-8">
@@ -1330,6 +1318,8 @@
             if (!container) return;
 
             const mapData = JSON.parse(document.getElementById('map-data-json').textContent);
+            const partyQ = JSON.parse(document.getElementById('party-q').textContent);
+            const partyR = JSON.parse(document.getElementById('party-r').textContent);
 
             // Image URL logic
             let mapBgUrl = "{{ map_image_url }}";
@@ -1434,7 +1424,27 @@
                 polygon.addEventListener('click', (e) => {
                     if (isDragging) return; // Don't trigger on drag release
                     e.stopPropagation();
-                    openHexModal(h.q, h.r);
+
+                    // Highlight logic
+                    if (selectedHexPoly) {
+                        // Reset style
+                        selectedHexPoly.setAttribute("fill", "transparent");
+                        selectedHexPoly.setAttribute("stroke", "rgba(0, 0, 0, 0.6)");
+                        selectedHexPoly.setAttribute("stroke-width", "1.5");
+                    }
+
+                    selectedHexPoly = polygon;
+                    polygon.setAttribute("fill", "rgba(212, 175, 55, 0.2)"); // Gold tint
+                    polygon.setAttribute("stroke", "#D4AF37");
+                    polygon.setAttribute("stroke-width", "3");
+
+                    selectHex(h.q, h.r);
+                });
+
+                // Double Click to Move Party
+                polygon.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    moveParty(h.q, h.r);
                 });
 
                 gMap.appendChild(polygon);
@@ -1460,6 +1470,11 @@
                 }
             });
 
+            // Draw Party Token
+            if (partyQ !== null && partyR !== null) {
+                updatePartyToken(partyQ, partyR);
+            }
+
             // Center View
             const containerW = container.clientWidth;
             const containerH = container.clientHeight;
@@ -1477,6 +1492,7 @@
             let isDragging = false; // Distinguish click from drag
             let startX, startY;
             let dragStartX, dragStartY;
+            let selectedHexPoly = null;
 
             container.addEventListener('mousedown', (e) => {
                 isDown = true;
@@ -1539,31 +1555,98 @@
                 updateTransform();
             }, {passive: false});
 
-            // Make openHexModal globally accessible
-            window.openHexModal = function(q, r) {
+            // Make selectHex globally accessible (replaces openHexModal)
+            window.selectHex = function(q, r) {
                 const hexData = mapData.find(h => h.q === q && h.r === r);
 
-                document.getElementById('modal-hex-q').value = q;
-                document.getElementById('modal-hex-r').value = r;
-                document.getElementById('modal-coords-display').innerText = `Q: ${q}, R: ${r}`;
+                document.getElementById('panel-hex-q').value = q;
+                document.getElementById('panel-hex-r').value = r;
+                document.getElementById('panel-coords-display').innerText = `Q: ${q}, R: ${r}`;
 
-                document.getElementById('modal-hex-title').value = hexData ? (hexData.title || '') : '';
-                document.getElementById('modal-hex-desc').value = hexData ? (hexData.description || '') : '';
-                document.getElementById('modal-hex-pin').value = hexData ? (hexData.pin_id || '') : '';
+                document.getElementById('panel-hex-title').value = hexData ? (hexData.title || '') : '';
+                document.getElementById('panel-hex-desc').value = hexData ? (hexData.description || '') : '';
+                document.getElementById('panel-hex-pin').value = hexData ? (hexData.pin_id || '') : '';
 
-                document.getElementById('hex-edit-modal').classList.remove('hidden');
+                document.getElementById('hex-details-panel').classList.remove('hidden');
             };
 
-            window.closeHexModal = function() {
-                document.getElementById('hex-edit-modal').classList.add('hidden');
-            };
-
-            // Close on background click
-            document.getElementById('hex-edit-modal').addEventListener('click', (e) => {
-                if(e.target === document.getElementById('hex-edit-modal')) {
-                    closeHexModal();
+            window.closeHexPanel = function() {
+                document.getElementById('hex-details-panel').classList.add('hidden');
+                if (selectedHexPoly) {
+                    selectedHexPoly.setAttribute("fill", "transparent");
+                    selectedHexPoly.setAttribute("stroke", "rgba(0, 0, 0, 0.6)");
+                    selectedHexPoly.setAttribute("stroke-width", "1.5");
+                    selectedHexPoly = null;
                 }
-            });
+            };
+
+            window.movePartyToSelected = function() {
+                const q = document.getElementById('panel-hex-q').value;
+                const r = document.getElementById('panel-hex-r').value;
+                if(q && r) {
+                    moveParty(q, r);
+                }
+            };
+
+            function moveParty(q, r) {
+                const formData = new FormData();
+                formData.append('action', 'move_party');
+                formData.append('q', q);
+                formData.append('r', r);
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update local party coordinates
+                        const partyQEl = document.getElementById('party-q');
+                        const partyREl = document.getElementById('party-r');
+                        if (partyQEl && partyREl) {
+                            partyQEl.textContent = q;
+                            partyREl.textContent = r;
+                        }
+
+                        // Redraw party token
+                        updatePartyToken(parseInt(q), parseInt(r));
+
+                        // Optional: Show feedback
+                        // alert(data.message);
+                    } else {
+                        alert("Erro ao mover comitiva: " + (data.error || "Desconhecido"));
+                    }
+                })
+                .catch(err => {
+                    console.error("Error moving party:", err);
+                });
+            }
+
+            function updatePartyToken(q, r) {
+                // Remove existing token if present
+                const existingToken = gMap.querySelector('.party-token-svg');
+                if (existingToken) {
+                    existingToken.remove();
+                }
+
+                const pp = hexToPixel(q, r);
+                const partyIcon = document.createElementNS("http://www.w3.org/2000/svg", "image");
+                partyIcon.setAttribute("href", "{% static 'guilda_manager/images/party_token.svg' %}");
+                partyIcon.setAttribute("class", "party-token-svg");
+                const iconSize = HEX_RADIUS * 1.5;
+                partyIcon.setAttribute("x", pp.x - iconSize/2);
+                partyIcon.setAttribute("y", pp.y - iconSize);
+                partyIcon.setAttribute("width", iconSize);
+                partyIcon.setAttribute("height", iconSize);
+                partyIcon.style.pointerEvents = "none";
+                gMap.appendChild(partyIcon);
+            }
 
         })();
     </script>
