@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.core import signing
 from django.utils import timezone
 from django.utils.text import slugify
 from decimal import Decimal
@@ -259,12 +260,22 @@ def bestiario_rememoracao_view(request):
             monster = get_object_or_404(Monster, id=monster_id)
             form = MonsterForm(request.POST, instance=monster)
 
-            # Dice Pool Logic Validation
+            # Dice Pool Logic Validation (Secure)
+            dice_pool_token = request.POST.get('dice_pool_token', '')
+            dice_pool = []
+            if dice_pool_token:
+                try:
+                    token_data = signing.loads(dice_pool_token)
+                    if str(token_data.get('monster_id')) == str(monster_id):
+                        dice_pool = token_data.get('dice_pool', [])
+                    else:
+                        # Potential token smuggling
+                        dice_pool = []
+                except signing.BadSignature:
+                    dice_pool = []
+
+            # Fallback (non-secure but kept for UI consistency if needed, though fix should prioritize secure pool)
             dice_pool_str = request.POST.get('dice_pool_str', '')
-            if dice_pool_str:
-                dice_pool = [int(x) for x in dice_pool_str.split(',') if x]
-            else:
-                dice_pool = []
 
             dice_pool.sort(reverse=True) # Highest dice first (6, 6, 4, 1...)
 
@@ -466,6 +477,7 @@ def bestiario_rememoracao_view(request):
                 form = MonsterForm(instance=selected_monster)
 
             dice_pool_str = ",".join(map(str, dice_pool))
+            dice_pool_token = signing.dumps({'dice_pool': dice_pool, 'monster_id': monster_id})
             context.update({
                 'selected_monster': selected_monster,
                 'form': form,
@@ -479,6 +491,7 @@ def bestiario_rememoracao_view(request):
                 'result_type': result_type,
                 'dice_pool': dice_pool,
                 'dice_pool_str': dice_pool_str,
+                'dice_pool_token': dice_pool_token,
                 'vague_count': len(vague_dice),
                 'tactical_count': len(tactical_dice),
                 'vital_count': len(vital_dice),

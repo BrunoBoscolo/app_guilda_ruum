@@ -217,6 +217,7 @@
         <input type="hidden" name="action" value="save">
         <input type="hidden" name="monster_id" value="{{ selected_monster.id }}">
         <input type="hidden" name="dice_pool_str" value="{{ dice_pool_str }}">
+        <input type="hidden" name="dice_pool_token" value="{{ dice_pool_token }}">
         <input type="hidden" name="register_level" value="{{ selected_monster.register_level }}">
 
         {% with unlocked_1=vague_count|add:tactical_count|add:vital_count %}
