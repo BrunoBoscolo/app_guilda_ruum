@@ -35,18 +35,23 @@ def setup_data():
         ("Dragão Articulado", "articulated_dragon_cable_winder__organizer.glb")
     ]
 
-    pins = {}
+    pin_names = [d[0] for d in pins_data]
+    existing_pins = {p.name: p for p in Pin.objects.filter(name__in=pin_names)}
+
+    new_pins = []
     for name, glb in pins_data:
-        pin, created = Pin.objects.get_or_create(
-            name=name,
-            defaults={'glb_path': glb}
-        )
-        pins[name] = pin
-        if created:
-            print(f"Created Pin: {name}")
+        if name not in existing_pins:
+            new_pins.append(Pin(name=name, glb_path=glb))
+
+    if new_pins:
+        Pin.objects.bulk_create(new_pins)
+        print(f"Created {len(new_pins)} new Pins")
+        # Refresh existing_pins
+        existing_pins = {p.name: p for p in Pin.objects.filter(name__in=pin_names)}
+
+    pins = existing_pins
 
     # 3. Create Hexagons (Locations)
-    # Using the original hardcoded locations + some new ones
     locations = [
         {
             'q': 0, 'r': 0,
@@ -66,7 +71,6 @@ def setup_data():
             'title': 'Ninho de Dragão',
             'desc': 'Um pequeno dragão recém-nascido.'
         },
-        # New locations
         {
             'q': 3, 'r': -3,
             'pin_name': 'Lobisomem',
@@ -81,23 +85,52 @@ def setup_data():
         }
     ]
 
+    existing_hexes = {
+        (h.q, h.r): h
+        for h in Hexagon.objects.filter(map=map_obj)
+    }
+
+    to_create = []
+    to_update = []
+
     for loc in locations:
         pin = pins.get(loc['pin_name'])
-        if pin:
-            hex_obj, created = Hexagon.objects.update_or_create(
+        if not pin:
+            continue
+
+        coords = (loc['q'], loc['r'])
+        if coords in existing_hexes:
+            hex_obj = existing_hexes[coords]
+            updated = False
+            if hex_obj.pin_id != pin.id:
+                hex_obj.pin = pin
+                updated = True
+            if hex_obj.title != loc['title']:
+                hex_obj.title = loc['title']
+                updated = True
+            if hex_obj.description != loc['desc']:
+                hex_obj.description = loc['desc']
+                updated = True
+
+            if updated:
+                to_update.append(hex_obj)
+        else:
+            to_create.append(Hexagon(
                 map=map_obj,
                 q=loc['q'],
                 r=loc['r'],
-                defaults={
-                    'pin': pin,
-                    'title': loc['title'],
-                    'description': loc['desc']
-                }
-            )
-            if created:
-                print(f"Created Hex at ({loc['q']}, {loc['r']})")
-            else:
-                print(f"Updated Hex at ({loc['q']}, {loc['r']})")
+                pin=pin,
+                title=loc['title'],
+                description=loc['desc']
+            ))
+
+    if to_create:
+        Hexagon.objects.bulk_create(to_create)
+        print(f"Created {len(to_create)} new Hexagons")
+
+    if to_update:
+        Hexagon.objects.bulk_update(to_update, ['pin', 'title', 'description'])
+        print(f"Updated {len(to_update)} existing Hexagons")
 
     print("Setup Complete.")
 
