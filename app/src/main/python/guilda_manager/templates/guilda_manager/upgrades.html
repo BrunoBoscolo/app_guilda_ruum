@@ -402,10 +402,12 @@
 
         function renderLines() {
             // Clear existing chain meshes
-            chainMeshes.forEach(mesh => scene.remove(mesh));
+            chainMeshes.forEach(mesh => scene.remove(mesh.mesh));
             chainMeshes = [];
 
             const chainLinkGeo = new THREE.TorusGeometry(5, 1.5, 8, 16);
+            // Deform horizontally to mimic a U-shaped chain link
+            chainLinkGeo.scale(1, 1.5, 1);
 
             // Materials for different states
             const matLocked = new THREE.MeshStandardMaterial({ color: 0x333333 });
@@ -466,7 +468,6 @@
                     const dummy = new THREE.Object3D();
                     const point = new THREE.Vector3();
                     const tangent = new THREE.Vector3();
-                    const axis = new THREE.Vector3(0, 0, 1);
                     const up = new THREE.Vector3(0, 1, 0);
 
                     for (let i = 0; i < numLinks; i++) {
@@ -490,7 +491,16 @@
 
                     instancedMesh.instanceMatrix.needsUpdate = true;
                     scene.add(instancedMesh);
-                    chainMeshes.push(instancedMesh);
+
+                    // Save data for animation
+                    chainMeshes.push({
+                        mesh: instancedMesh,
+                        curve: curve,
+                        numLinks: numLinks,
+                        swingPhase: Math.random() * Math.PI * 2,
+                        swingSpeed: 1.0 + Math.random() * 0.5,
+                        swingAmplitude: 15.0 + Math.random() * 10.0
+                    });
                 });
             });
         }
@@ -554,22 +564,78 @@
             updateTransform();
         });
 
-        // Animation Loop for pulsing glow
+        // Animation Loop for pulsing glow and swinging
         const clock = new THREE.Clock();
         function animate() {
             requestAnimationFrame(animate);
 
             const time = clock.getElapsedTime();
 
-            scene.traverse(child => {
-                 if (child.isInstancedMesh && child.material.emissiveIntensity !== undefined) {
-                     const state = child.userData.state;
-                     if (state === 'available' || state === 'acquired') {
-                         const speed = state === 'available' ? 4.0 : 2.0;
-                         const base = child.userData.baseIntensity;
-                         child.material.emissiveIntensity = base * (Math.sin(time * speed + child.userData.timeOffset) * 0.4 + 1.0);
-                     }
-                 }
+            const dummy = new THREE.Object3D();
+            const point = new THREE.Vector3();
+            const tangent = new THREE.Vector3();
+            const up = new THREE.Vector3(0, 1, 0);
+            const normal = new THREE.Vector3();
+            const binormal = new THREE.Vector3();
+
+            chainMeshes.forEach(chainData => {
+                const mesh = chainData.mesh;
+
+                // 1. Emissive Pulsing
+                if (mesh.material.emissiveIntensity !== undefined) {
+                    const state = mesh.userData.state;
+                    if (state === 'available' || state === 'acquired') {
+                        const speed = state === 'available' ? 4.0 : 2.0;
+                        const base = mesh.userData.baseIntensity;
+                        mesh.material.emissiveIntensity = base * (Math.sin(time * speed + mesh.userData.timeOffset) * 0.4 + 1.0);
+                    }
+                }
+
+                // 2. Swinging Animation
+                // We want the middle of the chain to swing the most, and the ends to be anchored.
+                // A sine wave over 't' (0 to 1) works well: Math.sin(t * Math.PI)
+                const numLinks = chainData.numLinks;
+                const curve = chainData.curve;
+                const swingPhase = chainData.swingPhase;
+                const swingSpeed = chainData.swingSpeed;
+                const swingAmplitude = chainData.swingAmplitude;
+
+                // Calculate current swing amount for this chain based on time
+                const currentSwing = Math.sin(time * swingSpeed + swingPhase) * swingAmplitude;
+
+                for (let i = 0; i < numLinks; i++) {
+                    const t = i / (numLinks - 1);
+                    curve.getPoint(t, point);
+                    curve.getTangent(t, tangent);
+
+                    // Create an arbitrary normal vector perpendicular to tangent
+                    // The simplest way in 2D space (XY) is to rotate the tangent 90 degrees around Z
+                    normal.set(-tangent.y, tangent.x, 0).normalize();
+                    // Or we can swing into the Z axis for true 3D effect
+                    binormal.crossVectors(tangent, normal).normalize();
+                    // Let's swing entirely along the Z-axis so it comes in and out of the screen slightly
+                    const zSwingDir = new THREE.Vector3(0, 0, 1);
+
+                    // Add some X/Y swing as well to make it look like a hanging chain
+                    // The envelope ensures ends don't move: Math.sin(t * PI)
+                    const envelope = Math.sin(t * Math.PI);
+
+                    // We can combine a small X/Y sway with a Z sway
+                    point.x += normal.x * currentSwing * envelope * 0.5;
+                    point.y += normal.y * currentSwing * envelope * 0.5;
+                    point.z += zSwingDir.z * Math.cos(time * swingSpeed * 1.3 + swingPhase) * swingAmplitude * envelope;
+
+                    dummy.position.copy(point);
+                    dummy.quaternion.setFromUnitVectors(up, tangent);
+
+                    if (i % 2 === 0) {
+                        dummy.rotateOnAxis(up, Math.PI / 2);
+                    }
+
+                    dummy.updateMatrix();
+                    mesh.setMatrixAt(i, dummy.matrix);
+                }
+                mesh.instanceMatrix.needsUpdate = true;
             });
 
             renderer.render(scene, camera);
