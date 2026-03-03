@@ -265,11 +265,21 @@ def construcoes_upgrades_view(request):
     if not guild:
          return redirect('entry_portal')
 
+    # Ensure mock data exists for testing/preview purposes if no upgrades exist
+    if not Upgrade.objects.exists():
+        from django.core.management import call_command
+        try:
+            call_command('setup_upgrades_mock_data')
+        except Exception as e:
+            print(f"Error generating mock upgrades data: {e}")
+
     # Get data
     buildings = Building.objects.all()
     upgrades = Upgrade.objects.all()
-    acquired_upgrades = GuildUpgrade.objects.filter(guild=guild).values_list('upgrade_id', flat=True)
-    acquired_buildings = guild.guild_buildings.values_list('building_id', flat=True)
+
+    # Cast QuerySets to sets to avoid N+1 query overhead in loops
+    acquired_upgrades_set = set(GuildUpgrade.objects.filter(guild=guild).values_list('upgrade_id', flat=True))
+    acquired_buildings_set = set(guild.guild_buildings.values_list('building_id', flat=True))
 
     # Format data for JS
     buildings_data = []
@@ -279,7 +289,7 @@ def construcoes_upgrades_view(request):
             'name': b.name,
             'description': b.description,
             'cost': float(b.cost),
-            'acquired': b.id in acquired_buildings
+            'acquired': b.id in acquired_buildings_set
         })
 
     upgrades_data = []
@@ -293,15 +303,15 @@ def construcoes_upgrades_view(request):
             'icon': u.icon,
             'required_building_id': u.required_building_id,
             'required_upgrade_id': u.required_upgrade_id,
-            'acquired': u.id in acquired_upgrades
+            'acquired': u.id in acquired_upgrades_set
         })
 
     context = {
         'guild': guild,
         'buildings_json': buildings_data,
         'upgrades_json': upgrades_data,
-        'acquired_upgrades': list(acquired_upgrades),
-        'acquired_buildings': list(acquired_buildings)
+        'acquired_upgrades': list(acquired_upgrades_set),
+        'acquired_buildings': list(acquired_buildings_set)
     }
 
     return render(request, 'guilda_manager/upgrades.html', context)
