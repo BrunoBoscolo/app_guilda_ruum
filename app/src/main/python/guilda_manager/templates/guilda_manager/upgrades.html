@@ -492,14 +492,32 @@
                     instancedMesh.instanceMatrix.needsUpdate = true;
                     scene.add(instancedMesh);
 
+                    // Initialize independent physics links
+                    const linkSpacing = chainLength / (numLinks - 1);
+                    const slack = 1.1; // 10% slack
+                    const restingDistance = linkSpacing * slack;
+
+                    let links = [];
+                    for (let i = 0; i < numLinks; i++) {
+                        const t = i / (numLinks - 1);
+                        curve.getPoint(t, point);
+                        // Add a tiny bit of initial sag to help the solver
+                        point.y += Math.sin(t * Math.PI) * 10.0;
+                        links.push({
+                            pos: point.clone(),
+                            oldPos: point.clone(),
+                            isPinned: (i === 0 || i === numLinks - 1),
+                            // Pinned links need to know where they are anchored
+                            anchor: point.clone()
+                        });
+                    }
+
                     // Save data for animation
                     chainMeshes.push({
                         mesh: instancedMesh,
-                        curve: curve,
+                        links: links,
                         numLinks: numLinks,
-                        swingPhase: Math.random() * Math.PI * 2,
-                        swingSpeed: 1.0 + Math.random() * 0.5,
-                        swingAmplitude: 15.0 + Math.random() * 10.0
+                        restingDistance: restingDistance
                     });
                 });
             });
@@ -571,55 +589,40 @@
         let lastTx = translateX;
         let lastTy = translateY;
 
-        // Sway variables (treating the middle of the chains as a mass on a spring)
-        let swayPos = new THREE.Vector3(0, 0, 0); // Current offset of the middle of the chain
-        let swayVel = new THREE.Vector3(0, 0, 0); // Velocity of the sway
-
-        // Physics Constants
-        const springK = 80.0;     // Stiffness of the spring pulling back to resting position
-        const damping = 5.0;      // Friction reducing velocity
-        const mass = 1.0;         // Mass of the chain
-        const gravitySag = 40.0;  // How much the chain sags downwards (positive Y in our DOM mapping)
+        // Global Physics Constants
+        const gravity = new THREE.Vector3(0, 600.0, 0); // Downward force (Y is down in DOM)
+        const friction = 0.98; // Air resistance / damping
+        const subSteps = 10; // Constraint solver iterations for stability
 
         function animate() {
             requestAnimationFrame(animate);
 
             const time = clock.getElapsedTime();
-            const dt = clock.getDelta() || 0.016; // Time since last frame
+            // Cap dt to prevent massive jumps if tab is backgrounded
+            const dt = Math.min(clock.getDelta() || 0.016, 0.033);
+            const stepDt = dt / subSteps;
 
-            // Calculate velocity of the pan/drag
+            // Calculate pan/drag acceleration
             const deltaTx = translateX - lastTx;
             const deltaTy = translateY - lastTy;
             lastTx = translateX;
             lastTy = translateY;
 
-            // When user drags left (deltaTx < 0), the camera moves left, so the chain should lag behind (sway right, +X)
-            // So sway acceleration is opposite to delta transform
-            const dragAcceleration = new THREE.Vector3(-deltaTx * 50.0, -deltaTy * 50.0, 0);
+            // When user pans, the camera moves. We apply a counter-acceleration to the links
+            // to make them swing/lag realistically.
+            const dragAccel = new THREE.Vector3(-deltaTx * 2000.0, -deltaTy * 2000.0, 0);
 
-            // Calculate spring force: F = -k * x
-            const springForce = new THREE.Vector3().copy(swayPos).multiplyScalar(-springK);
-
-            // Calculate damping force: F = -c * v
-            const dampingForce = new THREE.Vector3().copy(swayVel).multiplyScalar(-damping);
-
-            // Total Force
-            const totalForce = new THREE.Vector3().addVectors(springForce, dampingForce).add(dragAcceleration);
-
-            // Acceleration: a = F / m
-            const accel = totalForce.divideScalar(mass);
-
-            // Update Velocity and Position (Euler integration)
-            swayVel.add(accel.multiplyScalar(dt));
-            swayPos.add(new THREE.Vector3().copy(swayVel).multiplyScalar(dt));
+            const totalAccel = new THREE.Vector3().addVectors(gravity, dragAccel);
 
             const dummy = new THREE.Object3D();
-            const point = new THREE.Vector3();
-            const tangent = new THREE.Vector3();
             const up = new THREE.Vector3(0, 1, 0);
+            const tangent = new THREE.Vector3();
 
             chainMeshes.forEach(chainData => {
                 const mesh = chainData.mesh;
+                const links = chainData.links;
+                const numLinks = chainData.numLinks;
+                const restDist = chainData.restingDistance;
 
                 // 1. Emissive Pulsing
                 if (mesh.material.emissiveIntensity !== undefined) {
@@ -631,33 +634,67 @@
                     }
                 }
 
-                // 2. Physics Swinging & Gravity Sag
-                const numLinks = chainData.numLinks;
-                const curve = chainData.curve;
-
-                // Slightly randomize responsiveness per chain for a more organic feel
-                const responsiveness = chainData.swingSpeed; // 1.0 to 1.5
-
+                // 2. Verlet Integration Step
                 for (let i = 0; i < numLinks; i++) {
-                    const t = i / (numLinks - 1);
-                    curve.getPoint(t, point);
-                    curve.getTangent(t, tangent);
+                    const link = links[i];
+                    if (!link.isPinned) {
+                        const velocity = new THREE.Vector3().subVectors(link.pos, link.oldPos);
+                        velocity.multiplyScalar(friction); // apply damping
 
-                    // The envelope ensures ends don't move: Math.sin(t * PI)
-                    // It peaks at t=0.5 (middle of the chain)
-                    const envelope = Math.sin(t * Math.PI);
+                        link.oldPos.copy(link.pos);
 
-                    // Add Gravity Sag (constant downward pull)
-                    point.y += gravitySag * envelope;
+                        // pos += velocity + acceleration * dt * dt
+                        const accelOffset = new THREE.Vector3().copy(totalAccel).multiplyScalar(dt * dt);
+                        link.pos.add(velocity).add(accelOffset);
+                    } else {
+                        // Keep pinned links exactly at their anchor
+                        link.pos.copy(link.anchor);
+                        link.oldPos.copy(link.anchor);
+                    }
+                }
 
-                    // Add dynamic sway based on camera movement
-                    point.x += swayPos.x * envelope * responsiveness;
-                    point.y += swayPos.y * envelope * responsiveness;
-                    point.z += swayPos.z * envelope * responsiveness; // Mostly 0, but could be pushed
+                // 3. Distance Constraint Solver (iterative)
+                for (let step = 0; step < subSteps; step++) {
+                    for (let i = 0; i < numLinks - 1; i++) {
+                        const p1 = links[i];
+                        const p2 = links[i + 1];
 
-                    dummy.position.copy(point);
+                        const delta = new THREE.Vector3().subVectors(p2.pos, p1.pos);
+                        const dist = delta.length();
+
+                        // Prevent division by zero
+                        if (dist > 0.001) {
+                            const diff = (dist - restDist) / dist;
+                            // Move each point half the distance (unless pinned)
+                            const offset = delta.multiplyScalar(0.5 * diff);
+
+                            if (!p1.isPinned) {
+                                p1.pos.add(offset);
+                            }
+                            if (!p2.isPinned) {
+                                p2.pos.sub(offset);
+                            }
+                        }
+                    }
+                }
+
+                // 4. Update InstancedMesh matrices
+                for (let i = 0; i < numLinks; i++) {
+                    const link = links[i];
+
+                    // Calculate tangent for rotation
+                    if (i < numLinks - 1) {
+                        tangent.subVectors(links[i+1].pos, link.pos).normalize();
+                    } else if (i > 0) {
+                        tangent.subVectors(link.pos, links[i-1].pos).normalize();
+                    } else {
+                        tangent.set(0, 1, 0); // fallback
+                    }
+
+                    dummy.position.copy(link.pos);
                     dummy.quaternion.setFromUnitVectors(up, tangent);
 
+                    // Alternate links rotate 90 degrees to interlock
                     if (i % 2 === 0) {
                         dummy.rotateOnAxis(up, Math.PI / 2);
                     }
