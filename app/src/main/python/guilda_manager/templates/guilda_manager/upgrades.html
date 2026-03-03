@@ -118,30 +118,66 @@
         }
 
         /* Shift the paths by +2000px to counter the svg container shift */
-        svg.connections g {
+        svg.connections g.main-group {
             transform: translate(2000px, 2000px);
         }
 
-        path.connection-line {
+        .tube-bg {
+            fill: none;
+            stroke: #2a2a2a;
+            stroke-width: 16;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 8px rgba(0,0,0,0.9));
+        }
+
+        .tube-inner {
+            fill: none;
+            stroke: #0F0C0C;
+            stroke-width: 10;
+            stroke-linecap: round;
+        }
+
+        .liquid {
             fill: none;
             stroke-width: 6;
-            filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));
+            stroke-linecap: round;
         }
 
-        .connection-acquired {
+        .liquid-acquired {
             stroke: #D4AF37;
-            stroke-dasharray: none;
+            stroke-dasharray: 15, 10;
+            animation: flow 1s linear infinite reverse;
+            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.8));
         }
 
-        .connection-available {
+        .liquid-available {
             stroke: #8B1E1E;
-            stroke-dasharray: 8,8;
+            stroke-dasharray: 10, 15;
+            animation: flow 2s linear infinite reverse;
+            filter: drop-shadow(0 0 5px rgba(139, 30, 30, 0.6));
         }
 
-        .connection-locked {
-            stroke: #555; /* Lighter grey so it contrasts against #0F0C0C */
-            stroke-dasharray: 4,6;
-            opacity: 0.6;
+        .liquid-locked {
+            stroke: #333;
+            stroke-dasharray: 5, 20;
+            opacity: 0.5;
+        }
+
+        .tube-highlight {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.15);
+            stroke-width: 2;
+            stroke-linecap: round;
+            transform: translate(-2px, -2px);
+        }
+
+        @keyframes flow {
+            from {
+                stroke-dashoffset: 25;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
         }
 
         /* Bottom Sheet */
@@ -395,7 +431,7 @@
 
         function renderLines() {
             // Using a <g> tag ensures we can translate all lines easily
-            let svgHtml = '<g>';
+            let svgHtml = '<g class="main-group">';
 
             Object.keys(nodes).forEach(parentId => {
                 const parent = nodes[parentId];
@@ -414,14 +450,23 @@
                     const cp1Y = startY + (endY - startY) / 2;
                     const cp2Y = startY + (endY - startY) / 2;
 
-                    let lineClass = 'connection-line connection-locked';
+                    let liquidClass = 'liquid liquid-locked';
                     if (child.acquired) {
-                        lineClass = 'connection-line connection-acquired';
+                        liquidClass = 'liquid liquid-acquired';
                     } else if (parent.acquired) {
-                        lineClass = 'connection-line connection-available';
+                        liquidClass = 'liquid liquid-available';
                     }
 
-                    svgHtml += `<path d="M ${startX} ${startY} C ${startX} ${cp1Y}, ${endX} ${cp2Y}, ${endX} ${endY}" class="${lineClass}" />`;
+                    const pathD = `M ${startX} ${startY} C ${startX} ${cp1Y}, ${endX} ${cp2Y}, ${endX} ${endY}`;
+
+                    svgHtml += `
+                        <g class="tube-group">
+                            <path d="${pathD}" class="tube-bg" />
+                            <path d="${pathD}" class="tube-inner" />
+                            <path d="${pathD}" class="${liquidClass}" />
+                            <path d="${pathD}" class="tube-highlight" />
+                        </g>
+                    `;
                 });
             });
 
