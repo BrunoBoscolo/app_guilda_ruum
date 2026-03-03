@@ -6,9 +6,9 @@ from decimal import Decimal
 from rest_framework import viewsets, status, decorators
 from rest_framework.response import Response
 from django.templatetags.static import static
-from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building, Map, Hexagon, Pin
+from .models import Guild, Quest, Member, Monster, Squad, Dispatch, SquadRank, Building, Map, Hexagon, Pin, Upgrade, GuildUpgrade
 from .forms import MonsterForm
-from .serializers import GuildDashboardSerializer, BuildConstructionSerializer, QuestSerializer, MemberSerializer
+from .serializers import GuildDashboardSerializer, BuildConstructionSerializer, QuestSerializer, MemberSerializer, UpgradePurchaseSerializer
 import hashlib
 import random
 import os
@@ -34,6 +34,21 @@ class GuildViewSet(viewsets.ModelViewSet):
             guild.refresh_from_db()
             dashboard_serializer = self.get_serializer(guild)
             return Response(dashboard_serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @decorators.action(detail=True, methods=['post'])
+    def purchase_upgrade(self, request, pk=None):
+        """
+        Handles the purchase of an upgrade.
+        Expects 'upgrade_id' in the request data.
+        """
+        guild = self.get_object()
+        serializer = UpgradePurchaseSerializer(data=request.data, context={'guild': guild})
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": True}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -244,6 +259,52 @@ def construcoes_infra_view(request):
         'constructions': constructions
     }
     return render(request, 'guilda_manager/construcoes_infra.html', context)
+
+def construcoes_upgrades_view(request):
+    guild = Guild.objects.first()
+    if not guild:
+         return redirect('entry_portal')
+
+    # Get data
+    buildings = Building.objects.all()
+    upgrades = Upgrade.objects.all()
+    acquired_upgrades = GuildUpgrade.objects.filter(guild=guild).values_list('upgrade_id', flat=True)
+    acquired_buildings = guild.guild_buildings.values_list('building_id', flat=True)
+
+    # Format data for JS
+    buildings_data = []
+    for b in buildings:
+        buildings_data.append({
+            'id': b.id,
+            'name': b.name,
+            'description': b.description,
+            'cost': float(b.cost),
+            'acquired': b.id in acquired_buildings
+        })
+
+    upgrades_data = []
+    for u in upgrades:
+        upgrades_data.append({
+            'id': u.id,
+            'name': u.name,
+            'description': u.description,
+            'tier': u.tier,
+            'cost': float(u.cost),
+            'icon': u.icon,
+            'required_building_id': u.required_building_id,
+            'required_upgrade_id': u.required_upgrade_id,
+            'acquired': u.id in acquired_upgrades
+        })
+
+    context = {
+        'guild': guild,
+        'buildings_json': buildings_data,
+        'upgrades_json': upgrades_data,
+        'acquired_upgrades': list(acquired_upgrades),
+        'acquired_buildings': list(acquired_buildings)
+    }
+
+    return render(request, 'guilda_manager/upgrades.html', context)
 
 def bestiario_hub_view(request):
     return render(request, 'guilda_manager/bestiario_hub.html')

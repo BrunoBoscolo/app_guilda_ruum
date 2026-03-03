@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
-from .models import Guild, GuildBuilding, Building, Member, Quest
+from .models import Guild, GuildBuilding, Building, Member, Quest, Upgrade, GuildUpgrade
 
 class BuildingSerializer(serializers.ModelSerializer):
     class Meta:
@@ -99,3 +99,53 @@ class BuildConstructionSerializer(serializers.Serializer):
 
         # Create GuildBuilding
         return GuildBuilding.objects.create(guild=guild, building=building)
+
+
+class UpgradePurchaseSerializer(serializers.Serializer):
+    upgrade_id = serializers.IntegerField()
+
+    def validate(self, attrs):
+        guild = self.context.get('guild')
+        if not guild:
+            raise serializers.ValidationError("Guild context is required.")
+
+        try:
+            upgrade = Upgrade.objects.get(id=attrs['upgrade_id'])
+        except Upgrade.DoesNotExist:
+            raise serializers.ValidationError({"upgrade_id": "Upgrade not found."})
+
+        # Check if already acquired
+        if GuildUpgrade.objects.filter(guild=guild, upgrade=upgrade).exists():
+             raise serializers.ValidationError("Este upgrade já foi adquirido.")
+
+        # Check funds
+        if guild.funds < upgrade.cost:
+             raise serializers.ValidationError(f"Fundos insuficientes. Necessário T$ {upgrade.cost}.")
+
+        # Check requirements
+        if upgrade.required_building_id:
+             if not guild.guild_buildings.filter(building_id=upgrade.required_building_id).exists():
+                 raise serializers.ValidationError("Construção requisito não encontrada na guilda.")
+
+        if upgrade.required_upgrade_id:
+             if not GuildUpgrade.objects.filter(guild=guild, upgrade_id=upgrade.required_upgrade_id).exists():
+                 raise serializers.ValidationError("Upgrade requisito não encontrado na guilda.")
+
+        attrs['upgrade'] = upgrade
+        return attrs
+
+    def create(self, validated_data):
+        guild = self.context.get('guild')
+        upgrade = validated_data['upgrade']
+
+        # Deduct cost
+        guild.funds -= upgrade.cost
+        guild.save()
+
+        # Create relation
+        guild_upgrade = GuildUpgrade.objects.create(
+            guild=guild,
+            upgrade=upgrade
+        )
+
+        return guild_upgrade

@@ -74,6 +74,20 @@ class BuildingPower(models.Model):
     def __str__(self):
         return f"{self.title} ({self.building.name})"
 
+class Upgrade(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    tier = models.IntegerField(default=1)
+    cost = models.DecimalField(max_digits=12, decimal_places=2)
+    icon = models.CharField(max_length=50, default='star')
+
+    # Requirements (can be a building OR another upgrade)
+    required_building = models.ForeignKey(Building, related_name='upgrades', on_delete=models.CASCADE, null=True, blank=True)
+    required_upgrade = models.ForeignKey('self', related_name='child_upgrades', on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} (Tier {self.tier})"
+
 class Guild(models.Model):
     class LegalStatus(models.TextChoices):
         PATENTED = 'PATENTED', 'Patenteada'
@@ -174,6 +188,14 @@ class GuildBuilding(models.Model):
 
     def __str__(self):
         return f"{self.guild.name} - {self.building.name}"
+
+class GuildUpgrade(models.Model):
+    guild = models.ForeignKey(Guild, related_name='guild_upgrades', on_delete=models.CASCADE)
+    upgrade = models.ForeignKey(Upgrade, on_delete=models.CASCADE)
+    acquired_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.guild.name} - {self.upgrade.name}"
 
 class Member(models.Model):
     class Status(models.TextChoices):
