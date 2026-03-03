@@ -21,7 +21,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from guilda_manager.views import (
     sede_view, missoes_view, construcoes_view, construcoes_projetos_view,
-    construcoes_infra_view, bestiario_list_view, bestiario_hub_view,
+    construcoes_infra_view, construcoes_upgrades_view, bestiario_list_view, bestiario_hub_view,
     bestiario_rememoracao_view, bestiario_edit_view, bestiario_create_view,
     landing_view, mestre_view, root_routing_view, entry_portal_view,
     create_guild_view, sync_guild_view, share_guild_view, mapa_view
@@ -41,6 +41,7 @@ urlpatterns = [
     path('construcoes/', construcoes_view, name='construcoes'),
     path('construcoes/projetos/', construcoes_projetos_view, name='construcoes_projetos'),
     path('construcoes/infra/', construcoes_infra_view, name='construcoes_infra'),
+    path('construcoes/upgrades/', construcoes_upgrades_view, name='construcoes_upgrades'),
     path('mestre/', mestre_view, name='mestre'),
     path('mapa/', mapa_view, name='mapa'),
     path('bestiario/', bestiario_hub_view, name='bestiario'),

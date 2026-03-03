@@ -1,0 +1,575 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Árvore de Upgrades | Ruum</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@400;500;700&amp;family=MedievalSharp&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#8B1E1E",
+                        gold: "#D4AF37",
+                        ivory: "#F4F1EA",
+                        parchment: "#E8D5B5",
+                        "background-dark": "#0F0C0C",
+                        obsidian: "#1A1A1D",
+                        bronze: "#804A00",
+                        stone: "#2a2a2a",
+                    },
+                    fontFamily: {
+                        display: ["Cinzel", "serif"],
+                        medieval: ["MedievalSharp", "cursive"],
+                        sans: ["Inter", "sans-serif"],
+                    }
+                },
+            },
+        };
+    </script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Prevent scrolling, canvas will handle drag */
+            background-color: #0F0C0C;
+            background-image: radial-gradient(circle at 50% 30%, #2a0a0a 0%, #0f0c0c 70%);
+            touch-action: none;
+        }
+
+        #viewport {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        #tree-container {
+            position: absolute;
+            transform-origin: 0 0;
+        }
+
+        .node-base {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e1b18 0%, #13110f 100%);
+            border: 3px solid #3d352c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            transform: translate(-50%, -50%); /* Center on coordinates */
+            z-index: 20;
+        }
+
+        .node-base:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+
+        .node-acquired {
+            border-color: #D4AF37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .node-available {
+            border-color: #8B1E1E;
+        }
+
+        .node-locked {
+            filter: grayscale(100%);
+            opacity: 0.5;
+        }
+
+        .node-icon {
+            font-size: 32px;
+            color: #D4AF37;
+        }
+
+        .node-locked .node-icon {
+            color: #555;
+        }
+
+        svg.connections {
+            position: absolute;
+            /* Give it a huge arbitrary size and position to prevent 0x0 bounding box clipping */
+            top: -2000px;
+            left: -2000px;
+            width: 4000px;
+            height: 4000px;
+            overflow: visible;
+            pointer-events: none; /* Let clicks pass through */
+            z-index: 15;
+        }
+
+        /* Shift the paths by +2000px to counter the svg container shift */
+        svg.connections g {
+            transform: translate(2000px, 2000px);
+        }
+
+        path.connection-line {
+            fill: none;
+            stroke-width: 6;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));
+        }
+
+        .connection-acquired {
+            stroke: #D4AF37;
+            stroke-dasharray: none;
+        }
+
+        .connection-available {
+            stroke: #8B1E1E;
+            stroke-dasharray: 8,8;
+        }
+
+        .connection-locked {
+            stroke: #555; /* Lighter grey so it contrasts against #0F0C0C */
+            stroke-dasharray: 4,6;
+            opacity: 0.6;
+        }
+
+        /* Bottom Sheet */
+        #bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, #0F0C0C 80%, #1A1A1D 100%);
+            border-top: 2px solid #D4AF37;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #bottom-sheet.open {
+            bottom: 0;
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background-color: #D4AF37;
+            border-radius: 2px;
+            margin: 12px auto;
+            opacity: 0.5;
+        }
+
+        /* Fixed Headers & Nav */
+        #back-btn {
+            position: fixed;
+            top: env(safe-area-inset-top, 20px);
+            left: 20px;
+            z-index: 50;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #D4AF37;
+            color: #D4AF37;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="text-ivory">
+
+    <!-- Back Button -->
+    <a href="{% url 'construcoes' %}" id="back-btn">
+        <span class="material-icons-round">arrow_back</span>
+    </a>
+
+    <!-- Viewport for pan/zoom -->
+    <div id="viewport">
+        <div id="tree-container">
+            <svg class="connections" id="connections-svg"></svg>
+            <div id="nodes-container"></div>
+        </div>
+    </div>
+
+    <!-- Details Bottom Sheet -->
+    <div id="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="p-6 pt-2 pb-12">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center gap-4">
+                    <div id="sheet-icon-container" class="w-16 h-16 rounded-full border-2 border-gold bg-primary/20 flex items-center justify-center shadow-lg">
+                        <span id="sheet-icon" class="material-icons-round text-gold text-3xl">star</span>
+                    </div>
+                    <div>
+                        <h2 id="sheet-title" class="font-display text-2xl font-black text-white uppercase leading-tight">Name</h2>
+                        <span id="sheet-subtitle" class="text-xs text-gold/80 font-serif uppercase tracking-widest">Type</span>
+                    </div>
+                </div>
+                <button id="close-sheet" class="text-white/50 hover:text-white">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+
+            <div class="my-4 pl-4 border-l-2 border-primary/40">
+                <p id="sheet-desc" class="font-serif italic text-white/70 text-sm leading-relaxed">Description</p>
+            </div>
+
+            <div class="bg-black/40 rounded border border-white/10 p-4 mt-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="block text-[10px] font-bold text-white/50 uppercase tracking-wide mb-1">Custo</span>
+                        <div id="sheet-cost" class="flex items-center gap-1 text-gold font-bold text-lg">
+                            <span class="material-icons-round text-sm">savings</span> T$ 0.00
+                        </div>
+                    </div>
+                    <div>
+                        <span id="sheet-status" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border">Status</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="action-container" class="mt-6 flex justify-center">
+                <button id="action-btn" class="bg-primary hover:bg-red-800 text-white font-display font-bold uppercase tracking-widest py-3 px-8 rounded-lg shadow-red-glow transition-all active:scale-95 border border-red-500/50 w-full flex items-center justify-center gap-2">
+                    <span class="material-icons-round">build</span> Adquirir
+                </button>
+                <p id="error-msg" class="text-red-500 text-sm font-bold mt-2 hidden text-center"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Injection -->
+    {{ buildings_json|json_script:"buildings-data" }}
+    {{ upgrades_json|json_script:"upgrades-data" }}
+
+    <script>
+        const guildFunds = parseFloat("{{ guild.funds|stringformat:'f' }}");
+        const guildId = {{ guild.id }};
+        const csrfToken = "{{ csrf_token }}";
+
+        let buildings = JSON.parse(document.getElementById('buildings-data').textContent);
+        let upgrades = JSON.parse(document.getElementById('upgrades-data').textContent);
+
+        const treeContainer = document.getElementById('tree-container');
+        const nodesContainer = document.getElementById('nodes-container');
+        const svgContainer = document.getElementById('connections-svg');
+        const viewport = document.getElementById('viewport');
+        const bottomSheet = document.getElementById('bottom-sheet');
+        const closeBtn = document.getElementById('close-sheet');
+        const actionBtn = document.getElementById('action-btn');
+
+        let isDragging = false;
+        let startX, startY;
+        let translateX = 0, translateY = 0;
+        let scale = 1;
+
+        // Tree rendering logic
+        let nodes = {}; // id -> node data (merged buildings and upgrades)
+        let rootNodes = []; // Base buildings
+
+        // Constants
+        const NODE_SIZE = 80;
+        const X_SPACING = 150;
+        const Y_SPACING = -150; // Negative because Y goes down in DOM, we want tree to go up
+        const START_Y = window.innerHeight * 0.8; // Start near bottom
+
+        function initTree() {
+            // Process data
+            buildings.forEach(b => {
+                nodes[`b_${b.id}`] = { ...b, type: 'building', children: [], x: 0, y: 0 };
+                rootNodes.push(`b_${b.id}`);
+            });
+
+            upgrades.forEach(u => {
+                nodes[`u_${u.id}`] = { ...u, type: 'upgrade', children: [], x: 0, y: 0 };
+            });
+
+            // Build hierarchy
+            upgrades.forEach(u => {
+                const nodeKey = `u_${u.id}`;
+                if (u.required_building_id) {
+                    const parentKey = `b_${u.required_building_id}`;
+                    if (nodes[parentKey]) nodes[parentKey].children.push(nodeKey);
+                } else if (u.required_upgrade_id) {
+                    const parentKey = `u_${u.required_upgrade_id}`;
+                    if (nodes[parentKey]) nodes[parentKey].children.push(nodeKey);
+                }
+            });
+
+            // Calculate positions
+            let currentX = window.innerWidth / 2 - (rootNodes.length * X_SPACING) / 2 + (X_SPACING/2);
+
+            rootNodes.forEach(rootId => {
+                positionNode(rootId, currentX, START_Y, 1);
+                currentX += X_SPACING * 2; // Extra space between trees
+            });
+
+            renderNodes();
+            renderLines();
+
+            // Center view
+            translateX = 0;
+            translateY = 0;
+            updateTransform();
+        }
+
+        function positionNode(nodeId, x, y, level) {
+            const node = nodes[nodeId];
+            node.x = x;
+            node.y = y;
+
+            if (!node.children || node.children.length === 0) return;
+
+            const totalWidth = (node.children.length - 1) * X_SPACING;
+            let startX = x - totalWidth / 2;
+
+            node.children.forEach(childId => {
+                positionNode(childId, startX, y + Y_SPACING, level + 1);
+                startX += X_SPACING;
+            });
+        }
+
+        function isNodeUnlocked(nodeId) {
+            const node = nodes[nodeId];
+            if (node.type === 'building') return true; // Base buildings always available to view
+
+            if (node.required_building_id) {
+                 return nodes[`b_${node.required_building_id}`].acquired;
+            } else if (node.required_upgrade_id) {
+                 return nodes[`u_${node.required_upgrade_id}`].acquired;
+            }
+            return false;
+        }
+
+        function renderNodes() {
+            nodesContainer.innerHTML = '';
+
+            Object.keys(nodes).forEach(id => {
+                const node = nodes[id];
+                const el = document.createElement('div');
+                el.className = 'node-base';
+
+                // Determine state class
+                if (node.acquired) {
+                    el.classList.add('node-acquired');
+                } else if (isNodeUnlocked(id)) {
+                    el.classList.add('node-available');
+                } else {
+                    el.classList.add('node-locked');
+                }
+
+                el.style.left = `${node.x}px`;
+                el.style.top = `${node.y}px`;
+                el.dataset.id = id;
+
+                // Icon
+                const icon = document.createElement('span');
+                icon.className = 'material-icons-round node-icon';
+                icon.innerText = node.icon || (node.type === 'building' ? 'domain' : 'star');
+                el.appendChild(icon);
+
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!isDragging) showDetails(id);
+                });
+
+                nodesContainer.appendChild(el);
+            });
+        }
+
+        function renderLines() {
+            // Using a <g> tag ensures we can translate all lines easily
+            let svgHtml = '<g>';
+
+            Object.keys(nodes).forEach(parentId => {
+                const parent = nodes[parentId];
+                if (!parent.children) return;
+
+                parent.children.forEach(childId => {
+                    const child = nodes[childId];
+
+                    // Bezier curve
+                    const startX = parent.x;
+                    const startY = parent.y;
+                    const endX = child.x;
+                    const endY = child.y;
+
+                    // Control points for curve
+                    const cp1Y = startY + (endY - startY) / 2;
+                    const cp2Y = startY + (endY - startY) / 2;
+
+                    let lineClass = 'connection-line connection-locked';
+                    if (child.acquired) {
+                        lineClass = 'connection-line connection-acquired';
+                    } else if (parent.acquired) {
+                        lineClass = 'connection-line connection-available';
+                    }
+
+                    svgHtml += `<path d="M ${startX} ${startY} C ${startX} ${cp1Y}, ${endX} ${cp2Y}, ${endX} ${endY}" class="${lineClass}" />`;
+                });
+            });
+
+            svgHtml += '</g>';
+            svgContainer.innerHTML = svgHtml;
+
+            // To be 100% safe with SVG parsing in innerHTML across browsers:
+            // Since it's already working in Chromium based on tests, the missing link was sizing/colors.
+        }
+
+        // --- Viewport Interaction ---
+        function updateTransform() {
+            treeContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+
+        viewport.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            viewport.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            updateTransform();
+        });
+
+        window.addEventListener('pointerup', () => {
+            isDragging = false;
+            viewport.style.cursor = 'grab';
+        });
+
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const newScale = Math.min(Math.max(0.5, scale + delta), 2);
+
+            // Zoom to mouse position logic could go here, keeping simple for now
+            scale = newScale;
+            updateTransform();
+        });
+
+        // --- Bottom Sheet Interaction ---
+        let selectedNodeId = null;
+
+        function showDetails(id) {
+            selectedNodeId = id;
+            const node = nodes[id];
+
+            document.getElementById('sheet-title').innerText = node.name;
+            document.getElementById('sheet-subtitle').innerText = node.type === 'building' ? 'Sede' : `Upgrade Tier ${node.tier}`;
+            document.getElementById('sheet-desc').innerText = node.description;
+            document.getElementById('sheet-cost').innerHTML = `<span class="material-icons-round text-sm">savings</span> T$ ${node.cost.toFixed(2)}`;
+            document.getElementById('sheet-icon').innerText = node.icon || (node.type === 'building' ? 'domain' : 'star');
+
+            const statusEl = document.getElementById('sheet-status');
+            const actionBtn = document.getElementById('action-btn');
+            const errorMsg = document.getElementById('error-msg');
+
+            errorMsg.classList.add('hidden');
+            actionBtn.style.display = 'flex';
+
+            if (node.acquired) {
+                statusEl.innerText = "Adquirido";
+                statusEl.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-green-500 text-green-500";
+                actionBtn.style.display = 'none';
+            } else if (node.type === 'building') {
+                statusEl.innerText = "Construção Base";
+                statusEl.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-gold text-gold";
+                actionBtn.style.display = 'none'; // Built from construcoes hub
+            } else if (isNodeUnlocked(id)) {
+                statusEl.innerText = "Disponível";
+                statusEl.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-gold text-gold";
+                actionBtn.innerText = "Adquirir";
+                actionBtn.disabled = false;
+                actionBtn.className = "bg-primary hover:bg-red-800 text-white font-display font-bold uppercase tracking-widest py-3 px-8 rounded-lg shadow-red-glow transition-all active:scale-95 border border-red-500/50 w-full flex items-center justify-center gap-2";
+            } else {
+                statusEl.innerText = "Bloqueado";
+                statusEl.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-gray-500 text-gray-500";
+                actionBtn.innerText = "Requisitos não atendidos";
+                actionBtn.disabled = true;
+                actionBtn.className = "bg-stone-800 text-stone-500 font-display font-bold uppercase tracking-widest py-3 px-8 rounded-lg border border-stone-600 w-full flex items-center justify-center gap-2 cursor-not-allowed";
+            }
+
+            bottomSheet.classList.add('open');
+        }
+
+        closeBtn.addEventListener('click', () => {
+            bottomSheet.classList.remove('open');
+        });
+
+        actionBtn.addEventListener('click', async () => {
+            if (!selectedNodeId || nodes[selectedNodeId].type === 'building') return;
+
+            const node = nodes[selectedNodeId];
+
+            if (guildFunds < node.cost) {
+                const err = document.getElementById('error-msg');
+                err.innerText = "Fundos insuficientes!";
+                err.classList.remove('hidden');
+                return;
+            }
+
+            // Purchase Request
+            try {
+                const response = await fetch(`/api/guilds/${guildId}/purchase_upgrade/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ upgrade_id: node.id })
+                });
+
+                if (response.ok) {
+                    // Update Local State visually
+                    node.acquired = true;
+                    renderNodes();
+                    renderLines();
+                    bottomSheet.classList.remove('open');
+                    // In a real app we might reload or update funds dynamically
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    const err = document.getElementById('error-msg');
+                    err.innerText = JSON.stringify(data);
+                    err.classList.remove('hidden');
+                }
+            } catch (e) {
+                console.error(e);
+                const err = document.getElementById('error-msg');
+                err.innerText = "Erro na requisição.";
+                err.classList.remove('hidden');
+            }
+        });
+
+        // Initialize
+        initTree();
+        viewport.style.cursor = 'grab';
+
+        // Fix SVG resizing
+        function resizeSVG() {
+             svgContainer.style.width = '2000px'; // Arbitrary large size
+             svgContainer.style.height = '2000px';
+             svgContainer.style.transform = `translate(-1000px, -1000px)`; // Center the arbitrary large size
+        }
+    </script>
+</body>
+</html>
