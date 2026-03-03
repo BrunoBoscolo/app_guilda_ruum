@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Building, BuildingPower, Guild, GuildBuilding, Member, Quest, Monster
+from .models import Building, BuildingPower, Guild, GuildBuilding, Member, Quest, Monster, Upgrade, GuildUpgrade
 
 @admin.register(Guild)
 class GuildAdmin(admin.ModelAdmin):
@@ -31,3 +31,14 @@ class MonsterAdmin(admin.ModelAdmin):
     list_display = ('name', 'monster_type', 'challenge_level', 'size')
     search_fields = ('name', 'monster_type', 'description')
     list_filter = ('monster_type', 'size')
+
+@admin.register(Upgrade)
+class UpgradeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'tier', 'cost', 'required_building', 'required_upgrade')
+    list_filter = ('tier',)
+    search_fields = ('name', 'description')
+
+@admin.register(GuildUpgrade)
+class GuildUpgradeAdmin(admin.ModelAdmin):
+    list_display = ('guild', 'upgrade', 'acquired_at')
+    list_filter = ('guild', 'upgrade__tier')
