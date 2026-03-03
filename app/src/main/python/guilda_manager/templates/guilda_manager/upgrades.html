@@ -107,18 +107,25 @@
 
         svg.connections {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            /* Give it a huge arbitrary size and position to prevent 0x0 bounding box clipping */
+            top: -2000px;
+            left: -2000px;
+            width: 4000px;
+            height: 4000px;
             overflow: visible;
             pointer-events: none; /* Let clicks pass through */
             z-index: 15;
         }
 
+        /* Shift the paths by +2000px to counter the svg container shift */
+        svg.connections g {
+            transform: translate(2000px, 2000px);
+        }
+
         path.connection-line {
             fill: none;
-            stroke-width: 4;
+            stroke-width: 6;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));
         }
 
         .connection-acquired {
@@ -128,12 +135,13 @@
 
         .connection-available {
             stroke: #8B1E1E;
-            stroke-dasharray: 5,5;
+            stroke-dasharray: 8,8;
         }
 
         .connection-locked {
-            stroke: #333;
-            stroke-dasharray: 5,5;
+            stroke: #555; /* Lighter grey so it contrasts against #0F0C0C */
+            stroke-dasharray: 4,6;
+            opacity: 0.6;
         }
 
         /* Bottom Sheet */
@@ -386,7 +394,8 @@
         }
 
         function renderLines() {
-            let svgHtml = '';
+            // Using a <g> tag ensures we can translate all lines easily
+            let svgHtml = '<g>';
 
             Object.keys(nodes).forEach(parentId => {
                 const parent = nodes[parentId];
@@ -416,7 +425,11 @@
                 });
             });
 
+            svgHtml += '</g>';
             svgContainer.innerHTML = svgHtml;
+
+            // To be 100% safe with SVG parsing in innerHTML across browsers:
+            // Since it's already working in Chromium based on tests, the missing link was sizing/colors.
         }
 
         // --- Viewport Interaction ---
