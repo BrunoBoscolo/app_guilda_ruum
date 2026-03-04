@@ -243,7 +243,7 @@
     <script type="module">
         import * as THREE from 'three';
 
-        const guildFunds = parseFloat("{{ guild.funds|stringformat:'f' }}");
+        let guildFunds = parseFloat("{{ guild.funds|stringformat:'f' }}");
         const guildId = {{ guild.id }};
         const csrfToken = "{{ csrf_token }}";
 
@@ -951,8 +951,14 @@
                 if (response.ok) {
                     bottomSheet.classList.remove('open');
                     await playUpgradeAnimation(selectedNodeId);
-                    // Reload to update backend state
-                    window.location.reload();
+
+                    // Update local state without reloading
+                    node.acquired = true;
+                    guildFunds -= node.cost;
+
+                    // Optional: we could re-render nodes and lines here to make absolutely sure everything is synced
+                    renderNodes();
+                    renderLines();
                 } else {
                     const data = await response.json();
                     const err = document.getElementById('error-msg');
