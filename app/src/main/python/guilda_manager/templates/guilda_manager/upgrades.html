@@ -610,7 +610,7 @@
 
             // When user pans, the camera moves. We apply a counter-acceleration to the links
             // to make them swing/lag realistically.
-            const dragAccel = new THREE.Vector3(-deltaTx * 2000.0, -deltaTy * 2000.0, 0);
+            const dragAccel = new THREE.Vector3(-deltaTx * 100.0, -deltaTy * 100.0, 0);
 
             const totalAccel = new THREE.Vector3().addVectors(gravity, dragAccel);
 
