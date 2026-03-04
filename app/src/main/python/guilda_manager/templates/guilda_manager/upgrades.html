@@ -103,7 +103,7 @@
 
         .node-locked {
             filter: grayscale(100%);
-            opacity: 0.5;
+            opacity: 1;
         }
 
         .node-icon {
@@ -243,7 +243,7 @@
     <script type="module">
         import * as THREE from 'three';
 
-        const guildFunds = parseFloat("{{ guild.funds|stringformat:'f' }}");
+        let guildFunds = parseFloat("{{ guild.funds|stringformat:'f' }}");
         const guildId = {{ guild.id }};
         const csrfToken = "{{ csrf_token }}";
 
@@ -400,125 +400,116 @@
             });
         }
 
+        const chainLinkGeo = new THREE.TorusGeometry(5, 1.5, 8, 16);
+        chainLinkGeo.scale(1, 1.5, 1);
+        const matLocked = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const matAvailable = new THREE.MeshStandardMaterial({ color: 0x8B1E1E, emissive: 0x8B1E1E, emissiveIntensity: 0.5 });
+        const matAcquired = new THREE.MeshStandardMaterial({ color: 0xD4AF37, emissive: 0xD4AF37, emissiveIntensity: 0.8 });
+
+        function createSingleChain(parentId, childId) {
+            const parent = nodes[parentId];
+            const child = nodes[childId];
+
+            const startX = parent.x;
+            const startY = parent.y;
+            const endX = child.x;
+            const endY = child.y;
+
+            const cp1Y = startY + (endY - startY) / 2;
+            const cp2Y = startY + (endY - startY) / 2;
+
+            let material = matLocked;
+            let state = 'locked';
+            if (child.acquired) {
+                material = matAcquired;
+                state = 'acquired';
+            } else if (parent.acquired) {
+                material = matAvailable;
+                state = 'available';
+            }
+
+            const curve = new THREE.CubicBezierCurve3(
+                new THREE.Vector3(startX, startY, 0),
+                new THREE.Vector3(startX, cp1Y, 0),
+                new THREE.Vector3(endX, cp2Y, 0),
+                new THREE.Vector3(endX, endY, 0)
+            );
+
+            const chainLength = curve.getLength();
+            const numLinks = Math.floor(chainLength / 8);
+
+            const instancedMesh = new THREE.InstancedMesh(chainLinkGeo, material.clone(), numLinks);
+            instancedMesh.userData = { state: state, baseIntensity: material.emissiveIntensity, timeOffset: Math.random() * Math.PI * 2 };
+
+            const dummy = new THREE.Object3D();
+            const point = new THREE.Vector3();
+            const tangent = new THREE.Vector3();
+            const up = new THREE.Vector3(0, 1, 0);
+
+            for (let i = 0; i < numLinks; i++) {
+                const t = i / (numLinks - 1);
+                curve.getPoint(t, point);
+                curve.getTangent(t, tangent);
+
+                dummy.position.copy(point);
+                dummy.quaternion.setFromUnitVectors(up, tangent);
+
+                if (i % 2 === 0) {
+                    dummy.rotateOnAxis(up, Math.PI / 2);
+                }
+
+                dummy.updateMatrix();
+                instancedMesh.setMatrixAt(i, dummy.matrix);
+            }
+
+            instancedMesh.instanceMatrix.needsUpdate = true;
+            scene.add(instancedMesh);
+
+            const linkSpacing = chainLength / (numLinks - 1);
+            const slack = 1.1;
+            const restingDistance = linkSpacing * slack;
+
+            let links = [];
+            for (let i = 0; i < numLinks; i++) {
+                const t = i / (numLinks - 1);
+                curve.getPoint(t, point);
+                // Give some horizontal sag as well so perfectly vertical chains don't buckle into themselves
+                // We use a larger horizontal offset (30.0) combined with a random perturbation
+                // so the physics solver is forced to push the extra slack sideways rather than crumpling vertically.
+                point.x += (Math.sin(t * Math.PI) * 30.0) + ((Math.random() - 0.5) * 10.0);
+                point.y += Math.sin(t * Math.PI) * 10.0;
+                links.push({
+                    pos: point.clone(),
+                    oldPos: point.clone(),
+                    isPinned: (i === 0 || i === numLinks - 1),
+                    anchor: point.clone()
+                });
+            }
+
+            chainMeshes.push({
+                parentId: parentId,
+                childId: childId,
+                mesh: instancedMesh,
+                links: links,
+                numLinks: numLinks,
+                restingDistance: restingDistance
+            });
+
+            return chainMeshes[chainMeshes.length - 1];
+        }
+
         function renderLines() {
-            // Clear existing chain meshes
-            chainMeshes.forEach(mesh => scene.remove(mesh.mesh));
+            chainMeshes.forEach(c => {
+                if (c && c.mesh) scene.remove(c.mesh);
+            });
             chainMeshes = [];
-
-            const chainLinkGeo = new THREE.TorusGeometry(5, 1.5, 8, 16);
-            // Deform horizontally to mimic a U-shaped chain link
-            chainLinkGeo.scale(1, 1.5, 1);
-
-            // Materials for different states
-            const matLocked = new THREE.MeshStandardMaterial({ color: 0x333333 });
-            const matAvailable = new THREE.MeshStandardMaterial({
-                color: 0x8B1E1E,
-                emissive: 0x8B1E1E,
-                emissiveIntensity: 0.5
-            });
-            const matAcquired = new THREE.MeshStandardMaterial({
-                color: 0xD4AF37,
-                emissive: 0xD4AF37,
-                emissiveIntensity: 0.8
-            });
 
             Object.keys(nodes).forEach(parentId => {
                 const parent = nodes[parentId];
                 if (!parent.children) return;
 
                 parent.children.forEach(childId => {
-                    const child = nodes[childId];
-
-                    const startX = parent.x;
-                    const startY = parent.y;
-                    const endX = child.x;
-                    const endY = child.y;
-
-                    const cp1Y = startY + (endY - startY) / 2;
-                    const cp2Y = startY + (endY - startY) / 2;
-
-                    let material = matLocked;
-                    let state = 'locked';
-                    if (child.acquired) {
-                        material = matAcquired;
-                        state = 'acquired';
-                    } else if (parent.acquired) {
-                        material = matAvailable;
-                        state = 'available';
-                    }
-
-                    // For the 3D scene, Y goes UP. But in our DOM, Y goes DOWN.
-                    // We can just flip the Y coordinates when mapping to 3D.
-                    // Actually, OrthographicCamera maps properly if we just draw them where they are.
-                    // Wait, in OrthographicCamera with top=0, bottom=h, Y increases downwards!
-                    // So we can use the same coordinates.
-                    const curve = new THREE.CubicBezierCurve3(
-                        new THREE.Vector3(startX, startY, 0),
-                        new THREE.Vector3(startX, cp1Y, 0),
-                        new THREE.Vector3(endX, cp2Y, 0),
-                        new THREE.Vector3(endX, endY, 0)
-                    );
-
-                    const chainLength = curve.getLength();
-                    const numLinks = Math.floor(chainLength / 8); // Spacing between links
-
-                    const instancedMesh = new THREE.InstancedMesh(chainLinkGeo, material.clone(), numLinks);
-                    instancedMesh.userData = { state: state, baseIntensity: material.emissiveIntensity, timeOffset: Math.random() * Math.PI * 2 };
-
-                    const dummy = new THREE.Object3D();
-                    const point = new THREE.Vector3();
-                    const tangent = new THREE.Vector3();
-                    const up = new THREE.Vector3(0, 1, 0);
-
-                    for (let i = 0; i < numLinks; i++) {
-                        const t = i / (numLinks - 1);
-                        curve.getPoint(t, point);
-                        curve.getTangent(t, tangent);
-
-                        dummy.position.copy(point);
-
-                        // Align chain link along the curve
-                        dummy.quaternion.setFromUnitVectors(up, tangent);
-
-                        // Rotate alternate links 90 degrees around the tangent axis to interlock them
-                        if (i % 2 === 0) {
-                            dummy.rotateOnAxis(up, Math.PI / 2);
-                        }
-
-                        dummy.updateMatrix();
-                        instancedMesh.setMatrixAt(i, dummy.matrix);
-                    }
-
-                    instancedMesh.instanceMatrix.needsUpdate = true;
-                    scene.add(instancedMesh);
-
-                    // Initialize independent physics links
-                    const linkSpacing = chainLength / (numLinks - 1);
-                    const slack = 1.1; // 10% slack
-                    const restingDistance = linkSpacing * slack;
-
-                    let links = [];
-                    for (let i = 0; i < numLinks; i++) {
-                        const t = i / (numLinks - 1);
-                        curve.getPoint(t, point);
-                        // Add a tiny bit of initial sag to help the solver
-                        point.y += Math.sin(t * Math.PI) * 10.0;
-                        links.push({
-                            pos: point.clone(),
-                            oldPos: point.clone(),
-                            isPinned: (i === 0 || i === numLinks - 1),
-                            // Pinned links need to know where they are anchored
-                            anchor: point.clone()
-                        });
-                    }
-
-                    // Save data for animation
-                    chainMeshes.push({
-                        mesh: instancedMesh,
-                        links: links,
-                        numLinks: numLinks,
-                        restingDistance: restingDistance
-                    });
+                    createSingleChain(parentId, childId);
                 });
             });
         }
@@ -645,6 +636,11 @@
 
                         // pos += velocity + acceleration * dt * dt
                         const accelOffset = new THREE.Vector3().copy(totalAccel).multiplyScalar(dt * dt);
+
+                        // Add a tiny bit of continuous horizontal noise to prevent perfectly vertical
+                        // chains from finding a stable overlapping equilibrium where delta.x = 0
+                        accelOffset.x += (Math.random() - 0.5) * 0.5;
+
                         link.pos.add(velocity).add(accelOffset);
                     } else {
                         // Keep pinned links exactly at their anchor
@@ -706,6 +702,218 @@
             });
 
             renderer.render(scene, camera);
+        }
+
+        // --- Animation Logic ---
+        function tween(duration, onUpdate, onComplete) {
+            return new Promise(resolve => {
+                const startTime = performance.now();
+                function step(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // Ease-in-out cubic
+                    const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                    onUpdate(ease);
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        if (onComplete) onComplete();
+                        resolve();
+                    }
+                }
+                requestAnimationFrame(step);
+            });
+        }
+
+        async function playUpgradeAnimation(childId) {
+            // Find parent
+            let parentId = null;
+            for (const pid in nodes) {
+                if (nodes[pid].children && nodes[pid].children.includes(childId)) {
+                    parentId = pid;
+                    break;
+                }
+            }
+            if (!parentId) return;
+
+            const parent = nodes[parentId];
+            const child = nodes[childId];
+
+            // 1. Zoom & Pan
+            // Calculate midpoint
+            const midX = (parent.x + child.x) / 2;
+            const midY = (parent.y + child.y) / 2;
+
+            // Target transform to center the midpoint
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const targetScale = 0.8; // Decreased from 1.2 to be less zoomed in
+            const targetTx = (w / 2) - (midX * targetScale);
+            const targetTy = (h / 2) - (midY * targetScale);
+
+            const startTx = translateX;
+            const startTy = translateY;
+            const startScale = scale;
+
+            // Disable interaction
+            viewport.style.pointerEvents = 'none';
+
+            // Slowed down zoom/pan from 800ms to 1200ms
+            await tween(1200, (p) => {
+                translateX = startTx + (targetTx - startTx) * p;
+                translateY = startTy + (targetTy - startTy) * p;
+                scale = startScale + (targetScale - startScale) * p;
+                updateTransform();
+            });
+
+            // 2. Grey Chains Fall Off (Target chain AND its newly unlocked children's chains)
+            const oldChainIndex = chainMeshes.findIndex(c => c.parentId === parentId && c.childId === childId);
+            let anyFell = false;
+            if (oldChainIndex !== -1) {
+                const oldChain = chainMeshes[oldChainIndex];
+                oldChain.links.forEach(link => link.isPinned = false);
+                anyFell = true;
+            }
+
+            // Also find and drop any chains connecting the newly acquired child to its children (the grandchildren)
+            if (child.children && child.children.length > 0) {
+                child.children.forEach(grandchildId => {
+                    const gcOldChainIndex = chainMeshes.findIndex(c => c.parentId === childId && c.childId === grandchildId);
+                    if (gcOldChainIndex !== -1) {
+                        const gcOldChain = chainMeshes[gcOldChainIndex];
+                        gcOldChain.links.forEach(link => link.isPinned = false);
+                        anyFell = true;
+                    }
+                });
+            }
+
+            if (anyFell) {
+                // Wait 1.5 seconds for them to start falling out of the screen indefinitely
+                await new Promise(r => setTimeout(r, 1500));
+            }
+
+            // 3. Launch Yellow Chain
+            // Temporarily set acquired to generate gold chain
+            nodes[childId].acquired = true;
+
+            // Instead of calling renderLines() which destroys and recreates all chains
+            // (causing their physics to reset and snap back to the start curve),
+            // we just generate the single new golden chain for this upgrade.
+            const newChain = createSingleChain(parentId, childId);
+            if (newChain) {
+                // Store actual anchors and set everything to parent pos
+                const targetAnchors = newChain.links.map(l => l.anchor.clone());
+                const parentPos = new THREE.Vector3(parent.x, parent.y, 0);
+
+                newChain.links.forEach((link, i) => {
+                    link.pos.copy(parentPos);
+                    link.oldPos.copy(parentPos);
+                    link.anchor.copy(parentPos);
+                });
+
+                // Animate anchors shooting out, slowed down from 600ms to 1000ms
+                await tween(1000, (p) => {
+                    newChain.links.forEach((link, i) => {
+                        // Linear interpolation of anchor
+                        link.anchor.lerpVectors(parentPos, targetAnchors[i], p);
+                        // Pinning makes the verlet integration pull the chain tightly to the anchor
+                        if (link.isPinned) {
+                            link.pos.copy(link.anchor);
+                            link.oldPos.copy(link.anchor);
+                        }
+                    });
+                });
+
+                // Extra time for chain to settle visually
+                await new Promise(r => setTimeout(r, 400));
+            }
+
+            // 4. Node Glow
+            const childEl = document.querySelector(`.node-base[data-id="${childId}"]`);
+            if (childEl) {
+                childEl.classList.remove('node-locked', 'node-available');
+                childEl.classList.add('node-acquired');
+
+                // Animate glow effect using DOM
+                childEl.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.6s';
+                childEl.style.transform = `translate(-50%, -50%) scale(1.3)`;
+                childEl.style.boxShadow = `0 0 40px rgba(212, 175, 55, 0.8), 0 0 80px rgba(212, 175, 55, 0.4)`;
+
+                const icon = childEl.querySelector('.node-icon');
+                if (icon) {
+                    icon.style.transition = 'color 0.6s, transform 0.6s';
+                    icon.style.color = '#FFF';
+                    icon.style.transform = 'scale(1.2)';
+                }
+
+                // Sped up glow from 1000ms back to 500ms to keep it dynamic since we have more animations coming
+                await new Promise(r => setTimeout(r, 500));
+
+                // Settle down
+                childEl.style.transform = `translate(-50%, -50%) scale(1)`;
+                childEl.style.boxShadow = `0 0 15px rgba(212, 175, 55, 0.4)`;
+                if (icon) {
+                    icon.style.color = '#D4AF37';
+                    icon.style.transform = 'scale(1)';
+                }
+
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            // 5. Unlocked Grandchildren Animations (Red Chains)
+            if (child.children && child.children.length > 0) {
+                const childPos = new THREE.Vector3(child.x, child.y, 0);
+                const grandChildTweens = [];
+
+                child.children.forEach(grandchildId => {
+                    const newRedChain = createSingleChain(childId, grandchildId);
+                    if (newRedChain) {
+                        const targetAnchors = newRedChain.links.map(l => l.anchor.clone());
+
+                        newRedChain.links.forEach((link) => {
+                            link.pos.copy(childPos);
+                            link.oldPos.copy(childPos);
+                            link.anchor.copy(childPos);
+                        });
+
+                        // Launch red chains concurrently
+                        const pTween = tween(800, (p) => {
+                            newRedChain.links.forEach((link, i) => {
+                                link.anchor.lerpVectors(childPos, targetAnchors[i], p);
+                                if (link.isPinned) {
+                                    link.pos.copy(link.anchor);
+                                    link.oldPos.copy(link.anchor);
+                                }
+                            });
+                        });
+                        grandChildTweens.push(pTween);
+                    }
+                });
+
+                // Wait for all red chains to launch
+                await Promise.all(grandChildTweens);
+
+                // Pop the nodes to signify unlock
+                child.children.forEach(grandchildId => {
+                    const gcEl = document.querySelector(`.node-base[data-id="${grandchildId}"]`);
+                    if (gcEl) {
+                        gcEl.classList.remove('node-locked');
+                        gcEl.classList.add('node-available');
+
+                        gcEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                        gcEl.style.transform = `translate(-50%, -50%) scale(1.15)`;
+
+                        setTimeout(() => {
+                            gcEl.style.transform = `translate(-50%, -50%) scale(1)`;
+                        }, 300);
+                    }
+                });
+
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            // Re-enable interaction
+            viewport.style.pointerEvents = 'auto';
         }
 
         // --- Bottom Sheet Interaction ---
@@ -781,13 +989,17 @@
                 });
 
                 if (response.ok) {
-                    // Update Local State visually
-                    node.acquired = true;
-                    renderNodes();
-                    renderLines();
                     bottomSheet.classList.remove('open');
-                    // In a real app we might reload or update funds dynamically
-                    window.location.reload();
+                    await playUpgradeAnimation(selectedNodeId);
+
+                    // Update local state without reloading
+                    node.acquired = true;
+                    guildFunds -= node.cost;
+
+                    // Re-render nodes to update the UI correctly, but skip renderLines
+                    // because playUpgradeAnimation already created the new chain properly,
+                    // and calling renderLines here would recreate all chains again, snapping their physics.
+                    renderNodes();
                 } else {
                     const data = await response.json();
                     const err = document.getElementById('error-msg');
