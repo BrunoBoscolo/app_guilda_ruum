@@ -148,8 +148,9 @@
         /* Fixed Headers & Nav */
         #back-btn {
             position: fixed;
-            top: env(safe-area-inset-top, 20px);
-            left: 20px;
+            top: 24px;
+            top: calc(env(safe-area-inset-top, 0px) + 24px);
+            left: 24px;
             z-index: 50;
             background: rgba(0,0,0,0.5);
             border: 1px solid #D4AF37;
@@ -161,6 +162,26 @@
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(4px);
+        }
+
+        #funds-display {
+            position: fixed;
+            top: 24px;
+            top: calc(env(safe-area-inset-top, 0px) + 24px);
+            right: 24px;
+            z-index: 50;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #D4AF37;
+            color: #D4AF37;
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
     </style>
 
@@ -180,6 +201,12 @@
     <a href="{% url 'construcoes' %}" id="back-btn">
         <span class="material-icons-round">arrow_back</span>
     </a>
+
+    <!-- Funds Display -->
+    <div id="funds-display">
+        <span class="material-icons-round" style="font-size: 1.2rem;">savings</span>
+        <span id="funds-amount">T$ 0.00</span>
+    </div>
 
     <canvas id="three-canvas"></canvas>
 
@@ -246,6 +273,13 @@
         let guildFunds = parseFloat("{{ guild.funds|stringformat:'f' }}");
         const guildId = {{ guild.id }};
         const csrfToken = "{{ csrf_token }}";
+
+        function updateFundsDisplay() {
+            const fundsEl = document.getElementById('funds-amount');
+            if (fundsEl) {
+                fundsEl.innerText = `T$ ${guildFunds.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
+        }
 
         let buildings = JSON.parse(document.getElementById('buildings-data').textContent);
         let upgrades = JSON.parse(document.getElementById('upgrades-data').textContent);
@@ -995,6 +1029,7 @@
                     // Update local state without reloading
                     node.acquired = true;
                     guildFunds -= node.cost;
+                    updateFundsDisplay();
 
                     // Re-render nodes to update the UI correctly, but skip renderLines
                     // because playUpgradeAnimation already created the new chain properly,
@@ -1016,6 +1051,7 @@
 
         // Initialize
         initTree();
+        updateFundsDisplay();
         viewport.style.cursor = 'grab';
         animate();
 
