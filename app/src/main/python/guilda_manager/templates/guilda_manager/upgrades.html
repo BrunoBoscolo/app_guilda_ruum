@@ -766,17 +766,29 @@
                 updateTransform();
             });
 
-            // 2. Grey Chain Falls Off
+            // 2. Grey Chains Fall Off (Target chain AND its newly unlocked children's chains)
             const oldChainIndex = chainMeshes.findIndex(c => c.parentId === parentId && c.childId === childId);
+            let anyFell = false;
             if (oldChainIndex !== -1) {
                 const oldChain = chainMeshes[oldChainIndex];
-                // Unpin all links so it falls
-                oldChain.links.forEach(link => {
-                    link.isPinned = false;
-                });
+                oldChain.links.forEach(link => link.isPinned = false);
+                anyFell = true;
+            }
 
-                // Wait 1.5 seconds for it to start falling, but do not delete it here.
-                // We let it continue falling out of the screen indefinitely while the animation proceeds.
+            // Also find and drop any chains connecting the newly acquired child to its children (the grandchildren)
+            if (child.children && child.children.length > 0) {
+                child.children.forEach(grandchildId => {
+                    const gcOldChainIndex = chainMeshes.findIndex(c => c.parentId === childId && c.childId === grandchildId);
+                    if (gcOldChainIndex !== -1) {
+                        const gcOldChain = chainMeshes[gcOldChainIndex];
+                        gcOldChain.links.forEach(link => link.isPinned = false);
+                        anyFell = true;
+                    }
+                });
+            }
+
+            if (anyFell) {
+                // Wait 1.5 seconds for them to start falling out of the screen indefinitely
                 await new Promise(r => setTimeout(r, 1500));
             }
 
@@ -834,8 +846,8 @@
                     icon.style.transform = 'scale(1.2)';
                 }
 
-                // Slowed down glow from 500ms to 1000ms
-                await new Promise(r => setTimeout(r, 1000));
+                // Sped up glow from 1000ms back to 500ms to keep it dynamic since we have more animations coming
+                await new Promise(r => setTimeout(r, 500));
 
                 // Settle down
                 childEl.style.transform = `translate(-50%, -50%) scale(1)`;
@@ -845,7 +857,58 @@
                     icon.style.transform = 'scale(1)';
                 }
 
-                // Increased wait from 300ms to 500ms
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            // 5. Unlocked Grandchildren Animations (Red Chains)
+            if (child.children && child.children.length > 0) {
+                const childPos = new THREE.Vector3(child.x, child.y, 0);
+                const grandChildTweens = [];
+
+                child.children.forEach(grandchildId => {
+                    const newRedChain = createSingleChain(childId, grandchildId);
+                    if (newRedChain) {
+                        const targetAnchors = newRedChain.links.map(l => l.anchor.clone());
+
+                        newRedChain.links.forEach((link) => {
+                            link.pos.copy(childPos);
+                            link.oldPos.copy(childPos);
+                            link.anchor.copy(childPos);
+                        });
+
+                        // Launch red chains concurrently
+                        const pTween = tween(800, (p) => {
+                            newRedChain.links.forEach((link, i) => {
+                                link.anchor.lerpVectors(childPos, targetAnchors[i], p);
+                                if (link.isPinned) {
+                                    link.pos.copy(link.anchor);
+                                    link.oldPos.copy(link.anchor);
+                                }
+                            });
+                        });
+                        grandChildTweens.push(pTween);
+                    }
+                });
+
+                // Wait for all red chains to launch
+                await Promise.all(grandChildTweens);
+
+                // Pop the nodes to signify unlock
+                child.children.forEach(grandchildId => {
+                    const gcEl = document.querySelector(`.node-base[data-id="${grandchildId}"]`);
+                    if (gcEl) {
+                        gcEl.classList.remove('node-locked');
+                        gcEl.classList.add('node-available');
+
+                        gcEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                        gcEl.style.transform = `translate(-50%, -50%) scale(1.15)`;
+
+                        setTimeout(() => {
+                            gcEl.style.transform = `translate(-50%, -50%) scale(1)`;
+                        }, 300);
+                    }
+                });
+
                 await new Promise(r => setTimeout(r, 500));
             }
 
