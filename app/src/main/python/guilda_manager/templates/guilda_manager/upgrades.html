@@ -473,6 +473,10 @@
             for (let i = 0; i < numLinks; i++) {
                 const t = i / (numLinks - 1);
                 curve.getPoint(t, point);
+                // Give some horizontal sag as well so perfectly vertical chains don't buckle into themselves
+                // We use a larger horizontal offset (30.0) combined with a random perturbation
+                // so the physics solver is forced to push the extra slack sideways rather than crumpling vertically.
+                point.x += (Math.sin(t * Math.PI) * 30.0) + ((Math.random() - 0.5) * 10.0);
                 point.y += Math.sin(t * Math.PI) * 10.0;
                 links.push({
                     pos: point.clone(),
@@ -632,6 +636,11 @@
 
                         // pos += velocity + acceleration * dt * dt
                         const accelOffset = new THREE.Vector3().copy(totalAccel).multiplyScalar(dt * dt);
+
+                        // Add a tiny bit of continuous horizontal noise to prevent perfectly vertical
+                        // chains from finding a stable overlapping equilibrium where delta.x = 0
+                        accelOffset.x += (Math.random() - 0.5) * 0.5;
+
                         link.pos.add(velocity).add(accelOffset);
                     } else {
                         // Keep pinned links exactly at their anchor
