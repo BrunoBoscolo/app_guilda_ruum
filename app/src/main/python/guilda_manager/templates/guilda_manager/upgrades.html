@@ -56,6 +56,16 @@
             z-index: 10;
         }
 
+        #three-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
         #tree-container {
             position: absolute;
             transform-origin: 0 0;
@@ -103,81 +113,6 @@
 
         .node-locked .node-icon {
             color: #555;
-        }
-
-        svg.connections {
-            position: absolute;
-            /* Give it a huge arbitrary size and position to prevent 0x0 bounding box clipping */
-            top: -2000px;
-            left: -2000px;
-            width: 4000px;
-            height: 4000px;
-            overflow: visible;
-            pointer-events: none; /* Let clicks pass through */
-            z-index: 15;
-        }
-
-        /* Shift the paths by +2000px to counter the svg container shift */
-        svg.connections g.main-group {
-            transform: translate(2000px, 2000px);
-        }
-
-        .tube-bg {
-            fill: none;
-            stroke: #2a2a2a;
-            stroke-width: 16;
-            stroke-linecap: round;
-            filter: drop-shadow(0 0 8px rgba(0,0,0,0.9));
-        }
-
-        .tube-inner {
-            fill: none;
-            stroke: #0F0C0C;
-            stroke-width: 10;
-            stroke-linecap: round;
-        }
-
-        .liquid {
-            fill: none;
-            stroke-width: 6;
-            stroke-linecap: round;
-        }
-
-        .liquid-acquired {
-            stroke: #D4AF37;
-            stroke-dasharray: 15, 10;
-            animation: flow 1s linear infinite reverse;
-            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.8));
-        }
-
-        .liquid-available {
-            stroke: #8B1E1E;
-            stroke-dasharray: 10, 15;
-            animation: flow 2s linear infinite reverse;
-            filter: drop-shadow(0 0 5px rgba(139, 30, 30, 0.6));
-        }
-
-        .liquid-locked {
-            stroke: #333;
-            stroke-dasharray: 5, 20;
-            opacity: 0.5;
-        }
-
-        .tube-highlight {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.15);
-            stroke-width: 2;
-            stroke-linecap: round;
-            transform: translate(-2px, -2px);
-        }
-
-        @keyframes flow {
-            from {
-                stroke-dashoffset: 25;
-            }
-            to {
-                stroke-dashoffset: 0;
-            }
         }
 
         /* Bottom Sheet */
@@ -228,6 +163,16 @@
             backdrop-filter: blur(4px);
         }
     </style>
+
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
 </head>
 <body class="text-ivory">
 
@@ -236,10 +181,11 @@
         <span class="material-icons-round">arrow_back</span>
     </a>
 
+    <canvas id="three-canvas"></canvas>
+
     <!-- Viewport for pan/zoom -->
     <div id="viewport">
         <div id="tree-container">
-            <svg class="connections" id="connections-svg"></svg>
             <div id="nodes-container"></div>
         </div>
     </div>
@@ -294,7 +240,9 @@
     {{ buildings_json|json_script:"buildings-data" }}
     {{ upgrades_json|json_script:"upgrades-data" }}
 
-    <script>
+    <script type="module">
+        import * as THREE from 'three';
+
         const guildFunds = parseFloat("{{ guild.funds|stringformat:'f' }}");
         const guildId = {{ guild.id }};
         const csrfToken = "{{ csrf_token }}";
@@ -304,11 +252,11 @@
 
         const treeContainer = document.getElementById('tree-container');
         const nodesContainer = document.getElementById('nodes-container');
-        const svgContainer = document.getElementById('connections-svg');
         const viewport = document.getElementById('viewport');
         const bottomSheet = document.getElementById('bottom-sheet');
         const closeBtn = document.getElementById('close-sheet');
         const actionBtn = document.getElementById('action-btn');
+        const canvas = document.getElementById('three-canvas');
 
         let isDragging = false;
         let startX, startY;
@@ -324,6 +272,29 @@
         const X_SPACING = 150;
         const Y_SPACING = -150; // Negative because Y goes down in DOM, we want tree to go up
         const START_Y = window.innerHeight * 0.8; // Start near bottom
+
+        // Three.js Setup
+        const scene = new THREE.Scene();
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Use OrthographicCamera to perfectly map to 2D DOM coordinates
+        const camera = new THREE.OrthographicCamera(
+            0, window.innerWidth, // left, right
+            0, window.innerHeight, // top, bottom
+            0.1, 1000
+        );
+        camera.position.z = 100;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(0, 0, 10);
+        scene.add(dirLight);
+
+        let chainMeshes = [];
 
         function initTree() {
             // Process data
@@ -430,8 +401,26 @@
         }
 
         function renderLines() {
-            // Using a <g> tag ensures we can translate all lines easily
-            let svgHtml = '<g class="main-group">';
+            // Clear existing chain meshes
+            chainMeshes.forEach(mesh => scene.remove(mesh.mesh));
+            chainMeshes = [];
+
+            const chainLinkGeo = new THREE.TorusGeometry(5, 1.5, 8, 16);
+            // Deform horizontally to mimic a U-shaped chain link
+            chainLinkGeo.scale(1, 1.5, 1);
+
+            // Materials for different states
+            const matLocked = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const matAvailable = new THREE.MeshStandardMaterial({
+                color: 0x8B1E1E,
+                emissive: 0x8B1E1E,
+                emissiveIntensity: 0.5
+            });
+            const matAcquired = new THREE.MeshStandardMaterial({
+                color: 0xD4AF37,
+                emissive: 0xD4AF37,
+                emissiveIntensity: 0.8
+            });
 
             Object.keys(nodes).forEach(parentId => {
                 const parent = nodes[parentId];
@@ -440,46 +429,120 @@
                 parent.children.forEach(childId => {
                     const child = nodes[childId];
 
-                    // Bezier curve
                     const startX = parent.x;
                     const startY = parent.y;
                     const endX = child.x;
                     const endY = child.y;
 
-                    // Control points for curve
                     const cp1Y = startY + (endY - startY) / 2;
                     const cp2Y = startY + (endY - startY) / 2;
 
-                    let liquidClass = 'liquid liquid-locked';
+                    let material = matLocked;
+                    let state = 'locked';
                     if (child.acquired) {
-                        liquidClass = 'liquid liquid-acquired';
+                        material = matAcquired;
+                        state = 'acquired';
                     } else if (parent.acquired) {
-                        liquidClass = 'liquid liquid-available';
+                        material = matAvailable;
+                        state = 'available';
                     }
 
-                    const pathD = `M ${startX} ${startY} C ${startX} ${cp1Y}, ${endX} ${cp2Y}, ${endX} ${endY}`;
+                    // For the 3D scene, Y goes UP. But in our DOM, Y goes DOWN.
+                    // We can just flip the Y coordinates when mapping to 3D.
+                    // Actually, OrthographicCamera maps properly if we just draw them where they are.
+                    // Wait, in OrthographicCamera with top=0, bottom=h, Y increases downwards!
+                    // So we can use the same coordinates.
+                    const curve = new THREE.CubicBezierCurve3(
+                        new THREE.Vector3(startX, startY, 0),
+                        new THREE.Vector3(startX, cp1Y, 0),
+                        new THREE.Vector3(endX, cp2Y, 0),
+                        new THREE.Vector3(endX, endY, 0)
+                    );
 
-                    svgHtml += `
-                        <g class="tube-group">
-                            <path d="${pathD}" class="tube-bg" />
-                            <path d="${pathD}" class="tube-inner" />
-                            <path d="${pathD}" class="${liquidClass}" />
-                            <path d="${pathD}" class="tube-highlight" />
-                        </g>
-                    `;
+                    const chainLength = curve.getLength();
+                    const numLinks = Math.floor(chainLength / 8); // Spacing between links
+
+                    const instancedMesh = new THREE.InstancedMesh(chainLinkGeo, material.clone(), numLinks);
+                    instancedMesh.userData = { state: state, baseIntensity: material.emissiveIntensity, timeOffset: Math.random() * Math.PI * 2 };
+
+                    const dummy = new THREE.Object3D();
+                    const point = new THREE.Vector3();
+                    const tangent = new THREE.Vector3();
+                    const up = new THREE.Vector3(0, 1, 0);
+
+                    for (let i = 0; i < numLinks; i++) {
+                        const t = i / (numLinks - 1);
+                        curve.getPoint(t, point);
+                        curve.getTangent(t, tangent);
+
+                        dummy.position.copy(point);
+
+                        // Align chain link along the curve
+                        dummy.quaternion.setFromUnitVectors(up, tangent);
+
+                        // Rotate alternate links 90 degrees around the tangent axis to interlock them
+                        if (i % 2 === 0) {
+                            dummy.rotateOnAxis(up, Math.PI / 2);
+                        }
+
+                        dummy.updateMatrix();
+                        instancedMesh.setMatrixAt(i, dummy.matrix);
+                    }
+
+                    instancedMesh.instanceMatrix.needsUpdate = true;
+                    scene.add(instancedMesh);
+
+                    // Initialize independent physics links
+                    const linkSpacing = chainLength / (numLinks - 1);
+                    const slack = 1.1; // 10% slack
+                    const restingDistance = linkSpacing * slack;
+
+                    let links = [];
+                    for (let i = 0; i < numLinks; i++) {
+                        const t = i / (numLinks - 1);
+                        curve.getPoint(t, point);
+                        // Add a tiny bit of initial sag to help the solver
+                        point.y += Math.sin(t * Math.PI) * 10.0;
+                        links.push({
+                            pos: point.clone(),
+                            oldPos: point.clone(),
+                            isPinned: (i === 0 || i === numLinks - 1),
+                            // Pinned links need to know where they are anchored
+                            anchor: point.clone()
+                        });
+                    }
+
+                    // Save data for animation
+                    chainMeshes.push({
+                        mesh: instancedMesh,
+                        links: links,
+                        numLinks: numLinks,
+                        restingDistance: restingDistance
+                    });
                 });
             });
-
-            svgHtml += '</g>';
-            svgContainer.innerHTML = svgHtml;
-
-            // To be 100% safe with SVG parsing in innerHTML across browsers:
-            // Since it's already working in Chromium based on tests, the missing link was sizing/colors.
         }
 
         // --- Viewport Interaction ---
         function updateTransform() {
             treeContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+
+            // Update camera to match DOM transform
+            // The camera's left/right/top/bottom need to be adjusted based on pan and zoom
+            // By default left=0, top=0.
+            // When we translate by (tx, ty), the top-left of the DOM moves to tx, ty.
+            // This means the coordinate 0,0 in the DOM is now at tx,ty on screen.
+            // So the camera's left edge should map to -tx / scale.
+
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+
+            camera.left = -translateX / scale;
+            camera.right = (w - translateX) / scale;
+            camera.top = -translateY / scale;
+            camera.bottom = (h - translateY) / scale;
+
+            camera.updateProjectionMatrix();
         }
 
         viewport.addEventListener('pointerdown', (e) => {
@@ -510,6 +573,140 @@
             scale = newScale;
             updateTransform();
         });
+
+        // Window resize
+        window.addEventListener('resize', () => {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            renderer.setSize(w, h);
+            updateTransform();
+        });
+
+        // Animation Loop for pulsing glow and physics swinging
+        const clock = new THREE.Clock();
+
+        // Physics state for the camera/DOM movement
+        let lastTx = translateX;
+        let lastTy = translateY;
+
+        // Global Physics Constants
+        const gravity = new THREE.Vector3(0, 600.0, 0); // Downward force (Y is down in DOM)
+        const friction = 0.98; // Air resistance / damping
+        const subSteps = 10; // Constraint solver iterations for stability
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+            // Cap dt to prevent massive jumps if tab is backgrounded
+            const dt = Math.min(clock.getDelta() || 0.016, 0.033);
+            const stepDt = dt / subSteps;
+
+            // Calculate pan/drag acceleration
+            const deltaTx = translateX - lastTx;
+            const deltaTy = translateY - lastTy;
+            lastTx = translateX;
+            lastTy = translateY;
+
+            // When user pans, the camera moves. We apply a counter-acceleration to the links
+            // to make them swing/lag realistically.
+            const dragAccel = new THREE.Vector3(-deltaTx * 100.0, -deltaTy * 100.0, 0);
+
+            const totalAccel = new THREE.Vector3().addVectors(gravity, dragAccel);
+
+            const dummy = new THREE.Object3D();
+            const up = new THREE.Vector3(0, 1, 0);
+            const tangent = new THREE.Vector3();
+
+            chainMeshes.forEach(chainData => {
+                const mesh = chainData.mesh;
+                const links = chainData.links;
+                const numLinks = chainData.numLinks;
+                const restDist = chainData.restingDistance;
+
+                // 1. Emissive Pulsing
+                if (mesh.material.emissiveIntensity !== undefined) {
+                    const state = mesh.userData.state;
+                    if (state === 'available' || state === 'acquired') {
+                        const speed = state === 'available' ? 4.0 : 2.0;
+                        const base = mesh.userData.baseIntensity;
+                        mesh.material.emissiveIntensity = base * (Math.sin(time * speed + mesh.userData.timeOffset) * 0.4 + 1.0);
+                    }
+                }
+
+                // 2. Verlet Integration Step
+                for (let i = 0; i < numLinks; i++) {
+                    const link = links[i];
+                    if (!link.isPinned) {
+                        const velocity = new THREE.Vector3().subVectors(link.pos, link.oldPos);
+                        velocity.multiplyScalar(friction); // apply damping
+
+                        link.oldPos.copy(link.pos);
+
+                        // pos += velocity + acceleration * dt * dt
+                        const accelOffset = new THREE.Vector3().copy(totalAccel).multiplyScalar(dt * dt);
+                        link.pos.add(velocity).add(accelOffset);
+                    } else {
+                        // Keep pinned links exactly at their anchor
+                        link.pos.copy(link.anchor);
+                        link.oldPos.copy(link.anchor);
+                    }
+                }
+
+                // 3. Distance Constraint Solver (iterative)
+                for (let step = 0; step < subSteps; step++) {
+                    for (let i = 0; i < numLinks - 1; i++) {
+                        const p1 = links[i];
+                        const p2 = links[i + 1];
+
+                        const delta = new THREE.Vector3().subVectors(p2.pos, p1.pos);
+                        const dist = delta.length();
+
+                        // Prevent division by zero
+                        if (dist > 0.001) {
+                            const diff = (dist - restDist) / dist;
+                            // Move each point half the distance (unless pinned)
+                            const offset = delta.multiplyScalar(0.5 * diff);
+
+                            if (!p1.isPinned) {
+                                p1.pos.add(offset);
+                            }
+                            if (!p2.isPinned) {
+                                p2.pos.sub(offset);
+                            }
+                        }
+                    }
+                }
+
+                // 4. Update InstancedMesh matrices
+                for (let i = 0; i < numLinks; i++) {
+                    const link = links[i];
+
+                    // Calculate tangent for rotation
+                    if (i < numLinks - 1) {
+                        tangent.subVectors(links[i+1].pos, link.pos).normalize();
+                    } else if (i > 0) {
+                        tangent.subVectors(link.pos, links[i-1].pos).normalize();
+                    } else {
+                        tangent.set(0, 1, 0); // fallback
+                    }
+
+                    dummy.position.copy(link.pos);
+                    dummy.quaternion.setFromUnitVectors(up, tangent);
+
+                    // Alternate links rotate 90 degrees to interlock
+                    if (i % 2 === 0) {
+                        dummy.rotateOnAxis(up, Math.PI / 2);
+                    }
+
+                    dummy.updateMatrix();
+                    mesh.setMatrixAt(i, dummy.matrix);
+                }
+                mesh.instanceMatrix.needsUpdate = true;
+            });
+
+            renderer.render(scene, camera);
+        }
 
         // --- Bottom Sheet Interaction ---
         let selectedNodeId = null;
@@ -608,13 +805,8 @@
         // Initialize
         initTree();
         viewport.style.cursor = 'grab';
+        animate();
 
-        // Fix SVG resizing
-        function resizeSVG() {
-             svgContainer.style.width = '2000px'; // Arbitrary large size
-             svgContainer.style.height = '2000px';
-             svgContainer.style.transform = `translate(-1000px, -1000px)`; // Center the arbitrary large size
-        }
     </script>
 </body>
 </html>
