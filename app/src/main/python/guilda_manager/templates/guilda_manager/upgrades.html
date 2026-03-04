@@ -781,12 +781,9 @@
                     link.isPinned = false;
                 });
 
-                // Wait for it to fall out of view. Increased from 600ms to 1500ms
+                // Wait 1.5 seconds for it to start falling, but do not delete it here.
+                // We let it continue falling out of the screen indefinitely while the animation proceeds.
                 await new Promise(r => setTimeout(r, 1500));
-
-                // Remove the old chain completely
-                scene.remove(oldChain.mesh);
-                chainMeshes.splice(oldChainIndex, 1);
             }
 
             // 3. Launch Yellow Chain
@@ -794,12 +791,26 @@
             nodes[childId].acquired = true;
 
             // Call renderLines to create the new chain.
-            // Warning: renderLines clears ALL chainMeshes. We need to preserve the others or just let them rerender.
-            // Since letting them rerender is fine (they jump to correct spots), we just do it.
+            // Warning: renderLines clears ALL chainMeshes.
+            // However, we want the old unpinned chain to continue simulating and falling.
+            // So we must temporarily store the old chain, call renderLines, and then add the old chain back.
+
+            let oldChainReference = null;
+            if (oldChainIndex !== -1) {
+                oldChainReference = chainMeshes[oldChainIndex];
+            }
+
             renderLines();
 
-            // Find the new chain
-            const newChain = chainMeshes.find(c => c.parentId === parentId && c.childId === childId);
+            // Put the falling chain back in the active array so it keeps getting simulated and rendered
+            if (oldChainReference) {
+                scene.add(oldChainReference.mesh); // renderLines() might have removed it from the scene
+                chainMeshes.push(oldChainReference);
+            }
+
+            // Find the new gold chain (the last one added by renderLines, excluding the falling one)
+            // It will have the same parent/child ID but we need the newly generated one, which is pinned initially.
+            const newChain = chainMeshes.find(c => c.parentId === parentId && c.childId === childId && c !== oldChainReference);
             if (newChain) {
                 // Store actual anchors and set everything to parent pos
                 const targetAnchors = newChain.links.map(l => l.anchor.clone());
