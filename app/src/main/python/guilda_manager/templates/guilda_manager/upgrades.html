@@ -753,7 +753,7 @@
             // Target transform to center the midpoint
             const w = window.innerWidth;
             const h = window.innerHeight;
-            const targetScale = 1.2;
+            const targetScale = 0.8; // Decreased from 1.2 to be less zoomed in
             const targetTx = (w / 2) - (midX * targetScale);
             const targetTy = (h / 2) - (midY * targetScale);
 
@@ -764,7 +764,8 @@
             // Disable interaction
             viewport.style.pointerEvents = 'none';
 
-            await tween(800, (p) => {
+            // Slowed down zoom/pan from 800ms to 1200ms
+            await tween(1200, (p) => {
                 translateX = startTx + (targetTx - startTx) * p;
                 translateY = startTy + (targetTy - startTy) * p;
                 scale = startScale + (targetScale - startScale) * p;
@@ -780,8 +781,8 @@
                     link.isPinned = false;
                 });
 
-                // Wait for it to fall
-                await new Promise(r => setTimeout(r, 600));
+                // Wait for it to fall out of view. Increased from 600ms to 1500ms
+                await new Promise(r => setTimeout(r, 1500));
 
                 // Remove the old chain completely
                 scene.remove(oldChain.mesh);
@@ -810,8 +811,8 @@
                     link.anchor.copy(parentPos);
                 });
 
-                // Animate anchors shooting out
-                await tween(600, (p) => {
+                // Animate anchors shooting out, slowed down from 600ms to 1000ms
+                await tween(1000, (p) => {
                     newChain.links.forEach((link, i) => {
                         // Linear interpolation of anchor
                         link.anchor.lerpVectors(parentPos, targetAnchors[i], p);
@@ -822,6 +823,9 @@
                         }
                     });
                 });
+
+                // Extra time for chain to settle visually
+                await new Promise(r => setTimeout(r, 400));
             }
 
             // 4. Node Glow
@@ -831,18 +835,19 @@
                 childEl.classList.add('node-acquired');
 
                 // Animate glow effect using DOM
-                childEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s';
+                childEl.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.6s';
                 childEl.style.transform = `translate(-50%, -50%) scale(1.3)`;
                 childEl.style.boxShadow = `0 0 40px rgba(212, 175, 55, 0.8), 0 0 80px rgba(212, 175, 55, 0.4)`;
 
                 const icon = childEl.querySelector('.node-icon');
                 if (icon) {
-                    icon.style.transition = 'color 0.3s, transform 0.3s';
+                    icon.style.transition = 'color 0.6s, transform 0.6s';
                     icon.style.color = '#FFF';
                     icon.style.transform = 'scale(1.2)';
                 }
 
-                await new Promise(r => setTimeout(r, 500));
+                // Slowed down glow from 500ms to 1000ms
+                await new Promise(r => setTimeout(r, 1000));
 
                 // Settle down
                 childEl.style.transform = `translate(-50%, -50%) scale(1)`;
@@ -852,7 +857,8 @@
                     icon.style.transform = 'scale(1)';
                 }
 
-                await new Promise(r => setTimeout(r, 300));
+                // Increased wait from 300ms to 500ms
+                await new Promise(r => setTimeout(r, 500));
             }
 
             // Re-enable interaction
