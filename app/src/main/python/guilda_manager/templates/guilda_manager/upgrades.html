@@ -514,6 +514,8 @@
 
                     // Save data for animation
                     chainMeshes.push({
+                        parentId: parentId,
+                        childId: childId,
                         mesh: instancedMesh,
                         links: links,
                         numLinks: numLinks,
@@ -708,6 +710,155 @@
             renderer.render(scene, camera);
         }
 
+        // --- Animation Logic ---
+        function tween(duration, onUpdate, onComplete) {
+            return new Promise(resolve => {
+                const startTime = performance.now();
+                function step(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // Ease-in-out cubic
+                    const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                    onUpdate(ease);
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        if (onComplete) onComplete();
+                        resolve();
+                    }
+                }
+                requestAnimationFrame(step);
+            });
+        }
+
+        async function playUpgradeAnimation(childId) {
+            // Find parent
+            let parentId = null;
+            for (const pid in nodes) {
+                if (nodes[pid].children && nodes[pid].children.includes(childId)) {
+                    parentId = pid;
+                    break;
+                }
+            }
+            if (!parentId) return;
+
+            const parent = nodes[parentId];
+            const child = nodes[childId];
+
+            // 1. Zoom & Pan
+            // Calculate midpoint
+            const midX = (parent.x + child.x) / 2;
+            const midY = (parent.y + child.y) / 2;
+
+            // Target transform to center the midpoint
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const targetScale = 1.2;
+            const targetTx = (w / 2) - (midX * targetScale);
+            const targetTy = (h / 2) - (midY * targetScale);
+
+            const startTx = translateX;
+            const startTy = translateY;
+            const startScale = scale;
+
+            // Disable interaction
+            viewport.style.pointerEvents = 'none';
+
+            await tween(800, (p) => {
+                translateX = startTx + (targetTx - startTx) * p;
+                translateY = startTy + (targetTy - startTy) * p;
+                scale = startScale + (targetScale - startScale) * p;
+                updateTransform();
+            });
+
+            // 2. Grey Chain Falls Off
+            const oldChainIndex = chainMeshes.findIndex(c => c.parentId === parentId && c.childId === childId);
+            if (oldChainIndex !== -1) {
+                const oldChain = chainMeshes[oldChainIndex];
+                // Unpin all links so it falls
+                oldChain.links.forEach(link => {
+                    link.isPinned = false;
+                });
+
+                // Wait for it to fall
+                await new Promise(r => setTimeout(r, 600));
+
+                // Remove the old chain completely
+                scene.remove(oldChain.mesh);
+                chainMeshes.splice(oldChainIndex, 1);
+            }
+
+            // 3. Launch Yellow Chain
+            // Temporarily set acquired to generate gold chain
+            nodes[childId].acquired = true;
+
+            // Call renderLines to create the new chain.
+            // Warning: renderLines clears ALL chainMeshes. We need to preserve the others or just let them rerender.
+            // Since letting them rerender is fine (they jump to correct spots), we just do it.
+            renderLines();
+
+            // Find the new chain
+            const newChain = chainMeshes.find(c => c.parentId === parentId && c.childId === childId);
+            if (newChain) {
+                // Store actual anchors and set everything to parent pos
+                const targetAnchors = newChain.links.map(l => l.anchor.clone());
+                const parentPos = new THREE.Vector3(parent.x, parent.y, 0);
+
+                newChain.links.forEach((link, i) => {
+                    link.pos.copy(parentPos);
+                    link.oldPos.copy(parentPos);
+                    link.anchor.copy(parentPos);
+                });
+
+                // Animate anchors shooting out
+                await tween(600, (p) => {
+                    newChain.links.forEach((link, i) => {
+                        // Linear interpolation of anchor
+                        link.anchor.lerpVectors(parentPos, targetAnchors[i], p);
+                        // Pinning makes the verlet integration pull the chain tightly to the anchor
+                        if (link.isPinned) {
+                            link.pos.copy(link.anchor);
+                            link.oldPos.copy(link.anchor);
+                        }
+                    });
+                });
+            }
+
+            // 4. Node Glow
+            const childEl = document.querySelector(`.node-base[data-id="${childId}"]`);
+            if (childEl) {
+                childEl.classList.remove('node-locked', 'node-available');
+                childEl.classList.add('node-acquired');
+
+                // Animate glow effect using DOM
+                childEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s';
+                childEl.style.transform = `translate(-50%, -50%) scale(1.3)`;
+                childEl.style.boxShadow = `0 0 40px rgba(212, 175, 55, 0.8), 0 0 80px rgba(212, 175, 55, 0.4)`;
+
+                const icon = childEl.querySelector('.node-icon');
+                if (icon) {
+                    icon.style.transition = 'color 0.3s, transform 0.3s';
+                    icon.style.color = '#FFF';
+                    icon.style.transform = 'scale(1.2)';
+                }
+
+                await new Promise(r => setTimeout(r, 500));
+
+                // Settle down
+                childEl.style.transform = `translate(-50%, -50%) scale(1)`;
+                childEl.style.boxShadow = `0 0 15px rgba(212, 175, 55, 0.4)`;
+                if (icon) {
+                    icon.style.color = '#D4AF37';
+                    icon.style.transform = 'scale(1)';
+                }
+
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            // Re-enable interaction
+            viewport.style.pointerEvents = 'auto';
+        }
+
         // --- Bottom Sheet Interaction ---
         let selectedNodeId = null;
 
@@ -781,12 +932,9 @@
                 });
 
                 if (response.ok) {
-                    // Update Local State visually
-                    node.acquired = true;
-                    renderNodes();
-                    renderLines();
                     bottomSheet.classList.remove('open');
-                    // In a real app we might reload or update funds dynamically
+                    await playUpgradeAnimation(selectedNodeId);
+                    // Reload to update backend state
                     window.location.reload();
                 } else {
                     const data = await response.json();
