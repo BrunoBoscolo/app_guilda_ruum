@@ -55,3 +55,36 @@ class UpgradeTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = json.loads(response.content)
         self.assertIn("Fundos insuficientes", content['non_field_errors'][0])
+
+    def test_purchase_upgrade_failure_already_owned(self):
+        # Purchase it once
+        GuildUpgrade.objects.create(guild=self.guild, upgrade=self.upgrade1)
+
+        url = reverse('guild-purchase-upgrade', kwargs={'pk': self.guild.id})
+        response = self.client.post(url, {'upgrade_id': self.upgrade1.id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content)
+        self.assertIn("Este upgrade já foi adquirido.", content['non_field_errors'][0])
+
+    def test_purchase_upgrade_failure_missing_building(self):
+        # Create a new guild WITHOUT the building
+        guild2 = Guild.objects.create(name="No Building Guild", funds=10000, level=5)
+        url = reverse('guild-purchase-upgrade', kwargs={'pk': guild2.id})
+        response = self.client.post(url, {'upgrade_id': self.upgrade1.id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content)
+        self.assertIn("Construção requisito não encontrada na guilda.", content['non_field_errors'][0])
+
+    def test_purchase_upgrade_invalid_id(self):
+        url = reverse('guild-purchase-upgrade', kwargs={'pk': self.guild.id})
+        response = self.client.post(url, {'upgrade_id': 9999}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content)
+        self.assertIn("Upgrade not found.", str(content['upgrade_id']))
+
+    def test_purchase_upgrade_missing_id(self):
+        url = reverse('guild-purchase-upgrade', kwargs={'pk': self.guild.id})
+        response = self.client.post(url, {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content)
+        self.assertIn("required", str(content['upgrade_id']))
